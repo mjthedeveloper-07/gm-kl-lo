@@ -245,25 +245,36 @@ const Index = () => {
       return;
     }
 
+    const f3Value = parseInt(extractDigits(cleanDraw, "F3"));
+    const l3Value = parseInt(extractDigits(cleanDraw, "L3"));
     const newPredictions: Prediction[] = [];
 
-    // Run trigonometric formulas
-    TRIG_FORMULAS.forEach((formula) => {
-      const result = applyMathFunction(formula.mathFunction, formula.number);
-      const extracted = extractDigitsFromResult(result, formula.extraction);
+    // Run trigonometric formulas - apply to both F3 and L3
+    TRIG_FORMULAS.forEach((formula, index) => {
+      // Apply to F3 value
+      const f3Result = applyMathFunction(formula.mathFunction, f3Value);
+      const f3Extracted = extractDigitsFromResult(f3Result, formula.extraction);
+
+      // Apply to L3 value
+      const l3Result = applyMathFunction(formula.mathFunction, l3Value);
+      const l3Extracted = extractDigitsFromResult(l3Result, formula.extraction);
+
+      // Combine results
+      const combined = f3Extracted + l3Extracted;
 
       newPredictions.push({
-        label: formula.label,
-        mathFunction: `${formula.mathFunction}(${formula.number})`,
+        label: `T${index + 1}`,
+        mathFunction: `${formula.mathFunction}(F3,L3)`,
         inputNumber: formula.number,
-        result: extracted,
+        result: combined,
         extraction: formula.extraction,
         formulaType: "trig",
+        combinedResult: combined,
         timestamp: new Date()
       });
     });
 
-    // Run arithmetic formulas
+    // Run arithmetic formulas - apply to both F3 and L3
     ARITHMETIC_FORMULAS.forEach((formula, index) => {
       const operationSymbol = {
         multiply: "×",
@@ -272,51 +283,33 @@ const Index = () => {
         subtract: "-"
       }[formula.operation];
 
-      // If formula has both F3 and L3, create a combined 6-digit result
-      if (formula.positions.length === 2 && formula.positions.includes("F3") && formula.positions.includes("L3")) {
-        const f3Extracted = extractDigits(cleanDraw, "F3");
-        const f3Result = performArithmeticOp(f3Extracted, formula.operation, formula.value);
-        const f3Formatted = formatResult(f3Result);
+      // Apply to F3
+      const f3Extracted = extractDigits(cleanDraw, "F3");
+      const f3Result = performArithmeticOp(f3Extracted, formula.operation, formula.value);
+      const f3Formatted = formatResult(f3Result);
 
-        const l3Extracted = extractDigits(cleanDraw, "L3");
-        const l3Result = performArithmeticOp(l3Extracted, formula.operation, formula.value);
-        const l3Formatted = formatResult(l3Result);
+      // Apply to L3
+      const l3Extracted = extractDigits(cleanDraw, "L3");
+      const l3Result = performArithmeticOp(l3Extracted, formula.operation, formula.value);
+      const l3Formatted = formatResult(l3Result);
 
-        const combined = f3Formatted + l3Formatted;
+      // Combine results
+      const combined = f3Formatted + l3Formatted;
 
-        // Add combined 6-digit result
-        newPredictions.push({
-          label: `#${index + 1}`,
-          mathFunction: `${operationSymbol}${formula.value} F3+L3`,
-          inputNumber: formula.value,
-          result: combined,
-          extraction: "F3+L3",
-          formulaType: "arithmetic",
-          combinedResult: combined,
-          timestamp: new Date()
-        });
-      } else {
-        // Single position formula
-        formula.positions.forEach(pos => {
-          const extracted = extractDigits(cleanDraw, pos);
-          const result = performArithmeticOp(extracted, formula.operation, formula.value);
-          const formattedResult = formatResult(result);
-
-          newPredictions.push({
-            label: `#${index + 1}`,
-            mathFunction: `${operationSymbol}${formula.value} ${pos}`,
-            inputNumber: formula.value,
-            result: formattedResult,
-            extraction: pos,
-            formulaType: "arithmetic",
-            timestamp: new Date()
-          });
-        });
-      }
+      newPredictions.push({
+        label: `A${index + 1}`,
+        mathFunction: `${operationSymbol}${formula.value} F3+L3`,
+        inputNumber: formula.value,
+        result: combined,
+        extraction: "F3+L3",
+        formulaType: "arithmetic",
+        combinedResult: combined,
+        timestamp: new Date()
+      });
     });
 
     setPredictions(newPredictions);
-    toast.success(`Generated ${newPredictions.length} predictions (${TRIG_FORMULAS.length} trig + ${ARITHMETIC_FORMULAS.length} arithmetic)`);
+    toast.success(`Generated ${newPredictions.length} 6-digit predictions (all formulas applied to F3+L3)`);
   };
 
   return (
