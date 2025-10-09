@@ -15,6 +15,7 @@ interface Prediction {
   operationValue: number;
   position: string;
   result: string;
+  combinedResult?: string; // For 6-digit results from F3+L3 formulas
   timestamp: Date;
 }
 
@@ -229,30 +230,72 @@ const Index = () => {
     const newPredictions: Prediction[] = [];
 
     PREDEFINED_FORMULAS.forEach((formula) => {
-      formula.positions.forEach(pos => {
-        const extracted = extractDigits(cleanDraw, pos);
-        const result = performOperation(extracted, formula.operation, formula.value);
-        const formattedResult = formatResult(result);
+      const operationSymbol = {
+        multiply: "×",
+        divide: "÷",
+        add: "+",
+        subtract: "-"
+      }[formula.operation];
 
-        const operationSymbol = {
-          multiply: "×",
-          divide: "÷",
-          add: "+",
-          subtract: "-"
-        }[formula.operation];
+      // If formula has both F3 and L3, create a combined 6-digit result
+      if (formula.positions.length === 2 && formula.positions.includes("F3") && formula.positions.includes("L3")) {
+        const f3Extracted = extractDigits(cleanDraw, "F3");
+        const f3Result = performOperation(f3Extracted, formula.operation, formula.value);
+        const f3Formatted = formatResult(f3Result);
 
+        const l3Extracted = extractDigits(cleanDraw, "L3");
+        const l3Result = performOperation(l3Extracted, formula.operation, formula.value);
+        const l3Formatted = formatResult(l3Result);
+
+        const combined = f3Formatted + l3Formatted;
+
+        // Add individual F3 result
         newPredictions.push({
-          operation: `${operationSymbol} ${formula.value} ${pos}`,
+          operation: `${operationSymbol} ${formula.value} F3`,
           operationValue: formula.value,
-          position: pos,
-          result: formattedResult,
+          position: "F3",
+          result: f3Formatted,
           timestamp: new Date()
         });
-      });
+
+        // Add individual L3 result
+        newPredictions.push({
+          operation: `${operationSymbol} ${formula.value} L3`,
+          operationValue: formula.value,
+          position: "L3",
+          result: l3Formatted,
+          timestamp: new Date()
+        });
+
+        // Add combined 6-digit result
+        newPredictions.push({
+          operation: `${operationSymbol} ${formula.value} F3+L3`,
+          operationValue: formula.value,
+          position: "F3+L3",
+          result: combined,
+          combinedResult: combined,
+          timestamp: new Date()
+        });
+      } else {
+        // Single position formula
+        formula.positions.forEach(pos => {
+          const extracted = extractDigits(cleanDraw, pos);
+          const result = performOperation(extracted, formula.operation, formula.value);
+          const formattedResult = formatResult(result);
+
+          newPredictions.push({
+            operation: `${operationSymbol} ${formula.value} ${pos}`,
+            operationValue: formula.value,
+            position: pos,
+            result: formattedResult,
+            timestamp: new Date()
+          });
+        });
+      }
     });
 
     setPredictions([...newPredictions, ...predictions]);
-    toast.success(`Generated ${newPredictions.length} predictions from all formulas`);
+    toast.success(`Generated ${newPredictions.length} predictions (including ${PREDEFINED_FORMULAS.filter(f => f.positions.length === 2).length} 6-digit numbers)`);
   };
 
   return (
@@ -391,17 +434,28 @@ const Index = () => {
                   {predictions.map((pred, idx) => (
                     <div
                       key={idx}
-                      className="bg-gradient-to-br from-card to-muted p-4 rounded-lg border border-border hover:border-accent/50 transition-all"
+                      className={`bg-gradient-to-br from-card to-muted p-4 rounded-lg border transition-all ${
+                        pred.combinedResult 
+                          ? 'border-accent border-2 hover:border-accent shadow-glow' 
+                          : 'border-border hover:border-accent/50'
+                      }`}
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-muted-foreground">
+                        <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                           {pred.operation}
+                          {pred.combinedResult && (
+                            <span className="text-xs bg-accent/20 text-accent px-2 py-1 rounded-full font-bold">
+                              6-DIGIT
+                            </span>
+                          )}
                         </span>
                         <span className="text-xs text-muted-foreground">
                           {pred.timestamp.toLocaleTimeString()}
                         </span>
                       </div>
-                      <div className="text-4xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+                      <div className={`font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent ${
+                        pred.combinedResult ? 'text-5xl' : 'text-4xl'
+                      }`}>
                         {pred.result}
                       </div>
                     </div>
