@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, Calculator, TrendingUp, Search, Star } from "lucide-react";
+import { Sparkles, Calculator, TrendingUp, Search } from "lucide-react";
 import { toast } from "sonner";
 
 type MathFunction = "COS" | "SIN" | "TAN" | "√";
@@ -313,26 +313,7 @@ const Index = () => {
     toast.success(`Generated ${newPredictions.length} 6-digit predictions (all formulas applied to F3+L3)`);
   };
 
-  // Define top formulas
-  const TOP_FORMULA_KEYS = [
-    { mathFunction: "SIN", number: 289, extraction: "L3 NOS" },
-    { mathFunction: "SIN", number: 698, extraction: "L3 NOS" },
-    { mathFunction: "SIN", number: 684, extraction: ".3 NOS" },
-    { mathFunction: "SIN", number: 691, extraction: ".3 NOS" }
-  ];
-
-  const isTopFormula = (pred: Prediction): boolean => {
-    return TOP_FORMULA_KEYS.some(top => 
-      pred.mathFunction.includes(top.mathFunction) && 
-      pred.inputNumber === top.number && 
-      pred.extraction === top.extraction
-    );
-  };
-
-  const topPredictions = predictions.filter(isTopFormula);
-  const regularPredictions = predictions.filter(pred => !isTopFormula(pred));
-
-  const filteredPredictions = regularPredictions.filter(pred => {
+  const filteredPredictions = predictions.filter(pred => {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
     return (
@@ -420,50 +401,10 @@ const Index = () => {
               <CardDescription>Your calculated lottery predictions</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Top Main Formulas Section */}
-              {topPredictions.length > 0 && (
-                <div className="space-y-3 pb-4 border-b border-primary/30">
-                  <div className="flex items-center gap-2">
-                    <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                    <Label className="text-base font-bold text-primary">
-                      Top Main Formulas
-                    </Label>
-                  </div>
-                  <div className="space-y-2">
-                    {topPredictions.map((pred, idx) => (
-                      <div
-                        key={`top-${idx}`}
-                        className="bg-gradient-to-br from-yellow-500/10 via-amber-500/10 to-orange-500/10 p-4 rounded-lg border-2 border-yellow-500/50 shadow-lg hover:shadow-xl transition-all"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />
-                            <span className="text-xs font-bold px-2 py-1 rounded whitespace-nowrap bg-yellow-500/20 text-yellow-700 dark:text-yellow-300">
-                              {pred.label}
-                            </span>
-                            <span className="text-xs text-muted-foreground font-mono whitespace-nowrap truncate">
-                              {pred.mathFunction}
-                            </span>
-                            <span className="text-xs text-muted-foreground whitespace-nowrap">
-                              {pred.extraction}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-3xl font-bold tabular-nums bg-gradient-to-r from-yellow-600 via-amber-600 to-orange-600 bg-clip-text text-transparent">
-                              {pred.result}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {predictions.length > 0 && (
                 <div className="space-y-2">
                   <Label htmlFor="search" className="text-sm font-semibold">
-                    Search All Results
+                    Search Results
                   </Label>
                   <div className="flex gap-2">
                     <Input
@@ -501,7 +442,7 @@ const Index = () => {
                   <p className="text-lg">No predictions yet</p>
                   <p className="text-sm">Enter draw number and run formulas</p>
                 </div>
-              ) : filteredPredictions.length === 0 && searchQuery ? (
+              ) : filteredPredictions.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   <p className="text-lg">No results found</p>
                   <p className="text-sm">Try a different search term</p>
