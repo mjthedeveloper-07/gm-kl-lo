@@ -145,6 +145,7 @@ const ARITHMETIC_FORMULAS: ArithmeticFormula[] = [
   { operation: "multiply", value: 219, positions: ["F3", "L3"] },
   { operation: "multiply", value: 298, positions: ["F3", "L3"] },
   { operation: "multiply", value: 796, positions: ["F3", "L3"] },
+  { operation: "multiply", value: 0.9227, positions: ["F3", "L3"] },
 ];
 
 const Index = () => {
