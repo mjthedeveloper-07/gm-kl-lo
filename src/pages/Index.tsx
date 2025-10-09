@@ -440,14 +440,19 @@ const Index = () => {
                             {pred.extraction}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className={`font-bold tabular-nums ${
-                            pred.combinedResult 
-                              ? 'text-3xl bg-gradient-to-r from-accent via-primary to-primary-glow bg-clip-text text-transparent' 
-                              : 'text-2xl bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent'
-                          }`}>
-                            {pred.result}
-                          </span>
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <div className={`font-bold tabular-nums ${
+                              pred.combinedResult 
+                                ? 'text-3xl bg-gradient-to-r from-accent via-primary to-primary-glow bg-clip-text text-transparent' 
+                                : 'text-2xl bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent'
+                            }`}>
+                              {pred.result}
+                            </div>
+                            <div className="text-xs text-muted-foreground font-mono mt-1">
+                              Last 4: {pred.result.slice(-4)}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
