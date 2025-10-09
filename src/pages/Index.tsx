@@ -449,7 +449,7 @@ const Index = () => {
                             }`}>
                               {pred.result}
                             </div>
-                            <div className="text-xs text-muted-foreground font-mono mt-1">
+                            <div className="text-sm text-muted-foreground font-mono mt-1">
                               Last 4: {pred.result.slice(-4)}
                             </div>
                           </div>
