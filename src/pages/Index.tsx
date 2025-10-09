@@ -289,25 +289,37 @@ const Index = () => {
         xor: "⊕"
       }[formula.operation];
 
-      // Apply to F3
-      const f3Extracted = extractDigits(cleanDraw, "F3");
-      const f3Result = performArithmeticOp(f3Extracted, formula.operation, formula.value);
-      const f3Formatted = formatResult(f3Result);
+      let combined: string;
+      let mathFunctionDisplay: string;
 
-      // Apply to L3
-      const l3Extracted = extractDigits(cleanDraw, "L3");
-      const l3Result = performArithmeticOp(l3Extracted, formula.operation, formula.value);
-      const l3Formatted = formatResult(l3Result);
+      // Special handling for XOR - apply to entire number
+      if (formula.operation === "xor") {
+        const fullNumber = parseInt(cleanDraw);
+        const xorResult = fullNumber ^ Math.floor(formula.value);
+        combined = xorResult.toString().padStart(6, "0").slice(-6);
+        mathFunctionDisplay = `${operationSymbol}${formula.value} (Full)`;
+      } else {
+        // Apply to F3
+        const f3Extracted = extractDigits(cleanDraw, "F3");
+        const f3Result = performArithmeticOp(f3Extracted, formula.operation, formula.value);
+        const f3Formatted = formatResult(f3Result);
 
-      // Combine results
-      const combined = f3Formatted + l3Formatted;
+        // Apply to L3
+        const l3Extracted = extractDigits(cleanDraw, "L3");
+        const l3Result = performArithmeticOp(l3Extracted, formula.operation, formula.value);
+        const l3Formatted = formatResult(l3Result);
+
+        // Combine results
+        combined = f3Formatted + l3Formatted;
+        mathFunctionDisplay = `${operationSymbol}${formula.value} F3+L3`;
+      }
 
       newPredictions.push({
         label: `A${index + 1}`,
-        mathFunction: `${operationSymbol}${formula.value} F3+L3`,
+        mathFunction: mathFunctionDisplay,
         inputNumber: formula.value,
         result: combined,
-        extraction: "F3+L3",
+        extraction: formula.operation === "xor" ? "Full" : "F3+L3",
         formulaType: "arithmetic",
         combinedResult: combined,
         timestamp: new Date()
