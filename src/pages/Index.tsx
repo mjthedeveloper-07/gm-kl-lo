@@ -7,212 +7,123 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sparkles, Calculator, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 
-type Operation = "multiply" | "divide" | "add" | "subtract";
-type Position = "F2" | "F3" | "L2" | "L3";
+type MathFunction = "COS" | "SIN" | "TAN" | "√";
+type DigitExtraction = ".3 NOS" | "L3 NOS" | ".2 NOS";
 
 interface Prediction {
-  operation: string;
-  operationValue: number;
-  position: string;
+  label: string;
+  mathFunction: string;
+  inputNumber: number;
   result: string;
-  combinedResult?: string; // For 6-digit results from F3+L3 formulas
+  extraction: string;
   timestamp: Date;
 }
 
-interface Formula {
-  operation: Operation;
-  value: number;
-  positions: Position[];
+interface TrigFormula {
+  label: string;
+  mathFunction: MathFunction;
+  number: number;
+  extraction: DigitExtraction;
 }
 
-const PREDEFINED_FORMULAS: Formula[] = [
-  { operation: "multiply", value: 75, positions: ["F3"] },
-  { operation: "multiply", value: 89, positions: ["F3"] },
-  { operation: "multiply", value: 67, positions: ["L3"] },
-  { operation: "multiply", value: 398, positions: ["F3"] },
-  { operation: "divide", value: 8, positions: ["L3"] },
-  { operation: "add", value: 315, positions: ["L3"] },
-  { operation: "multiply", value: 951, positions: ["L3"] },
-  { operation: "multiply", value: 961, positions: ["F3"] },
-  { operation: "multiply", value: 761, positions: ["F3"] },
-  { operation: "multiply", value: 364, positions: ["L3"] },
-  { operation: "multiply", value: 852, positions: ["L3"] },
-  { operation: "multiply", value: 625, positions: ["F3"] },
-  { operation: "multiply", value: 974, positions: ["F3"] },
-  { operation: "multiply", value: 858, positions: ["F3"] },
-  { operation: "multiply", value: 275, positions: ["F3"] },
-  { operation: "multiply", value: 669, positions: ["L3"] },
-  { operation: "multiply", value: 257, positions: ["L3"] },
-  { operation: "multiply", value: 591, positions: ["L3"] },
-  { operation: "multiply", value: 641, positions: ["L3"] },
-  { operation: "multiply", value: 639, positions: ["L3"] },
-  { operation: "multiply", value: 951, positions: ["L3"] },
-  { operation: "multiply", value: 958, positions: ["F3"] },
-  { operation: "multiply", value: 968, positions: ["F3", "L3"] },
-  { operation: "multiply", value: 962, positions: ["F3"] },
-  { operation: "multiply", value: 427, positions: ["L3"] },
-  { operation: "multiply", value: 952, positions: ["F3"] },
-  { operation: "multiply", value: 859, positions: ["L3"] },
-  { operation: "multiply", value: 719, positions: ["F3"] },
-  { operation: "multiply", value: 669, positions: ["L3"] },
-  { operation: "multiply", value: 871, positions: ["F3"] },
-  { operation: "multiply", value: 348, positions: ["F3"] },
-  { operation: "multiply", value: 592, positions: ["F3"] },
-  { operation: "multiply", value: 946, positions: ["F3"] },
-  { operation: "multiply", value: 328, positions: ["F3"] },
-  { operation: "multiply", value: 427, positions: ["L3"] },
-  { operation: "multiply", value: 871, positions: ["F3"] },
-  { operation: "multiply", value: 274, positions: ["L3"] },
-  { operation: "multiply", value: 864, positions: ["F3"] },
-  { operation: "multiply", value: 928, positions: ["F3"] },
-  { operation: "multiply", value: 618, positions: ["L3"] },
-  { operation: "multiply", value: 386, positions: ["L3"] },
-  { operation: "multiply", value: 234, positions: ["L3"] },
-  { operation: "multiply", value: 746, positions: ["F3"] },
-  { operation: "multiply", value: 759, positions: ["F3"] },
-  { operation: "multiply", value: 398, positions: ["F3"] },
-  { operation: "multiply", value: 394, positions: ["L3"] },
-  { operation: "multiply", value: 478, positions: ["F3"] },
-  { operation: "multiply", value: 473, positions: ["F3"] },
-  { operation: "multiply", value: 479, positions: ["F3"] },
-  { operation: "multiply", value: 254, positions: ["F3", "L3"] },
-  { operation: "multiply", value: 297, positions: ["F3", "L3"] },
-  { operation: "multiply", value: 273, positions: ["F3", "L3"] },
-  { operation: "multiply", value: 219, positions: ["F3", "L3"] },
-  { operation: "multiply", value: 298, positions: ["F3", "L3"] },
-  { operation: "multiply", value: 796, positions: ["F3", "L3"] },
+const TRIG_FORMULAS: TrigFormula[] = [
+  { label: "A", mathFunction: "COS", number: 685, extraction: ".3 NOS" },
+  { label: "B", mathFunction: "COS", number: 256, extraction: "L3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 629, extraction: "L3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 698, extraction: "L3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 489, extraction: "L3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 361, extraction: "L3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 692, extraction: ".3 NOS" },
+  { label: "ALL", mathFunction: "TAN", number: 651, extraction: "L3 NOS" },
+  { label: "ALL", mathFunction: "TAN", number: 896, extraction: ".3 NOS" },
+  { label: "ALL", mathFunction: "TAN", number: 562, extraction: "L3 NOS" },
+  { label: "ALL", mathFunction: "TAN", number: 263, extraction: "L3 NOS" },
+  { label: "ALL", mathFunction: "TAN", number: 682, extraction: ".3 NOS" },
+  { label: "ALL", mathFunction: "√", number: 698, extraction: "L3 NOS" },
+  { label: "ALL", mathFunction: "TAN", number: 618, extraction: ".3 NOS" },
+  { label: "ALL", mathFunction: "TAN", number: 468, extraction: "L3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 626, extraction: ".3 NOS" },
+  { label: "ALL", mathFunction: "TAN", number: 394, extraction: "L3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 315, extraction: ".3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 691, extraction: ".3 NOS" },
+  { label: "ALL", mathFunction: "√", number: 13, extraction: ".3 NOS" },
+  { label: "6D F3", mathFunction: "SIN", number: 256, extraction: ".3 NOS" },
+  { label: "6D F3", mathFunction: "SIN", number: 745, extraction: ".3 NOS" },
+  { label: "6D F2", mathFunction: "√", number: 631, extraction: "L3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 396, extraction: "L3 NOS" },
+  { label: "6D 83", mathFunction: "SIN", number: 586, extraction: ".3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 115, extraction: "L3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 694, extraction: ".3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 154, extraction: ".3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 643, extraction: "L3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 254, extraction: "L3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 179, extraction: "L3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 194, extraction: ".3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 945, extraction: "L3 NOS" },
+  { label: "ALL", mathFunction: "COS", number: 461, extraction: ".3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 246, extraction: ".3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 289, extraction: "L3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 393, extraction: "L3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 516, extraction: "L3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 684, extraction: ".3 NOS" },
+  { label: "ALL", mathFunction: "COS", number: 545, extraction: ".3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 691, extraction: ".3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 326, extraction: ".3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 358, extraction: ".3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 457, extraction: "L3 NOS" },
+  { label: "ALL", mathFunction: "TAN", number: 843, extraction: ".3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 253, extraction: ".3 NOS" },
+  { label: "ALL", mathFunction: "TAN", number: 268, extraction: ".3 NOS" },
+  { label: "ALL", mathFunction: "TAN", number: 245, extraction: ".3 NOS" },
+  { label: "ALL", mathFunction: "SIN", number: 248, extraction: ".3 NOS" },
+  { label: "ALL", mathFunction: "TAN", number: 259, extraction: ".2 NOS" },
 ];
 
 const Index = () => {
   const [drawNumber, setDrawNumber] = useState("");
-  const [operation, setOperation] = useState<Operation>("multiply");
-  const [operationValue, setOperationValue] = useState("");
-  const [position, setPosition] = useState<Position>("F3");
   const [predictions, setPredictions] = useState<Prediction[]>([]);
 
-  const extractDigits = (num: string, pos: Position): string => {
-    const cleanNum = num.replace(/\D/g, "");
+  const applyMathFunction = (func: MathFunction, num: number): number => {
+    // Convert degrees to radians for trigonometric functions
+    const radians = (num * Math.PI) / 180;
     
-    switch (pos) {
-      case "F2":
-        return cleanNum.slice(0, 2);
-      case "F3":
-        return cleanNum.slice(0, 3);
-      case "L2":
-        return cleanNum.slice(-2);
-      case "L3":
-        return cleanNum.slice(-3);
-      default:
-        return cleanNum;
-    }
-  };
-
-  const performOperation = (digits: string, op: Operation, value: number): number => {
-    const num = parseInt(digits);
-    
-    switch (op) {
-      case "multiply":
-        return num * value;
-      case "divide":
-        return Math.floor(num / value);
-      case "add":
-        return num + value;
-      case "subtract":
-        return num - value;
+    switch (func) {
+      case "COS":
+        return Math.cos(radians);
+      case "SIN":
+        return Math.sin(radians);
+      case "TAN":
+        return Math.tan(radians);
+      case "√":
+        return Math.sqrt(num);
       default:
         return num;
     }
   };
 
-  const formatResult = (result: number): string => {
-    return result.toString().padStart(3, "0");
-  };
-
-  const calculatePrediction = () => {
-    if (!drawNumber || !operationValue) {
-      toast.error("Please enter both draw number and operation value");
-      return;
+  const extractDigitsFromResult = (result: number, extraction: DigitExtraction): string => {
+    const absResult = Math.abs(result);
+    
+    switch (extraction) {
+      case ".3 NOS": {
+        // Take first 3 digits after decimal point
+        const decimalPart = absResult.toString().split('.')[1] || '0';
+        return decimalPart.substring(0, 3).padEnd(3, '0');
+      }
+      case "L3 NOS": {
+        // Take last 3 digits of the whole number part
+        const wholePart = Math.floor(absResult);
+        const wholeStr = wholePart.toString();
+        return wholeStr.slice(-3).padStart(3, '0');
+      }
+      case ".2 NOS": {
+        // Take first 2 digits after decimal point
+        const decimalPart = absResult.toString().split('.')[1] || '0';
+        return decimalPart.substring(0, 2).padEnd(2, '0');
+      }
+      default:
+        return '000';
     }
-
-    const cleanDraw = drawNumber.replace(/\D/g, "");
-    if (cleanDraw.length < 3) {
-      toast.error("Draw number must be at least 3 digits");
-      return;
-    }
-
-    const opValue = parseInt(operationValue);
-    if (isNaN(opValue) || opValue === 0) {
-      toast.error("Please enter a valid operation value");
-      return;
-    }
-
-    const extracted = extractDigits(cleanDraw, position);
-    const result = performOperation(extracted, operation, opValue);
-    const formattedResult = formatResult(result);
-
-    const operationSymbol = {
-      multiply: "×",
-      divide: "÷",
-      add: "+",
-      subtract: "-"
-    }[operation];
-
-    const newPrediction: Prediction = {
-      operation: `${operationSymbol} ${opValue} ${position}`,
-      operationValue: opValue,
-      position,
-      result: formattedResult,
-      timestamp: new Date()
-    };
-
-    setPredictions([newPrediction, ...predictions]);
-    toast.success(`Prediction generated: ${formattedResult}`);
-  };
-
-  const calculateAllOperations = () => {
-    if (!drawNumber || !operationValue) {
-      toast.error("Please enter both draw number and operation value");
-      return;
-    }
-
-    const cleanDraw = drawNumber.replace(/\D/g, "");
-    if (cleanDraw.length < 3) {
-      toast.error("Draw number must be at least 3 digits");
-      return;
-    }
-
-    const opValue = parseInt(operationValue);
-    if (isNaN(opValue) || opValue === 0) {
-      toast.error("Please enter a valid operation value");
-      return;
-    }
-
-    const operations: Operation[] = ["multiply", "divide", "add", "subtract"];
-    const newPredictions: Prediction[] = [];
-
-    operations.forEach(op => {
-      const extracted = extractDigits(cleanDraw, position);
-      const result = performOperation(extracted, op, opValue);
-      const formattedResult = formatResult(result);
-
-      const operationSymbol = {
-        multiply: "×",
-        divide: "÷",
-        add: "+",
-        subtract: "-"
-      }[op];
-
-      newPredictions.push({
-        operation: `${operationSymbol} ${opValue} ${position}`,
-        operationValue: opValue,
-        position,
-        result: formattedResult,
-        timestamp: new Date()
-      });
-    });
-
-    setPredictions([...newPredictions, ...predictions]);
-    toast.success(`Generated ${newPredictions.length} predictions`);
   };
 
   const runAllFormulas = () => {
@@ -229,73 +140,22 @@ const Index = () => {
 
     const newPredictions: Prediction[] = [];
 
-    PREDEFINED_FORMULAS.forEach((formula) => {
-      const operationSymbol = {
-        multiply: "×",
-        divide: "÷",
-        add: "+",
-        subtract: "-"
-      }[formula.operation];
+    TRIG_FORMULAS.forEach((formula) => {
+      const result = applyMathFunction(formula.mathFunction, formula.number);
+      const extracted = extractDigitsFromResult(result, formula.extraction);
 
-      // If formula has both F3 and L3, create a combined 6-digit result
-      if (formula.positions.length === 2 && formula.positions.includes("F3") && formula.positions.includes("L3")) {
-        const f3Extracted = extractDigits(cleanDraw, "F3");
-        const f3Result = performOperation(f3Extracted, formula.operation, formula.value);
-        const f3Formatted = formatResult(f3Result);
-
-        const l3Extracted = extractDigits(cleanDraw, "L3");
-        const l3Result = performOperation(l3Extracted, formula.operation, formula.value);
-        const l3Formatted = formatResult(l3Result);
-
-        const combined = f3Formatted + l3Formatted;
-
-        // Add individual F3 result
-        newPredictions.push({
-          operation: `${operationSymbol} ${formula.value} F3`,
-          operationValue: formula.value,
-          position: "F3",
-          result: f3Formatted,
-          timestamp: new Date()
-        });
-
-        // Add individual L3 result
-        newPredictions.push({
-          operation: `${operationSymbol} ${formula.value} L3`,
-          operationValue: formula.value,
-          position: "L3",
-          result: l3Formatted,
-          timestamp: new Date()
-        });
-
-        // Add combined 6-digit result
-        newPredictions.push({
-          operation: `${operationSymbol} ${formula.value} F3+L3`,
-          operationValue: formula.value,
-          position: "F3+L3",
-          result: combined,
-          combinedResult: combined,
-          timestamp: new Date()
-        });
-      } else {
-        // Single position formula
-        formula.positions.forEach(pos => {
-          const extracted = extractDigits(cleanDraw, pos);
-          const result = performOperation(extracted, formula.operation, formula.value);
-          const formattedResult = formatResult(result);
-
-          newPredictions.push({
-            operation: `${operationSymbol} ${formula.value} ${pos}`,
-            operationValue: formula.value,
-            position: pos,
-            result: formattedResult,
-            timestamp: new Date()
-          });
-        });
-      }
+      newPredictions.push({
+        label: formula.label,
+        mathFunction: `${formula.mathFunction}(${formula.number})`,
+        inputNumber: formula.number,
+        result: extracted,
+        extraction: formula.extraction,
+        timestamp: new Date()
+      });
     });
 
-    setPredictions([...newPredictions, ...predictions]);
-    toast.success(`Generated ${newPredictions.length} predictions (including ${PREDEFINED_FORMULAS.filter(f => f.positions.length === 2).length} 6-digit numbers)`);
+    setPredictions(newPredictions);
+    toast.success(`Generated ${newPredictions.length} predictions using trigonometric formulas`);
   };
 
   return (
@@ -320,96 +180,43 @@ const Index = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-2xl">
                 <Calculator className="w-6 h-6 text-primary" />
-                Input Parameters
+                Input Draw Number
               </CardTitle>
-              <CardDescription>Enter the draw number and formula parameters</CardDescription>
+              <CardDescription>Enter draw number to apply trigonometric formulas</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="drawNumber" className="text-base font-semibold">
-                  Old Draw Number
+                  Draw Number
                 </Label>
                 <Input
                   id="drawNumber"
                   type="text"
-                  placeholder="Enter draw number (e.g., 75892)"
+                  placeholder="Enter draw number (e.g., 823274)"
                   value={drawNumber}
                   onChange={(e) => setDrawNumber(e.target.value)}
                   className="text-lg h-12"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="operation" className="text-base font-semibold">
-                  Operation Type
-                </Label>
-                <Select value={operation} onValueChange={(value) => setOperation(value as Operation)}>
-                  <SelectTrigger id="operation" className="h-12 text-lg">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="multiply" className="text-lg">× Multiply</SelectItem>
-                    <SelectItem value="divide" className="text-lg">÷ Divide</SelectItem>
-                    <SelectItem value="add" className="text-lg">+ Add</SelectItem>
-                    <SelectItem value="subtract" className="text-lg">- Subtract</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+                <p className="text-sm font-semibold text-foreground">Formula System:</p>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• COS, SIN, TAN (trigonometric functions)</li>
+                  <li>• √ (square root)</li>
+                  <li>• .3 NOS = first 3 digits after decimal</li>
+                  <li>• L3 NOS = last 3 digits</li>
+                  <li>• .2 NOS = first 2 digits after decimal</li>
+                </ul>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="operationValue" className="text-base font-semibold">
-                  Operation Value
-                </Label>
-                <Input
-                  id="operationValue"
-                  type="number"
-                  placeholder="Enter number (e.g., 75)"
-                  value={operationValue}
-                  onChange={(e) => setOperationValue(e.target.value)}
-                  className="text-lg h-12"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="position" className="text-base font-semibold">
-                  Position
-                </Label>
-                <Select value={position} onValueChange={(value) => setPosition(value as Position)}>
-                  <SelectTrigger id="position" className="h-12 text-lg">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="F2" className="text-lg">F2 - First 2 digits</SelectItem>
-                    <SelectItem value="F3" className="text-lg">F3 - First 3 digits</SelectItem>
-                    <SelectItem value="L2" className="text-lg">L2 - Last 2 digits</SelectItem>
-                    <SelectItem value="L3" className="text-lg">L3 - Last 3 digits</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-3 pt-4">
-                <div className="flex gap-3">
-                  <Button
-                    onClick={calculatePrediction}
-                    className="flex-1 h-12 text-base font-semibold bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 transition-opacity"
-                  >
-                    Calculate
-                  </Button>
-                  <Button
-                    onClick={calculateAllOperations}
-                    variant="secondary"
-                    className="flex-1 h-12 text-base font-semibold"
-                  >
-                    All Operations
-                  </Button>
-                </div>
-                <Button
-                  onClick={runAllFormulas}
-                  className="w-full h-12 text-base font-semibold bg-gradient-to-r from-accent to-secondary hover:opacity-90 transition-opacity"
-                >
-                  Run All 54 Formulas
-                </Button>
-              </div>
+              <Button
+                onClick={runAllFormulas}
+                className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-primary via-primary-glow to-accent hover:opacity-90 transition-opacity shadow-glow"
+              >
+                <Sparkles className="w-5 h-5 mr-2" />
+                Run All {TRIG_FORMULAS.length} Formulas
+              </Button>
             </CardContent>
           </Card>
 
@@ -427,36 +234,32 @@ const Index = () => {
                 <div className="text-center py-12 text-muted-foreground">
                   <Sparkles className="w-16 h-16 mx-auto mb-4 opacity-50" />
                   <p className="text-lg">No predictions yet</p>
-                  <p className="text-sm">Enter parameters and calculate to see results</p>
+                  <p className="text-sm">Enter draw number and run formulas</p>
                 </div>
               ) : (
-                <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+                <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2">
                   {predictions.map((pred, idx) => (
                     <div
                       key={idx}
-                      className={`bg-gradient-to-br from-card to-muted p-4 rounded-lg border transition-all ${
-                        pred.combinedResult 
-                          ? 'border-accent border-2 hover:border-accent shadow-glow' 
-                          : 'border-border hover:border-accent/50'
-                      }`}
+                      className="bg-gradient-to-br from-card to-card/50 p-3 rounded-lg border border-border hover:border-primary/50 transition-all"
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                          {pred.operation}
-                          {pred.combinedResult && (
-                            <span className="text-xs bg-accent/20 text-accent px-2 py-1 rounded-full font-bold">
-                              6-DIGIT
-                            </span>
-                          )}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {pred.timestamp.toLocaleTimeString()}
-                        </span>
-                      </div>
-                      <div className={`font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent ${
-                        pred.combinedResult ? 'text-5xl' : 'text-4xl'
-                      }`}>
-                        {pred.result}
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <span className="text-xs font-bold bg-primary/10 text-primary px-2 py-1 rounded whitespace-nowrap">
+                            {pred.label}
+                          </span>
+                          <span className="text-xs text-muted-foreground font-mono whitespace-nowrap">
+                            {pred.mathFunction}
+                          </span>
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            {pred.extraction}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent tabular-nums">
+                            {pred.result}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   ))}
