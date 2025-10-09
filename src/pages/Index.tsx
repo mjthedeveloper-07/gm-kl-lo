@@ -151,6 +151,12 @@ const ARITHMETIC_FORMULAS: ArithmeticFormula[] = [
 
 const Index = () => {
   const [drawNumber, setDrawNumber] = useState("");
+  
+  // Validate that draw number is 3 digits
+  const isValidDrawNumber = (num: string) => {
+    const clean = num.replace(/\D/g, "");
+    return clean.length === 3;
+  };
   const [predictions, setPredictions] = useState<Prediction[]>([]);
 
   const applyMathFunction = (func: MathFunction, num: number): number => {
@@ -244,8 +250,8 @@ const Index = () => {
     }
 
     const cleanDraw = drawNumber.replace(/\D/g, "");
-    if (cleanDraw.length < 3) {
-      toast.error("Draw number must be at least 3 digits");
+    if (cleanDraw.length !== 3) {
+      toast.error("Draw number must be exactly 3 digits");
       return;
     }
 
@@ -364,9 +370,10 @@ const Index = () => {
                 <Input
                   id="drawNumber"
                   type="text"
-                  placeholder="Enter draw number (e.g., 823274)"
+                  placeholder="Enter 3-digit draw number (e.g., 823)"
                   value={drawNumber}
                   onChange={(e) => setDrawNumber(e.target.value)}
+                  maxLength={3}
                   className="text-lg h-12"
                 />
               </div>
