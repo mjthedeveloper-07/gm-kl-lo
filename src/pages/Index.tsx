@@ -268,7 +268,7 @@ const Index = () => {
 
       newPredictions.push({
         label: `T${index + 1}`,
-        mathFunction: `${formula.mathFunction}(F3,L3)`,
+        mathFunction: `${formula.mathFunction}`,
         inputNumber: formula.number,
         result: combined,
         extraction: formula.extraction,
@@ -310,7 +310,7 @@ const Index = () => {
 
         // Combine results
         combined = f3Formatted + l3Formatted;
-        mathFunctionDisplay = `${operationSymbol}${formula.value} F3+L3`;
+        mathFunctionDisplay = `${operationSymbol}${formula.value}`;
       }
 
       newPredictions.push({
@@ -318,7 +318,7 @@ const Index = () => {
         mathFunction: mathFunctionDisplay,
         inputNumber: formula.value,
         result: combined,
-        extraction: formula.operation === "xor" ? "Full" : "F3+L3",
+        extraction: formula.operation === "xor" ? "Full" : "",
         formulaType: "arithmetic",
         combinedResult: combined,
         timestamp: new Date()
@@ -326,7 +326,7 @@ const Index = () => {
     });
 
     setPredictions(newPredictions);
-    toast.success(`Generated ${newPredictions.length} 6-digit predictions (all formulas applied to F3+L3)`);
+    toast.success(`Generated ${newPredictions.length} 6-digit predictions`);
   };
 
 
@@ -383,7 +383,6 @@ const Index = () => {
                   <p className="text-sm font-semibold text-foreground mb-1">Arithmetic Formulas ({ARITHMETIC_FORMULAS.length}):</p>
                   <ul className="text-xs text-muted-foreground space-y-0.5">
                     <li>• ×, ÷, +, − operations</li>
-                    <li>• F3, L3 positions</li>
                   </ul>
                 </div>
               </div>
