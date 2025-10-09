@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, Calculator, TrendingUp } from "lucide-react";
+import { Sparkles, Calculator, TrendingUp, Search } from "lucide-react";
 import { toast } from "sonner";
 
 type MathFunction = "COS" | "SIN" | "TAN" | "√";
@@ -406,14 +406,34 @@ const Index = () => {
                   <Label htmlFor="search" className="text-sm font-semibold">
                     Search Results
                   </Label>
-                  <Input
-                    id="search"
-                    type="text"
-                    placeholder="Search by result number, label, or formula..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="h-10"
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      id="search"
+                      type="text"
+                      placeholder="Search by result number, label, or formula..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && setSearchQuery(searchQuery)}
+                      className="h-10"
+                    />
+                    <Button
+                      onClick={() => setSearchQuery(searchQuery)}
+                      variant="secondary"
+                      className="h-10 px-4 whitespace-nowrap"
+                    >
+                      <Search className="w-4 h-4 mr-2" />
+                      Search
+                    </Button>
+                    {searchQuery && (
+                      <Button
+                        onClick={() => setSearchQuery("")}
+                        variant="outline"
+                        className="h-10 px-4"
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
               {predictions.length === 0 ? (
