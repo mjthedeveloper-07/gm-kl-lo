@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 type MathFunction = "COS" | "SIN" | "TAN" | "√";
 type DigitExtraction = ".3 NOS" | "L3 NOS" | ".2 NOS";
-type ArithmeticOp = "multiply" | "divide" | "add" | "subtract";
+type ArithmeticOp = "multiply" | "divide" | "add" | "subtract" | "xor";
 type Position = "F2" | "F3" | "L2" | "L3";
 
 interface Prediction {
@@ -146,6 +146,7 @@ const ARITHMETIC_FORMULAS: ArithmeticFormula[] = [
   { operation: "multiply", value: 298, positions: ["F3", "L3"] },
   { operation: "multiply", value: 796, positions: ["F3", "L3"] },
   { operation: "multiply", value: 0.9227, positions: ["F3", "L3"] },
+  { operation: "xor", value: 41877, positions: ["F3", "L3"] },
 ];
 
 const Index = () => {
@@ -225,6 +226,8 @@ const Index = () => {
         return num + value;
       case "subtract":
         return num - value;
+      case "xor":
+        return num ^ Math.floor(value);
       default:
         return num;
     }
@@ -282,7 +285,8 @@ const Index = () => {
         multiply: "×",
         divide: "÷",
         add: "+",
-        subtract: "-"
+        subtract: "-",
+        xor: "⊕"
       }[formula.operation];
 
       // Apply to F3
