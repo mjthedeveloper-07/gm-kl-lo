@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, Calculator, TrendingUp, Search } from "lucide-react";
+import { Sparkles, Calculator, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 
 type MathFunction = "COS" | "SIN" | "TAN" | "√";
@@ -152,7 +152,6 @@ const ARITHMETIC_FORMULAS: ArithmeticFormula[] = [
 const Index = () => {
   const [drawNumber, setDrawNumber] = useState("");
   const [predictions, setPredictions] = useState<Prediction[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
 
   const applyMathFunction = (func: MathFunction, num: number): number => {
     // Convert degrees to radians for trigonometric functions
@@ -330,15 +329,6 @@ const Index = () => {
     toast.success(`Generated ${newPredictions.length} 6-digit predictions (all formulas applied to F3+L3)`);
   };
 
-  const filteredPredictions = predictions.filter(pred => {
-    if (!searchQuery.trim()) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      pred.result.includes(query) ||
-      pred.label.toLowerCase().includes(query) ||
-      pred.mathFunction.toLowerCase().includes(query)
-    );
-  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/10">
@@ -413,60 +403,20 @@ const Index = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-2xl">
                 <TrendingUp className="w-6 h-6 text-accent" />
-                Predictions {predictions.length > 0 && `(${filteredPredictions.length}/${predictions.length})`}
+                Predictions {predictions.length > 0 && `(${predictions.length})`}
               </CardTitle>
               <CardDescription>Your calculated lottery predictions</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {predictions.length > 0 && (
-                <div className="space-y-2">
-                  <Label htmlFor="search" className="text-sm font-semibold">
-                    Search Results
-                  </Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="search"
-                      type="text"
-                      placeholder="Search by result number, label, or formula..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && setSearchQuery(searchQuery)}
-                      className="h-10"
-                    />
-                    <Button
-                      onClick={() => setSearchQuery(searchQuery)}
-                      variant="secondary"
-                      className="h-10 px-4 whitespace-nowrap"
-                    >
-                      <Search className="w-4 h-4 mr-2" />
-                      Search
-                    </Button>
-                    {searchQuery && (
-                      <Button
-                        onClick={() => setSearchQuery("")}
-                        variant="outline"
-                        className="h-10 px-4"
-                      >
-                        Clear
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              )}
               {predictions.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   <Sparkles className="w-16 h-16 mx-auto mb-4 opacity-50" />
                   <p className="text-lg">No predictions yet</p>
                   <p className="text-sm">Enter draw number and run formulas</p>
                 </div>
-              ) : filteredPredictions.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <p className="text-lg">No results found</p>
-                  <p className="text-sm">Try a different search term</p>
-                </div>
               ) : (
                 <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2">
-                  {filteredPredictions.map((pred, idx) => (
+                  {predictions.map((pred, idx) => (
                     <div
                       key={idx}
                       className={`bg-gradient-to-br from-card to-card/50 p-3 rounded-lg border transition-all ${
