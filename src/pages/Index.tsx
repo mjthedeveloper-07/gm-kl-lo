@@ -18,6 +18,70 @@ interface Prediction {
   timestamp: Date;
 }
 
+interface Formula {
+  operation: Operation;
+  value: number;
+  positions: Position[];
+}
+
+const PREDEFINED_FORMULAS: Formula[] = [
+  { operation: "multiply", value: 75, positions: ["F3"] },
+  { operation: "multiply", value: 89, positions: ["F3"] },
+  { operation: "multiply", value: 67, positions: ["L3"] },
+  { operation: "multiply", value: 398, positions: ["F3"] },
+  { operation: "divide", value: 8, positions: ["L3"] },
+  { operation: "add", value: 315, positions: ["L3"] },
+  { operation: "multiply", value: 951, positions: ["L3"] },
+  { operation: "multiply", value: 961, positions: ["F3"] },
+  { operation: "multiply", value: 761, positions: ["F3"] },
+  { operation: "multiply", value: 364, positions: ["L3"] },
+  { operation: "multiply", value: 852, positions: ["L3"] },
+  { operation: "multiply", value: 625, positions: ["F3"] },
+  { operation: "multiply", value: 974, positions: ["F3"] },
+  { operation: "multiply", value: 858, positions: ["F3"] },
+  { operation: "multiply", value: 275, positions: ["F3"] },
+  { operation: "multiply", value: 669, positions: ["L3"] },
+  { operation: "multiply", value: 257, positions: ["L3"] },
+  { operation: "multiply", value: 591, positions: ["L3"] },
+  { operation: "multiply", value: 641, positions: ["L3"] },
+  { operation: "multiply", value: 639, positions: ["L3"] },
+  { operation: "multiply", value: 951, positions: ["L3"] },
+  { operation: "multiply", value: 958, positions: ["F3"] },
+  { operation: "multiply", value: 968, positions: ["F3", "L3"] },
+  { operation: "multiply", value: 962, positions: ["F3"] },
+  { operation: "multiply", value: 427, positions: ["L3"] },
+  { operation: "multiply", value: 952, positions: ["F3"] },
+  { operation: "multiply", value: 859, positions: ["L3"] },
+  { operation: "multiply", value: 719, positions: ["F3"] },
+  { operation: "multiply", value: 669, positions: ["L3"] },
+  { operation: "multiply", value: 871, positions: ["F3"] },
+  { operation: "multiply", value: 348, positions: ["F3"] },
+  { operation: "multiply", value: 592, positions: ["F3"] },
+  { operation: "multiply", value: 946, positions: ["F3"] },
+  { operation: "multiply", value: 328, positions: ["F3"] },
+  { operation: "multiply", value: 427, positions: ["L3"] },
+  { operation: "multiply", value: 871, positions: ["F3"] },
+  { operation: "multiply", value: 274, positions: ["L3"] },
+  { operation: "multiply", value: 864, positions: ["F3"] },
+  { operation: "multiply", value: 928, positions: ["F3"] },
+  { operation: "multiply", value: 618, positions: ["L3"] },
+  { operation: "multiply", value: 386, positions: ["L3"] },
+  { operation: "multiply", value: 234, positions: ["L3"] },
+  { operation: "multiply", value: 746, positions: ["F3"] },
+  { operation: "multiply", value: 759, positions: ["F3"] },
+  { operation: "multiply", value: 398, positions: ["F3"] },
+  { operation: "multiply", value: 394, positions: ["L3"] },
+  { operation: "multiply", value: 478, positions: ["F3"] },
+  { operation: "multiply", value: 473, positions: ["F3"] },
+  { operation: "multiply", value: 479, positions: ["F3"] },
+  { operation: "multiply", value: 254, positions: ["F3", "L3"] },
+  { operation: "multiply", value: 297, positions: ["F3", "L3"] },
+  { operation: "multiply", value: 273, positions: ["F3", "L3"] },
+  { operation: "multiply", value: 219, positions: ["F3", "L3"] },
+  { operation: "multiply", value: 298, positions: ["F3", "L3"] },
+  { operation: "multiply", value: 796, positions: ["F3", "L3"] },
+];
+
 const Index = () => {
   const [drawNumber, setDrawNumber] = useState("");
   const [operation, setOperation] = useState<Operation>("multiply");
@@ -150,6 +214,47 @@ const Index = () => {
     toast.success(`Generated ${newPredictions.length} predictions`);
   };
 
+  const runAllFormulas = () => {
+    if (!drawNumber) {
+      toast.error("Please enter a draw number");
+      return;
+    }
+
+    const cleanDraw = drawNumber.replace(/\D/g, "");
+    if (cleanDraw.length < 3) {
+      toast.error("Draw number must be at least 3 digits");
+      return;
+    }
+
+    const newPredictions: Prediction[] = [];
+
+    PREDEFINED_FORMULAS.forEach((formula) => {
+      formula.positions.forEach(pos => {
+        const extracted = extractDigits(cleanDraw, pos);
+        const result = performOperation(extracted, formula.operation, formula.value);
+        const formattedResult = formatResult(result);
+
+        const operationSymbol = {
+          multiply: "×",
+          divide: "÷",
+          add: "+",
+          subtract: "-"
+        }[formula.operation];
+
+        newPredictions.push({
+          operation: `${operationSymbol} ${formula.value} ${pos}`,
+          operationValue: formula.value,
+          position: pos,
+          result: formattedResult,
+          timestamp: new Date()
+        });
+      });
+    });
+
+    setPredictions([...newPredictions, ...predictions]);
+    toast.success(`Generated ${newPredictions.length} predictions from all formulas`);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/10">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -239,19 +344,27 @@ const Index = () => {
                 </Select>
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="space-y-3 pt-4">
+                <div className="flex gap-3">
+                  <Button
+                    onClick={calculatePrediction}
+                    className="flex-1 h-12 text-base font-semibold bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 transition-opacity"
+                  >
+                    Calculate
+                  </Button>
+                  <Button
+                    onClick={calculateAllOperations}
+                    variant="secondary"
+                    className="flex-1 h-12 text-base font-semibold"
+                  >
+                    All Operations
+                  </Button>
+                </div>
                 <Button
-                  onClick={calculatePrediction}
-                  className="flex-1 h-12 text-base font-semibold bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 transition-opacity"
+                  onClick={runAllFormulas}
+                  className="w-full h-12 text-base font-semibold bg-gradient-to-r from-accent to-secondary hover:opacity-90 transition-opacity"
                 >
-                  Calculate
-                </Button>
-                <Button
-                  onClick={calculateAllOperations}
-                  variant="secondary"
-                  className="flex-1 h-12 text-base font-semibold"
-                >
-                  All Operations
+                  Run All 54 Formulas
                 </Button>
               </div>
             </CardContent>
