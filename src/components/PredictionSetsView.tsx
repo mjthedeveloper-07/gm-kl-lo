@@ -100,7 +100,7 @@ export const PredictionSetsView = () => {
                       <p className="text-xs text-muted-foreground mb-1">
                         #{numIndex + 1}
                       </p>
-                      <p className="font-mono text-2xl font-bold bg-gradient-to-r from-primary via-accent to-primary-glow bg-clip-text text-transparent">
+                      <p className="font-mono text-2xl font-bold text-black dark:text-white">
                         {number}
                       </p>
                     </div>

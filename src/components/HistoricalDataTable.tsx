@@ -107,7 +107,7 @@ export const HistoricalDataTable = ({ highlightPattern }: HistoricalDataTablePro
                     <TableCell>
                       <Badge variant="outline">{result.draw}</Badge>
                     </TableCell>
-                    <TableCell className="font-mono font-bold text-lg">
+                    <TableCell className="font-mono font-bold text-lg text-black dark:text-white">
                       {result.result}
                     </TableCell>
                     <TableCell className="font-mono text-sm text-muted-foreground">

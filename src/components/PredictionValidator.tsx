@@ -32,7 +32,7 @@ export const PredictionValidator = ({ predictions }: PredictionValidatorProps) =
             <div key={index} className="rounded-lg border p-3 hover:bg-accent/50 transition-colors">
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-lg font-bold">{validation.prediction}</span>
+                  <span className="font-mono text-lg font-bold text-black dark:text-white">{validation.prediction}</span>
                   {validation.hasExactMatch && (
                     <CheckCircle2 className="h-5 w-5 text-green-500" />
                   )}
