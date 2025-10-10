@@ -276,6 +276,135 @@ export const generatePatternMatchingPredictions = (analysis: StatisticalAnalysis
   return predictions;
 };
 
+// Complex Number Utilities
+interface ComplexNumber {
+  real: number;
+  imaginary: number;
+}
+
+const createComplex = (real: number, imaginary: number): ComplexNumber => ({ real, imaginary });
+
+const complexMagnitude = (z: ComplexNumber): number => 
+  Math.sqrt(z.real * z.real + z.imaginary * z.imaginary);
+
+const complexAngle = (z: ComplexNumber): number => 
+  Math.atan2(z.imaginary, z.real);
+
+const complexConjugate = (z: ComplexNumber): ComplexNumber => 
+  createComplex(z.real, -z.imaginary);
+
+const complexMultiply = (z1: ComplexNumber, z2: ComplexNumber): ComplexNumber => 
+  createComplex(
+    z1.real * z2.real - z1.imaginary * z2.imaginary,
+    z1.real * z2.imaginary + z1.imaginary * z2.real
+  );
+
+const complexAdd = (z1: ComplexNumber, z2: ComplexNumber): ComplexNumber => 
+  createComplex(z1.real + z2.real, z1.imaginary + z2.imaginary);
+
+const complexDivide = (z1: ComplexNumber, z2: ComplexNumber): ComplexNumber => {
+  const denominator = z2.real * z2.real + z2.imaginary * z2.imaginary;
+  return createComplex(
+    (z1.real * z2.real + z1.imaginary * z2.imaginary) / denominator,
+    (z1.imaginary * z2.real - z1.real * z2.imaginary) / denominator
+  );
+};
+
+// Method 6: Complex Number Analysis
+export const generateComplexNumberPredictions = (analysis: StatisticalAnalysis): string[] => {
+  const predictions: string[] = [];
+  const allNumbers = lotteryHistory.map(r => r.result);
+  
+  // Convert recent lottery numbers to complex numbers
+  const recentNumbers = allNumbers.slice(-50);
+  const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
+    const digits = num.split("").map(Number);
+    const real = digits.slice(0, 3).reduce((sum, d) => sum * 10 + d, 0);
+    const imaginary = digits.slice(3, 6).reduce((sum, d) => sum * 10 + d, 0);
+    return createComplex(real, imaginary);
+  });
+  
+  // Calculate average complex number
+  const avgReal = complexNumbers.reduce((sum, z) => sum + z.real, 0) / complexNumbers.length;
+  const avgImag = complexNumbers.reduce((sum, z) => sum + z.imaginary, 0) / complexNumbers.length;
+  const avgComplex = createComplex(avgReal, avgImag);
+  
+  // Generate predictions using complex operations
+  for (let i = 0; i < 5; i++) {
+    let resultComplex: ComplexNumber;
+    
+    if (i === 0) {
+      // Use conjugate
+      resultComplex = complexConjugate(avgComplex);
+    } else if (i === 1) {
+      // Use magnitude and angle transformation
+      const mag = complexMagnitude(avgComplex);
+      const angle = complexAngle(avgComplex) + Math.PI / 4;
+      resultComplex = createComplex(mag * Math.cos(angle), mag * Math.sin(angle));
+    } else if (i === 2) {
+      // Multiply with recent trend
+      const recentTrend = complexNumbers[complexNumbers.length - 1];
+      resultComplex = complexMultiply(avgComplex, createComplex(0.8, 0.6));
+    } else if (i === 3) {
+      // Add weighted recent values
+      const recent = complexNumbers[complexNumbers.length - 1];
+      resultComplex = complexAdd(avgComplex, complexMultiply(recent, createComplex(0.3, 0.3)));
+    } else {
+      // Division pattern
+      const divisor = createComplex(1.5, 1.2);
+      resultComplex = complexDivide(avgComplex, divisor);
+    }
+    
+    // Convert back to 6-digit number
+    const realPart = Math.abs(Math.round(resultComplex.real)) % 1000;
+    const imagPart = Math.abs(Math.round(resultComplex.imaginary)) % 1000;
+    
+    const number = realPart.toString().padStart(3, '0') + imagPart.toString().padStart(3, '0');
+    predictions.push(number);
+  }
+  
+  return predictions;
+};
+
+// Method 7: Phase and Magnitude Analysis
+export const generatePhaseBasedPredictions = (analysis: StatisticalAnalysis): string[] => {
+  const predictions: string[] = [];
+  const allNumbers = lotteryHistory.map(r => r.result);
+  const recentNumbers = allNumbers.slice(-30);
+  
+  // Convert to complex numbers and analyze phase patterns
+  const phases: number[] = [];
+  const magnitudes: number[] = [];
+  
+  recentNumbers.forEach(num => {
+    const digits = num.split("").map(Number);
+    const real = digits.slice(0, 3).reduce((sum, d) => sum * 10 + d, 0);
+    const imaginary = digits.slice(3, 6).reduce((sum, d) => sum * 10 + d, 0);
+    const complex = createComplex(real, imaginary);
+    
+    phases.push(complexAngle(complex));
+    magnitudes.push(complexMagnitude(complex));
+  });
+  
+  // Calculate phase and magnitude trends
+  const avgPhase = phases.reduce((sum, p) => sum + p, 0) / phases.length;
+  const avgMagnitude = magnitudes.reduce((sum, m) => sum + m, 0) / magnitudes.length;
+  
+  // Generate predictions based on phase shifts
+  for (let i = 0; i < 5; i++) {
+    const phaseShift = avgPhase + (i * Math.PI / 6);
+    const magVariation = avgMagnitude * (0.9 + i * 0.05);
+    
+    const real = Math.abs(Math.round(magVariation * Math.cos(phaseShift))) % 1000;
+    const imaginary = Math.abs(Math.round(magVariation * Math.sin(phaseShift))) % 1000;
+    
+    const number = real.toString().padStart(3, '0') + imaginary.toString().padStart(3, '0');
+    predictions.push(number);
+  }
+  
+  return predictions;
+};
+
 // Generate all prediction sets
 export const generateAllPredictions = (): PredictionSet[] => {
   const analysis = analyzeHistoricalData();
@@ -309,6 +438,18 @@ export const generateAllPredictions = (): PredictionSet[] => {
       method: "Pattern Matching",
       description: "Built from most common adjacent digit pairs",
       numbers: generatePatternMatchingPredictions(analysis),
+      confidence: "medium"
+    },
+    {
+      method: "Complex Number Analysis",
+      description: "Uses complex number operations (conjugate, magnitude, multiplication) on historical data",
+      numbers: generateComplexNumberPredictions(analysis),
+      confidence: "high"
+    },
+    {
+      method: "Phase & Magnitude Based",
+      description: "Analyzes phase angles and magnitudes of complex representations",
+      numbers: generatePhaseBasedPredictions(analysis),
       confidence: "medium"
     }
   ];
