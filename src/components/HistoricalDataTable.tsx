@@ -1,24 +1,31 @@
 import { useState } from "react";
-import { lotteryHistory, getResultsByYear, getResultsByMonth } from "@/data/lotteryHistory";
+import { lotteryHistory, getResultsByYear, getResultsByMonth, getYearRange } from "@/data/lotteryHistory";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 
 interface HistoricalDataTableProps {
   highlightPattern?: string;
 }
 
 export const HistoricalDataTable = ({ highlightPattern }: HistoricalDataTableProps) => {
-  const [selectedYear, setSelectedYear] = useState<number>(2025);
+  const { min, max } = getYearRange();
+  const [selectedYear, setSelectedYear] = useState<number>(max);
   const [selectedMonth, setSelectedMonth] = useState<number | "all">("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [lotteryType, setLotteryType] = useState<string>("all");
 
   const filteredResults = (() => {
     let results = selectedMonth === "all" 
       ? getResultsByYear(selectedYear)
       : getResultsByMonth(selectedYear, selectedMonth as number);
+    
+    if (lotteryType !== "all") {
+      results = results.filter(r => r.lotteryType === lotteryType);
+    }
     
     if (searchTerm) {
       results = results.filter(r => 
@@ -31,6 +38,8 @@ export const HistoricalDataTable = ({ highlightPattern }: HistoricalDataTablePro
     return results;
   })();
 
+  const availableYears = Array.from({ length: max - min + 1 }, (_, i) => max - i);
+
   const isHighlighted = (result: string) => {
     if (!highlightPattern) return false;
     return result.includes(highlightPattern) || result.slice(-3) === highlightPattern;
@@ -39,44 +48,74 @@ export const HistoricalDataTable = ({ highlightPattern }: HistoricalDataTablePro
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Historical Lottery Results</CardTitle>
+        <CardTitle>Historical Lottery Results ({min}-{max})</CardTitle>
         <CardDescription>
-          Browse past winning numbers and patterns ({lotteryHistory.length} total records)
+          Comprehensive {max - min + 1}-year database with {lotteryHistory.length} lottery results
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-wrap gap-4 mb-4">
-          <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(Number(v))}>
-            <SelectTrigger className="w-32">
-              <SelectValue placeholder="Year" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="2025">2025</SelectItem>
-              <SelectItem value="2024">2024</SelectItem>
-              <SelectItem value="2023">2023</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="space-y-4 mb-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div>
+              <Label htmlFor="year" className="text-sm font-medium mb-1">Year</Label>
+              <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(Number(v))}>
+                <SelectTrigger id="year" className="w-full">
+                  <SelectValue placeholder="Year" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableYears.map(year => (
+                    <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          <Select value={selectedMonth.toString()} onValueChange={(v) => setSelectedMonth(v === "all" ? "all" : Number(v))}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Month" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Months</SelectItem>
-              {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
-                <SelectItem key={month} value={month.toString()}>
-                  {new Date(2000, month - 1).toLocaleString('default', { month: 'long' })}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <div>
+              <Label htmlFor="month" className="text-sm font-medium mb-1">Month</Label>
+              <Select value={selectedMonth.toString()} onValueChange={(v) => setSelectedMonth(v === "all" ? "all" : Number(v))}>
+                <SelectTrigger id="month" className="w-full">
+                  <SelectValue placeholder="Month" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Months</SelectItem>
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
+                    <SelectItem key={month} value={month.toString()}>
+                      {new Date(2000, month - 1).toLocaleString('default', { month: 'short' })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          <Input
-            placeholder="Search result, draw, or lottery..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-xs"
-          />
+            <div>
+              <Label htmlFor="type" className="text-sm font-medium mb-1">Type</Label>
+              <Select value={lotteryType} onValueChange={setLotteryType}>
+                <SelectTrigger id="type" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="bumper">Bumper</SelectItem>
+                  <SelectItem value="regular">Regular</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="search" className="text-sm font-medium mb-1">Search</Label>
+              <Input
+                id="search"
+                placeholder="Result, draw, lottery..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full"
+              />
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Badge variant="outline">{filteredResults.length} results found</Badge>
+          </div>
         </div>
 
         <div className="rounded-md border max-h-96 overflow-auto">

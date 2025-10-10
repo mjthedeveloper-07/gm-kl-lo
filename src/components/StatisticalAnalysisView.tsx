@@ -1,13 +1,50 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { analyzeHistoricalData } from "@/utils/predictionGenerator";
-import { TrendingUp, TrendingDown, BarChart3 } from "lucide-react";
+import { getYearRange, lotteryHistory, getBumperResults, getRegularResults } from "@/data/lotteryHistory";
+import { TrendingUp, TrendingDown, BarChart3, Database } from "lucide-react";
 
 export const StatisticalAnalysisView = () => {
   const analysis = analyzeHistoricalData();
+  const { min, max } = getYearRange();
+  const totalResults = lotteryHistory.length;
+  const bumperCount = getBumperResults().length;
+  const regularCount = getRegularResults().length;
 
   return (
     <div className="space-y-6">
+      {/* Dataset Overview */}
+      <Card className="bg-gradient-to-br from-primary/10 via-accent/5 to-primary/5 border-primary/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Database className="h-6 w-6 text-primary" />
+            Comprehensive Dataset Overview
+          </CardTitle>
+          <CardDescription>
+            {max - min + 1} years of Kerala Lottery historical data ({min}-{max})
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="p-4 rounded-lg bg-card border">
+              <p className="text-sm text-muted-foreground mb-2">Total Results</p>
+              <p className="text-3xl font-bold text-primary">{totalResults}</p>
+              <p className="text-xs text-muted-foreground mt-1">All lottery draws</p>
+            </div>
+            <div className="p-4 rounded-lg bg-card border">
+              <p className="text-sm text-muted-foreground mb-2">Bumper Draws</p>
+              <p className="text-3xl font-bold text-secondary">{bumperCount}</p>
+              <p className="text-xs text-muted-foreground mt-1">Special bumper lotteries</p>
+            </div>
+            <div className="p-4 rounded-lg bg-card border">
+              <p className="text-sm text-muted-foreground mb-2">Regular Draws</p>
+              <p className="text-3xl font-bold text-accent">{regularCount}</p>
+              <p className="text-xs text-muted-foreground mt-1">Weekly lottery draws</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Key Findings Summary */}
       <Card>
         <CardHeader>
@@ -15,7 +52,7 @@ export const StatisticalAnalysisView = () => {
             <BarChart3 className="h-6 w-6" />
             Key Statistical Findings
           </CardTitle>
-          <CardDescription>Comprehensive analysis of historical lottery data</CardDescription>
+          <CardDescription>Based on {totalResults} historical lottery results</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
