@@ -11,6 +11,7 @@ import { PatternAnalysis } from "@/components/PatternAnalysis";
 import { PredictionValidator } from "@/components/PredictionValidator";
 import { StatisticalAnalysisView } from "@/components/StatisticalAnalysisView";
 import { PredictionSetsView } from "@/components/PredictionSetsView";
+import { NovaChatbot } from "@/components/NovaChatbot";
 
 type MathFunction = "COS" | "SIN" | "TAN" | "√";
 type DigitExtraction = ".3 NOS" | "L3 NOS" | ".2 NOS";
@@ -550,6 +551,9 @@ const Index = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Nova AI Chatbot */}
+      <NovaChatbot />
     </div>
   );
 };
