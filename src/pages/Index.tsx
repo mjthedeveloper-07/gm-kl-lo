@@ -3,9 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, Calculator, TrendingUp } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sparkles, Calculator, TrendingUp, Database } from "lucide-react";
 import { toast } from "sonner";
+import { HistoricalDataTable } from "@/components/HistoricalDataTable";
+import { PatternAnalysis } from "@/components/PatternAnalysis";
+import { PredictionValidator } from "@/components/PredictionValidator";
 
 type MathFunction = "COS" | "SIN" | "TAN" | "√";
 type DigitExtraction = ".3 NOS" | "L3 NOS" | ".2 NOS";
@@ -335,6 +338,7 @@ const Index = () => {
     toast.success(`Generated ${newPredictions.length} 6-digit predictions`);
   };
 
+  const predictionResults = predictions.map(p => p.result);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/10">
@@ -348,7 +352,7 @@ const Index = () => {
             Lottery Number Predictor
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Apply mathematical formulas to old draw numbers and predict winning combinations
+            Advanced formula-based predictions powered by historical lottery data analysis
           </p>
         </div>
 
@@ -403,99 +407,128 @@ const Index = () => {
               </Button>
             </CardContent>
           </Card>
+        </div>
 
-          {/* Results Section */}
-          <Card className="shadow-card border-2 border-accent/20">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-2xl">
-                <TrendingUp className="w-6 h-6 text-accent" />
-                Predictions {predictions.length > 0 && `(${predictions.length})`}
-              </CardTitle>
-              <CardDescription>Your calculated lottery predictions</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {predictions.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <Sparkles className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg">No predictions yet</p>
-                  <p className="text-sm">Enter draw number and run formulas</p>
-                </div>
-              ) : (
-                <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2">
-                  {predictions.map((pred, idx) => (
-                    <div
-                      key={idx}
-                      className={`bg-gradient-to-br from-card to-card/50 p-3 rounded-lg border transition-all ${
-                        pred.combinedResult 
-                          ? 'border-accent border-2 hover:border-accent shadow-md' 
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <span className={`text-xs font-bold px-2 py-1 rounded whitespace-nowrap ${
-                            pred.formulaType === "trig" 
-                              ? "bg-purple-500/10 text-purple-600 dark:text-purple-400" 
-                              : "bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                          }`}>
-                            {pred.label}
-                          </span>
-                          <span className="text-xs text-muted-foreground font-mono whitespace-nowrap truncate">
-                            {pred.mathFunction}
-                          </span>
-                          <span className="text-xs text-muted-foreground whitespace-nowrap">
-                            {pred.extraction}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="text-right">
-                            <div className={`font-bold tabular-nums ${
-                              pred.combinedResult 
-                                ? 'text-3xl bg-gradient-to-r from-accent via-primary to-primary-glow bg-clip-text text-transparent' 
-                                : 'text-2xl bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent'
+        {/* Results & Analysis Tabs */}
+        <Tabs defaultValue="predictions" className="mt-8">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="predictions">Predictions</TabsTrigger>
+            <TabsTrigger value="validation">Validation</TabsTrigger>
+            <TabsTrigger value="patterns">Patterns</TabsTrigger>
+            <TabsTrigger value="history">
+              <Database className="h-4 w-4 mr-2" />
+              History
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Predictions Tab */}
+          <TabsContent value="predictions">
+            <Card className="shadow-card border-2 border-accent/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-2xl">
+                  <TrendingUp className="w-6 h-6 text-accent" />
+                  Predictions {predictions.length > 0 && `(${predictions.length})`}
+                </CardTitle>
+                <CardDescription>Your calculated lottery predictions</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {predictions.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Sparkles className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg">No predictions yet</p>
+                    <p className="text-sm">Enter draw number and run formulas</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2">
+                    {predictions.map((pred, idx) => (
+                      <div
+                        key={idx}
+                        className={`bg-gradient-to-br from-card to-card/50 p-3 rounded-lg border transition-all ${
+                          pred.combinedResult 
+                            ? 'border-accent border-2 hover:border-accent shadow-md' 
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <span className={`text-xs font-bold px-2 py-1 rounded whitespace-nowrap ${
+                              pred.formulaType === "trig" 
+                                ? "bg-purple-500/10 text-purple-600 dark:text-purple-400" 
+                                : "bg-blue-500/10 text-blue-600 dark:text-blue-400"
                             }`}>
-                              {pred.result}
-                            </div>
-                            <div className="text-sm text-muted-foreground font-mono mt-1">
-                              Last 4: {pred.result.slice(-4)}
+                              {pred.label}
+                            </span>
+                            <span className="text-xs text-muted-foreground font-mono whitespace-nowrap truncate">
+                              {pred.mathFunction}
+                            </span>
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">
+                              {pred.extraction}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="text-right">
+                              <div className={`font-bold tabular-nums ${
+                                pred.combinedResult 
+                                  ? 'text-3xl bg-gradient-to-r from-accent via-primary to-primary-glow bg-clip-text text-transparent' 
+                                  : 'text-2xl bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent'
+                              }`}>
+                                {pred.result}
+                              </div>
+                              <div className="text-sm text-muted-foreground font-mono mt-1">
+                                Last 4: {pred.result.slice(-4)}
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            {/* How It Works Section */}
+            <Card className="mt-8 bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
+              <CardHeader>
+                <CardTitle>How It Works</CardTitle>
+              </CardHeader>
+              <CardContent className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="font-semibold text-lg mb-2 text-primary">Position Notation</h3>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li><strong>F2:</strong> First 2 digits of the number</li>
+                    <li><strong>F3:</strong> First 3 digits of the number</li>
+                    <li><strong>L2:</strong> Last 2 digits of the number</li>
+                    <li><strong>L3:</strong> Last 3 digits of the number</li>
+                  </ul>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                <div>
+                  <h3 className="font-semibold text-lg mb-2 text-accent">Operations</h3>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li><strong>Multiply (×):</strong> Multiply selected digits by value</li>
+                    <li><strong>Divide (÷):</strong> Divide selected digits by value</li>
+                    <li><strong>Add (+):</strong> Add value to selected digits</li>
+                    <li><strong>Subtract (-):</strong> Subtract value from selected digits</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        {/* Info Section */}
-        <Card className="mt-8 bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
-          <CardHeader>
-            <CardTitle>How It Works</CardTitle>
-          </CardHeader>
-          <CardContent className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="font-semibold text-lg mb-2 text-primary">Position Notation</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><strong>F2:</strong> First 2 digits of the number</li>
-                <li><strong>F3:</strong> First 3 digits of the number</li>
-                <li><strong>L2:</strong> Last 2 digits of the number</li>
-                <li><strong>L3:</strong> Last 3 digits of the number</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold text-lg mb-2 text-accent">Operations</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><strong>Multiply (×):</strong> Multiply selected digits by value</li>
-                <li><strong>Divide (÷):</strong> Divide selected digits by value</li>
-                <li><strong>Add (+):</strong> Add value to selected digits</li>
-                <li><strong>Subtract (-):</strong> Subtract value from selected digits</li>
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Validation Tab */}
+          <TabsContent value="validation">
+            <PredictionValidator predictions={predictionResults} />
+          </TabsContent>
+
+          {/* Patterns Tab */}
+          <TabsContent value="patterns">
+            <PatternAnalysis pattern={drawNumber.replace(/\D/g, "")} />
+          </TabsContent>
+
+          {/* History Tab */}
+          <TabsContent value="history">
+            <HistoricalDataTable highlightPattern={drawNumber.replace(/\D/g, "")} />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
