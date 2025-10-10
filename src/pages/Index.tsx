@@ -4,11 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Calculator, TrendingUp, Database } from "lucide-react";
+import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { HistoricalDataTable } from "@/components/HistoricalDataTable";
 import { PatternAnalysis } from "@/components/PatternAnalysis";
 import { PredictionValidator } from "@/components/PredictionValidator";
+import { StatisticalAnalysisView } from "@/components/StatisticalAnalysisView";
+import { PredictionSetsView } from "@/components/PredictionSetsView";
 
 type MathFunction = "COS" | "SIN" | "TAN" | "√";
 type DigitExtraction = ".3 NOS" | "L3 NOS" | ".2 NOS";
@@ -410,16 +412,29 @@ const Index = () => {
         </div>
 
         {/* Results & Analysis Tabs */}
-        <Tabs defaultValue="predictions" className="mt-8">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="predictions">Predictions</TabsTrigger>
+        <Tabs defaultValue="ai-predictions" className="mt-8">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="ai-predictions">
+              <Zap className="h-4 w-4 mr-2" />
+              AI Predictions
+            </TabsTrigger>
+            <TabsTrigger value="predictions">Formulas</TabsTrigger>
             <TabsTrigger value="validation">Validation</TabsTrigger>
+            <TabsTrigger value="analysis">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Analysis
+            </TabsTrigger>
             <TabsTrigger value="patterns">Patterns</TabsTrigger>
             <TabsTrigger value="history">
               <Database className="h-4 w-4 mr-2" />
               History
             </TabsTrigger>
           </TabsList>
+
+          {/* AI Predictions Tab */}
+          <TabsContent value="ai-predictions">
+            <PredictionSetsView />
+          </TabsContent>
 
           {/* Predictions Tab */}
           <TabsContent value="predictions">
@@ -517,6 +532,11 @@ const Index = () => {
           {/* Validation Tab */}
           <TabsContent value="validation">
             <PredictionValidator predictions={predictionResults} />
+          </TabsContent>
+
+          {/* Statistical Analysis Tab */}
+          <TabsContent value="analysis">
+            <StatisticalAnalysisView />
           </TabsContent>
 
           {/* Patterns Tab */}
