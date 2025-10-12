@@ -17,6 +17,7 @@ export interface TemporalPattern {
   period: string;
   digit: string;
   frequency: number;
+  type: "monthly" | "daily";
 }
 
 export interface PredictionSet {
@@ -121,7 +122,21 @@ export const analyzeHistoricalData = (): StatisticalAnalysis => {
     });
   });
   
+  // Temporal patterns (by day of month)
+  const dayPatterns: { [day: number]: { [digit: string]: number } } = {};
+  lotteryHistory.forEach(result => {
+    const day = parseInt(result.date.split('.')[0]);
+    if (!dayPatterns[day]) {
+      dayPatterns[day] = {};
+    }
+    result.result.split("").forEach(digit => {
+      dayPatterns[day][digit] = (dayPatterns[day][digit] || 0) + 1;
+    });
+  });
+  
   const temporalPatterns: TemporalPattern[] = [];
+  
+  // Add monthly patterns
   Object.entries(monthPatterns).forEach(([month, digits]) => {
     const topDigit = Object.entries(digits)
       .sort((a, b) => b[1] - a[1])[0];
@@ -129,10 +144,32 @@ export const analyzeHistoricalData = (): StatisticalAnalysis => {
       temporalPatterns.push({
         period: new Date(2000, parseInt(month) - 1).toLocaleString('default', { month: 'long' }),
         digit: topDigit[0],
-        frequency: topDigit[1]
+        frequency: topDigit[1],
+        type: "monthly"
       });
     }
   });
+  
+  // Add daily patterns (top 10 days)
+  Object.entries(dayPatterns)
+    .sort((a, b) => {
+      const aTotal = Object.values(a[1]).reduce((sum, val) => sum + val, 0);
+      const bTotal = Object.values(b[1]).reduce((sum, val) => sum + val, 0);
+      return bTotal - aTotal;
+    })
+    .slice(0, 10)
+    .forEach(([day, digits]) => {
+      const topDigit = Object.entries(digits)
+        .sort((a, b) => b[1] - a[1])[0];
+      if (topDigit) {
+        temporalPatterns.push({
+          period: `Day ${day}`,
+          digit: topDigit[0],
+          frequency: topDigit[1],
+          type: "daily"
+        });
+      }
+    });
   
   return {
     topFrequentDigits: sortedDigits.slice(0, 10),
