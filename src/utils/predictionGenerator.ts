@@ -36,17 +36,29 @@ export interface StatisticalAnalysis {
   temporalPatterns: TemporalPattern[];
 }
 
-// Perform comprehensive statistical analysis
+// Perform comprehensive statistical analysis with time-weighted frequency
 export const analyzeHistoricalData = (): StatisticalAnalysis => {
   const allNumbers = lotteryHistory.map(r => r.result);
   
-  // Overall digit frequency
+  // Sort history by date for time-decay weighting
+  const sortedHistory = [...lotteryHistory].sort((a, b) => {
+    const dateA = new Date(a.year, a.month - 1, 1).getTime();
+    const dateB = new Date(b.year, b.month - 1, 1).getTime();
+    return dateA - dateB;
+  });
+  
+  // Overall digit frequency with time decay
   const digitCounts: { [key: string]: number } = {};
   for (let i = 0; i <= 9; i++) digitCounts[i.toString()] = 0;
   
-  allNumbers.forEach(num => {
-    num.split("").forEach(digit => {
-      digitCounts[digit] = (digitCounts[digit] || 0) + 1;
+  const totalEntries = sortedHistory.length;
+  
+  sortedHistory.forEach((entry, index) => {
+    // Exponential weight: older = 0.3x, newest = 1.0x
+    const ageWeight = Math.pow((index + 1) / totalEntries, 2) * 0.7 + 0.3;
+    
+    entry.result.split("").forEach(digit => {
+      digitCounts[digit] = (digitCounts[digit] || 0) + ageWeight;
     });
   });
   
@@ -54,7 +66,7 @@ export const analyzeHistoricalData = (): StatisticalAnalysis => {
   const sortedDigits = Object.entries(digitCounts)
     .map(([digit, count]) => ({
       digit,
-      count,
+      count: Math.round(count),
       percentage: Math.round((count / totalDigits) * 100)
     }))
     .sort((a, b) => b.count - a.count);
