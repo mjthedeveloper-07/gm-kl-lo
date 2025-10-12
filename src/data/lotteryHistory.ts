@@ -38,6 +38,10 @@ export const lotteryHistory: LotteryResult[] = [
   { date: "25.09.25", day: "Thu", lottery: "Karunya Plus", draw: "591", result: "430879", year: 2025, month: 9, lotteryType: "regular" },
   { date: "26.09.25", day: "Fri", lottery: "Suvarna Keralam", draw: "20", result: "648907", year: 2025, month: 9, lotteryType: "regular" },
   
+  // 2025 October data
+  { date: "11.10.25", day: "Sat", lottery: "Karunya", draw: "725", result: "705767", year: 2025, month: 10, lotteryType: "regular" },
+  { date: "12.10.25", day: "Sun", lottery: "Samrudhi", draw: "22", result: "796935", year: 2025, month: 10, lotteryType: "regular" },
+  
   // 2024 Bumper & Regular Lotteries (from spreadsheet)
   { date: "06.11.24", day: "Wed", lottery: "Pooja Bumper", draw: "BR-105", result: "061252", year: 2024, month: 11, lotteryType: "bumper" },
   { date: "14.04.24", day: "Sun", lottery: "Vishu Bumper", draw: "BR-104", result: "667118", year: 2024, month: 4, lotteryType: "bumper" },
