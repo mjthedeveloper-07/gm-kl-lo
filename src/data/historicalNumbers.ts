@@ -102,6 +102,9 @@ export const historicalNumbers: HistoricalNumber[] = [
   { year: 2023, month: 1, day: 5, number: "60452" },
   { year: 2023, month: 2, day: 1, number: "08309" },
   { year: 2023, month: 3, day: 1, number: "50983" },
+
+  // 2025 data
+  { year: 2025, month: 10, day: 12, number: "796935" },
 ];
 
 // Helper functions
