@@ -75,7 +75,7 @@ export const getPatternStats = (pattern: string): PatternStats => {
   };
 };
 
-// Get frequency of all digits (0-9) with time-decay weighting
+// Get frequency of all digits (0-9)
 export const getDigitFrequency = (): DigitFrequency[] => {
   const digitCounts: { [key: string]: number } = {};
   
@@ -84,22 +84,10 @@ export const getDigitFrequency = (): DigitFrequency[] => {
     digitCounts[i.toString()] = 0;
   }
   
-  // Sort by date to apply time decay
-  const sortedHistory = [...lotteryHistory].sort((a, b) => {
-    const dateA = new Date(a.year, a.month - 1, 1).getTime();
-    const dateB = new Date(b.year, b.month - 1, 1).getTime();
-    return dateA - dateB;
-  });
-  
-  const totalEntries = sortedHistory.length;
-  
-  // Count occurrences with exponential decay weight (recent = higher weight)
-  sortedHistory.forEach((result, index) => {
-    // Weight increases exponentially: older entries get 0.3x, newest get 1.0x
-    const ageWeight = Math.pow((index + 1) / totalEntries, 2) * 0.7 + 0.3;
-    
+  // Count occurrences
+  lotteryHistory.forEach(result => {
     result.result.split("").forEach(digit => {
-      digitCounts[digit] = (digitCounts[digit] || 0) + ageWeight;
+      digitCounts[digit] = (digitCounts[digit] || 0) + 1;
     });
   });
   
@@ -108,7 +96,7 @@ export const getDigitFrequency = (): DigitFrequency[] => {
   return Object.entries(digitCounts)
     .map(([digit, count]) => ({
       digit,
-      count: Math.round(count),
+      count,
       percentage: Math.round((count / total) * 100)
     }))
     .sort((a, b) => b.count - a.count);
