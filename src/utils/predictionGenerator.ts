@@ -182,20 +182,154 @@ export const analyzeHistoricalData = (): StatisticalAnalysis => {
   };
 };
 
-// Method 1: Frequency-Based Predictions
+// Method 1: Advanced Multi-Factor Frequency-Based Predictions
 export const generateFrequencyBasedPredictions = (analysis: StatisticalAnalysis): string[] => {
   const predictions: string[] = [];
+  const allNumbers = lotteryHistory.map(r => r.result);
   
-  // Use top 3 from each position
-  for (let variant = 0; variant < 5; variant++) {
-    let number = "";
-    for (let pos = 0; pos < 6; pos++) {
-      const posData = analysis.positionalAnalysis[pos];
-      const digitIndex = variant % 3;
-      number += posData[digitIndex].digit;
+  // Calculate recency weights (recent results have higher importance)
+  const recentWeight = (index: number, total: number): number => {
+    const recency = (total - index) / total;
+    return Math.pow(recency, 1.5); // Exponential recency bias
+  };
+  
+  // Enhanced positional scoring with multiple factors
+  const calculateEnhancedScore = (pos: number, digit: string): number => {
+    let score = 0;
+    
+    // Factor 1: Base frequency (40% weight)
+    const posFreq = analysis.positionalAnalysis[pos].find(d => d.digit === digit);
+    score += (posFreq?.frequency || 0) * 0.4;
+    
+    // Factor 2: Recency score (30% weight)
+    let recencyScore = 0;
+    allNumbers.forEach((num, idx) => {
+      if (num[pos] === digit) {
+        recencyScore += recentWeight(idx, allNumbers.length);
+      }
+    });
+    score += recencyScore * 0.3;
+    
+    // Factor 3: Hot streak detection (15% weight)
+    const last20 = allNumbers.slice(-20);
+    const recentCount = last20.filter(num => num[pos] === digit).length;
+    score += (recentCount / 20) * 100 * 0.15;
+    
+    // Factor 4: Adjacent position correlation (15% weight)
+    let correlationScore = 0;
+    if (pos < 5) {
+      const nextPosData = analysis.positionalAnalysis[pos + 1];
+      analysis.digitPairs.forEach(pair => {
+        if (pair.pair[0] === digit) {
+          correlationScore += pair.frequency;
+        }
+      });
     }
-    predictions.push(number);
+    score += correlationScore * 0.15;
+    
+    return score;
+  };
+  
+  // Build scoring matrix for all positions and digits
+  const scoringMatrix: { [pos: number]: { digit: string; score: number }[] } = {};
+  for (let pos = 0; pos < 6; pos++) {
+    scoringMatrix[pos] = [];
+    for (let digit = 0; digit <= 9; digit++) {
+      const digitStr = digit.toString();
+      const score = calculateEnhancedScore(pos, digitStr);
+      scoringMatrix[pos].push({ digit: digitStr, score });
+    }
+    // Sort by score descending
+    scoringMatrix[pos].sort((a, b) => b.score - a.score);
   }
+  
+  // Generate predictions using different strategies
+  
+  // Strategy 1: Pure highest scores
+  let pred1 = "";
+  for (let pos = 0; pos < 6; pos++) {
+    pred1 += scoringMatrix[pos][0].digit;
+  }
+  predictions.push(pred1);
+  
+  // Strategy 2: Top 2 alternating with correlation awareness
+  let pred2 = "";
+  for (let pos = 0; pos < 6; pos++) {
+    const topDigits = scoringMatrix[pos].slice(0, 2);
+    // Check correlation with previous digit
+    if (pos > 0 && pred2.length > 0) {
+      const prevDigit = pred2[pred2.length - 1];
+      const bestPair = analysis.digitPairs
+        .filter(p => p.pair[0] === prevDigit)
+        .sort((a, b) => b.frequency - a.frequency)[0];
+      
+      const correlatedDigit = bestPair?.pair[1];
+      const matchingTop = topDigits.find(d => d.digit === correlatedDigit);
+      pred2 += matchingTop ? matchingTop.digit : topDigits[0].digit;
+    } else {
+      pred2 += topDigits[0].digit;
+    }
+  }
+  predictions.push(pred2);
+  
+  // Strategy 3: Weighted random from top 3 with momentum
+  let pred3 = "";
+  for (let pos = 0; pos < 6; pos++) {
+    const topDigits = scoringMatrix[pos].slice(0, 3);
+    const totalScore = topDigits.reduce((sum, d) => sum + d.score, 0);
+    let random = Math.random() * totalScore;
+    
+    for (const digitData of topDigits) {
+      random -= digitData.score;
+      if (random <= 0) {
+        pred3 += digitData.digit;
+        break;
+      }
+    }
+    if (pred3.length !== pos + 1) pred3 += topDigits[0].digit;
+  }
+  predictions.push(pred3);
+  
+  // Strategy 4: Pattern-aware with hot streak emphasis
+  let pred4 = "";
+  const last10 = allNumbers.slice(-10);
+  for (let pos = 0; pos < 6; pos++) {
+    // Count hot digits in last 10 draws
+    const hotMap: { [key: string]: number } = {};
+    last10.forEach(num => {
+      hotMap[num[pos]] = (hotMap[num[pos]] || 0) + 1;
+    });
+    
+    // Blend hot streak with scoring
+    const topScored = scoringMatrix[pos].slice(0, 3);
+    const blended = topScored.map(d => ({
+      digit: d.digit,
+      score: d.score + (hotMap[d.digit] || 0) * 50
+    })).sort((a, b) => b.score - a.score);
+    
+    pred4 += blended[0].digit;
+  }
+  predictions.push(pred4);
+  
+  // Strategy 5: Inverse correlation exploration (contrarian approach)
+  let pred5 = "";
+  for (let pos = 0; pos < 6; pos++) {
+    const topDigits = scoringMatrix[pos].slice(0, 3);
+    // Select second or third best if it forms a rare but emerging pair
+    if (pos > 0) {
+      const prevDigit = pred5[pred5.length - 1];
+      const rarePairs = analysis.digitPairs
+        .filter(p => p.pair[0] === prevDigit && p.frequency < 10)
+        .sort((a, b) => a.frequency - b.frequency);
+      
+      const emergingDigit = rarePairs[0]?.pair[1];
+      const matchingTop = topDigits.find(d => d.digit === emergingDigit);
+      pred5 += matchingTop ? matchingTop.digit : topDigits[1].digit;
+    } else {
+      pred5 += topDigits[1].digit;
+    }
+  }
+  predictions.push(pred5);
   
   return predictions;
 };
