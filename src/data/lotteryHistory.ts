@@ -11,6 +11,9 @@ export interface LotteryResult {
 
 // Comprehensive historical lottery results from 2009-2025
 export const lotteryHistory: LotteryResult[] = [
+  // October 2025 - Latest Results
+  { date: "13.10.25", day: "Mon", lottery: "Win-Win", draw: "945", result: "219935", year: 2025, month: 10, lotteryType: "regular" },
+  
   // 2025 Complete Year Data (from chart)
   // January 2025
   { date: "01.01.25", day: "Wed", lottery: "Akshaya", draw: "784", result: "370675", year: 2025, month: 1, lotteryType: "regular" },
