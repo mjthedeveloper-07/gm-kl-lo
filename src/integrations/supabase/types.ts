@@ -14,7 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      lottery_results: {
+        Row: {
+          created_at: string | null
+          date: string
+          draw_number: string
+          id: string
+          lottery_name: string
+          lottery_type: string | null
+          month: number
+          result: string
+          year: number
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          draw_number: string
+          id?: string
+          lottery_name: string
+          lottery_type?: string | null
+          month: number
+          result: string
+          year: number
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          draw_number?: string
+          id?: string
+          lottery_name?: string
+          lottery_type?: string | null
+          month?: number
+          result?: string
+          year?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
