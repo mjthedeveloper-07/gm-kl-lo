@@ -304,32 +304,19 @@ const complexAdd = (z1: ComplexNumber, z2: ComplexNumber): ComplexNumber =>
 
 const complexDivide = (z1: ComplexNumber, z2: ComplexNumber): ComplexNumber => {
   const denominator = z2.real * z2.real + z2.imaginary * z2.imaginary;
-  if (denominator === 0) return createComplex(0, 0);
   return createComplex(
     (z1.real * z2.real + z1.imaginary * z2.imaginary) / denominator,
     (z1.imaginary * z2.real - z1.real * z2.imaginary) / denominator
   );
 };
 
-const complexSubtract = (z1: ComplexNumber, z2: ComplexNumber): ComplexNumber =>
-  createComplex(z1.real - z2.real, z1.imaginary - z2.imaginary);
-
-const complexInverse = (z: ComplexNumber): ComplexNumber => {
-  const magSquared = z.real * z.real + z.imaginary * z.imaginary;
-  if (magSquared === 0) return createComplex(0, 0);
-  return createComplex(z.real / magSquared, -z.imaginary / magSquared);
-};
-
-const complexSymmetry = (z: ComplexNumber): ComplexNumber =>
-  createComplex(-z.real, -z.imaginary);
-
-// Method 6: Advanced Complex Number Analysis with Inverse & Symmetry
+// Method 6: Complex Number Analysis
 export const generateComplexNumberPredictions = (analysis: StatisticalAnalysis): string[] => {
   const predictions: string[] = [];
   const allNumbers = lotteryHistory.map(r => r.result);
   
   // Convert recent lottery numbers to complex numbers
-  const recentNumbers = allNumbers.slice(-100);
+  const recentNumbers = allNumbers.slice(-50);
   const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
     const digits = num.split("").map(Number);
     const real = digits.slice(0, 3).reduce((sum, d) => sum * 10 + d, 0);
@@ -337,53 +324,38 @@ export const generateComplexNumberPredictions = (analysis: StatisticalAnalysis):
     return createComplex(real, imaginary);
   });
   
-  // Calculate average and weighted average
+  // Calculate average complex number
   const avgReal = complexNumbers.reduce((sum, z) => sum + z.real, 0) / complexNumbers.length;
   const avgImag = complexNumbers.reduce((sum, z) => sum + z.imaginary, 0) / complexNumbers.length;
   const avgComplex = createComplex(avgReal, avgImag);
   
-  // Weighted towards recent results
-  const weights = complexNumbers.map((_, i) => Math.pow(1.05, i));
-  const totalWeight = weights.reduce((a, b) => a + b, 0);
-  const weightedReal = complexNumbers.reduce((sum, z, i) => sum + z.real * weights[i], 0) / totalWeight;
-  const weightedImag = complexNumbers.reduce((sum, z, i) => sum + z.imaginary * weights[i], 0) / totalWeight;
-  const weightedComplex = createComplex(weightedReal, weightedImag);
-  
-  // Generate predictions using advanced complex operations
+  // Generate predictions using complex operations
   for (let i = 0; i < 5; i++) {
     let resultComplex: ComplexNumber;
-    const recent = complexNumbers[complexNumbers.length - 1 - (i % 3)];
     
     if (i === 0) {
-      // Conjugate of weighted average: z̄ = a - bi
-      resultComplex = complexConjugate(weightedComplex);
-      const scaled = complexMultiply(resultComplex, createComplex(1.15, 0));
-      resultComplex = scaled;
+      // Use conjugate
+      resultComplex = complexConjugate(avgComplex);
     } else if (i === 1) {
-      // Inverse operation: z^(-1) = 1/|z|² · z̄
-      const inverse = complexInverse(avgComplex);
-      const scaled = complexMultiply(inverse, createComplex(500, 500));
-      resultComplex = scaled;
+      // Use magnitude and angle transformation
+      const mag = complexMagnitude(avgComplex);
+      const angle = complexAngle(avgComplex) + Math.PI / 4;
+      resultComplex = createComplex(mag * Math.cos(angle), mag * Math.sin(angle));
     } else if (i === 2) {
-      // Symmetry: -z = -a - bi
-      const symmetric = complexSymmetry(weightedComplex);
-      const adjusted = complexAdd(symmetric, createComplex(1000, 1000));
-      resultComplex = adjusted;
+      // Multiply with recent trend
+      const recentTrend = complexNumbers[complexNumbers.length - 1];
+      resultComplex = complexMultiply(avgComplex, createComplex(0.8, 0.6));
     } else if (i === 3) {
-      // Division formula: (ac+bd)/(c²+d²) + (bc-ad)/(c²+d²)i
-      const divisor = createComplex(1.8, 1.3);
-      const quotient = complexDivide(avgComplex, divisor);
-      const combined = complexAdd(quotient, complexMultiply(recent, createComplex(0.4, 0.4)));
-      resultComplex = combined;
+      // Add weighted recent values
+      const recent = complexNumbers[complexNumbers.length - 1];
+      resultComplex = complexAdd(avgComplex, complexMultiply(recent, createComplex(0.3, 0.3)));
     } else {
-      // Multiplication formula: (ac-bd) + (ad+bc)i
-      const factor = createComplex(0.9, 0.7);
-      const product = complexMultiply(weightedComplex, factor);
-      const mixed = complexAdd(product, complexMultiply(recent, createComplex(0.2, 0.2)));
-      resultComplex = mixed;
+      // Division pattern
+      const divisor = createComplex(1.5, 1.2);
+      resultComplex = complexDivide(avgComplex, divisor);
     }
     
-    // Convert back to 6-digit number with normalization
+    // Convert back to 6-digit number
     const realPart = Math.abs(Math.round(resultComplex.real)) % 1000;
     const imagPart = Math.abs(Math.round(resultComplex.imaginary)) % 1000;
     
@@ -394,47 +366,35 @@ export const generateComplexNumberPredictions = (analysis: StatisticalAnalysis):
   return predictions;
 };
 
-// Method 7: Enhanced Phase and Magnitude with Angle Formula θ = tan⁻¹(b/a)
+// Method 7: Phase and Magnitude Analysis
 export const generatePhaseBasedPredictions = (analysis: StatisticalAnalysis): string[] => {
   const predictions: string[] = [];
   const allNumbers = lotteryHistory.map(r => r.result);
-  const recentNumbers = allNumbers.slice(-60);
+  const recentNumbers = allNumbers.slice(-30);
   
   // Convert to complex numbers and analyze phase patterns
   const phases: number[] = [];
   const magnitudes: number[] = [];
-  const complexNumbers: ComplexNumber[] = [];
   
   recentNumbers.forEach(num => {
     const digits = num.split("").map(Number);
     const real = digits.slice(0, 3).reduce((sum, d) => sum * 10 + d, 0);
     const imaginary = digits.slice(3, 6).reduce((sum, d) => sum * 10 + d, 0);
     const complex = createComplex(real, imaginary);
-    complexNumbers.push(complex);
     
-    // Use angle formula: θ = tan⁻¹(b/a) = arg(z)
     phases.push(complexAngle(complex));
-    // Use magnitude property: |z| = √(a² + b²)
     magnitudes.push(complexMagnitude(complex));
   });
   
-  // Calculate weighted trends (recent values have more weight)
-  const weights = phases.map((_, i) => Math.pow(1.03, i));
-  const totalWeight = weights.reduce((a, b) => a + b, 0);
-  const avgPhase = phases.reduce((sum, p, i) => sum + p * weights[i], 0) / totalWeight;
-  const avgMagnitude = magnitudes.reduce((sum, m, i) => sum + m * weights[i], 0) / totalWeight;
+  // Calculate phase and magnitude trends
+  const avgPhase = phases.reduce((sum, p) => sum + p, 0) / phases.length;
+  const avgMagnitude = magnitudes.reduce((sum, m) => sum + m, 0) / magnitudes.length;
   
-  // Analyze phase velocity (rate of change)
-  const phaseVelocity = (phases[phases.length - 1] - phases[0]) / phases.length;
-  const magVelocity = (magnitudes[magnitudes.length - 1] - magnitudes[0]) / magnitudes.length;
-  
-  // Generate predictions using polar form predictions
+  // Generate predictions based on phase shifts
   for (let i = 0; i < 5; i++) {
-    // Apply phase shift with velocity consideration
-    const phaseShift = avgPhase + (i * Math.PI / 5) + phaseVelocity * (i + 1);
-    const magVariation = avgMagnitude * (0.85 + i * 0.08) + magVelocity * (i + 1);
+    const phaseShift = avgPhase + (i * Math.PI / 6);
+    const magVariation = avgMagnitude * (0.9 + i * 0.05);
     
-    // Convert from polar to rectangular: z = |z|(cos θ + i sin θ)
     const real = Math.abs(Math.round(magVariation * Math.cos(phaseShift))) % 1000;
     const imaginary = Math.abs(Math.round(magVariation * Math.sin(phaseShift))) % 1000;
     
@@ -544,11 +504,11 @@ export const generateExponentiationPredictions = (analysis: StatisticalAnalysis)
   return predictions;
 };
 
-// Method 11: Advanced Real/Imaginary Decomposition (Re(z)=(z+z̄)/2, Im(z)=(z-z̄)/2i)
+// Method 11: Real and Imaginary Decomposition (Re(z) = (z+z̄)/2, Im(z) = (z-z̄)/2i)
 export const generateRealImaginaryDecompositionPredictions = (analysis: StatisticalAnalysis): string[] => {
   const predictions: string[] = [];
   const allNumbers = lotteryHistory.map(r => r.result);
-  const recentNumbers = allNumbers.slice(-50);
+  const recentNumbers = allNumbers.slice(-25);
   
   const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
     const digits = num.split("").map(Number);
@@ -557,41 +517,26 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
     return createComplex(real, imaginary);
   });
   
-  // Calculate multiple averages for robustness
+  // Calculate average
   const avgReal = complexNumbers.reduce((sum, z) => sum + z.real, 0) / complexNumbers.length;
   const avgImag = complexNumbers.reduce((sum, z) => sum + z.imaginary, 0) / complexNumbers.length;
   const avgComplex = createComplex(avgReal, avgImag);
-  
-  // Use property: z̄ = z (conjugate for real analysis)
   const conjugate = complexConjugate(avgComplex);
   
-  // Calculate variance for adaptive weighting
-  const variance = complexNumbers.reduce((sum, z) => {
-    const diffReal = z.real - avgReal;
-    const diffImag = z.imaginary - avgImag;
-    return sum + (diffReal * diffReal + diffImag * diffImag);
-  }, 0) / complexNumbers.length;
-  const stdDev = Math.sqrt(variance);
-  
   for (let i = 0; i < 5; i++) {
-    // Apply formulas: Re(z) = (z + z̄)/2 and Im(z) = (z - z̄)/(2i)
-    const weight = 0.75 + (i * 0.12);
-    const varianceWeight = 1 + (stdDev / 1000) * 0.5;
+    // Apply Re(z) = (z + z̄)/2 and Im(z) = (z - z̄)/(2i) transformations
+    const weight = 0.7 + (i * 0.15);
     
-    // Real part using Re(z) = (z + z̄)/2 formula
-    const realPart = Math.abs(Math.round(((avgComplex.real + conjugate.real) / 2) * weight * varianceWeight)) % 1000;
+    // Real part decomposition
+    const realPart = Math.abs(Math.round((avgComplex.real + conjugate.real) / 2 * weight)) % 1000;
     
-    // Imaginary part using Im(z) = (z - z̄)/(2i) formula
-    // Since division by i rotates by -90°, we use the actual calculation
-    const imagPart = Math.abs(Math.round(((avgComplex.imaginary + conjugate.imaginary) / 2) * weight * varianceWeight)) % 1000;
+    // Imaginary part decomposition  
+    const imagPart = Math.abs(Math.round((avgComplex.imaginary - conjugate.imaginary) / 2 * weight)) % 1000;
     
-    // Mix with recent patterns using weighted combination
-    const recentIdx = Math.max(0, complexNumbers.length - 1 - (i * 2));
-    const recent = complexNumbers[recentIdx];
-    const recentWeight = 0.25 + (i * 0.05);
-    
-    const mixedReal = Math.round((realPart * (1 - recentWeight) + recent.real * recentWeight)) % 1000;
-    const mixedImag = Math.round((imagPart * (1 - recentWeight) + recent.imaginary * recentWeight)) % 1000;
+    // Mix with recent trends
+    const recent = complexNumbers[complexNumbers.length - 1 - i];
+    const mixedReal = Math.round((realPart + recent.real * 0.3)) % 1000;
+    const mixedImag = Math.round((imagPart + recent.imaginary * 0.3)) % 1000;
     
     const number = mixedReal.toString().padStart(3, '0') + mixedImag.toString().padStart(3, '0');
     predictions.push(number);
@@ -636,16 +581,16 @@ export const generateAllPredictions = (): PredictionSet[] => {
       confidence: "medium"
     },
     {
-      method: "Advanced Complex Analysis",
-      description: "Uses inverse (z⁻¹=1/|z|²·z̄), symmetry (-z), conjugate (z̄), and weighted operations with 2025 data",
+      method: "Complex Number Analysis",
+      description: "Uses complex number operations (conjugate, magnitude, multiplication) on historical data",
       numbers: generateComplexNumberPredictions(analysis),
       confidence: "high"
     },
     {
-      method: "Phase & Magnitude (θ=tan⁻¹(b/a))",
-      description: "Uses angle formula θ=tan⁻¹(b/a) with phase velocity tracking and weighted recent trends",
+      method: "Phase & Magnitude Based",
+      description: "Analyzes phase angles and magnitudes of complex representations",
       numbers: generatePhaseBasedPredictions(analysis),
-      confidence: "high"
+      confidence: "medium"
     },
     {
       method: "Exponential Form (z=|z|e^iθ)",
@@ -666,8 +611,8 @@ export const generateAllPredictions = (): PredictionSet[] => {
       confidence: "medium"
     },
     {
-      method: "Re/Im Decomposition with Variance",
-      description: "Uses Re(z)=(z+z̄)/2 and Im(z)=(z-z̄)/2i with adaptive variance weighting from 2025 patterns",
+      method: "Real/Imaginary Decomposition",
+      description: "Applies Re(z)=(z+z̄)/2 and Im(z)=(z-z̄)/2i formulas for component analysis",
       numbers: generateRealImaginaryDecompositionPredictions(analysis),
       confidence: "high"
     }
