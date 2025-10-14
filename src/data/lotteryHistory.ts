@@ -12,7 +12,6 @@ export interface LotteryResult {
 // Comprehensive historical lottery results from 2009-2025
 export const lotteryHistory: LotteryResult[] = [
   // 2025 October data
-  { date: "14.10.25", day: "Tue", lottery: "Sthree Sakthi", draw: "499", result: "649740", year: 2025, month: 10, lotteryType: "regular" },
   { date: "13.10.25", day: "Mon", lottery: "Win-Win", draw: "945", result: "219935", year: 2025, month: 10, lotteryType: "regular" },
   { date: "12.10.25", day: "Sun", lottery: "Fifty Fifty", draw: "FF-59", result: "796935", year: 2025, month: 10, lotteryType: "regular" },
   { date: "11.10.25", day: "Sat", lottery: "Karunya", draw: "734", result: "705767", year: 2025, month: 10, lotteryType: "regular" },
