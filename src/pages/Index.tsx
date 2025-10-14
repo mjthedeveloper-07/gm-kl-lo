@@ -12,6 +12,7 @@ import { PredictionValidator } from "@/components/PredictionValidator";
 import { StatisticalAnalysisView } from "@/components/StatisticalAnalysisView";
 import { PredictionSetsView } from "@/components/PredictionSetsView";
 import { NovaChatbot } from "@/components/NovaChatbot";
+import { PositionalFrequencyView } from "@/components/PositionalFrequencyView";
 
 type MathFunction = "COS" | "SIN" | "TAN" | "√";
 type DigitExtraction = ".3 NOS" | "L3 NOS" | ".2 NOS";
@@ -413,8 +414,12 @@ const Index = () => {
         </div>
 
         {/* Results & Analysis Tabs */}
-        <Tabs defaultValue="ai-predictions" className="mt-8 animate-fade-in">
-          <TabsList className="grid w-full grid-cols-6 bg-card/50 backdrop-blur-sm border border-border/50">
+        <Tabs defaultValue="frequency" className="mt-8 animate-fade-in">
+          <TabsList className="grid w-full grid-cols-7 bg-card/50 backdrop-blur-sm border border-border/50">
+            <TabsTrigger value="frequency" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Frequency AI
+            </TabsTrigger>
             <TabsTrigger value="ai-predictions" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300">
               <Zap className="h-4 w-4 mr-2" />
               AI Predictions
@@ -431,6 +436,11 @@ const Index = () => {
               History
             </TabsTrigger>
           </TabsList>
+
+          {/* Frequency Analysis Tab */}
+          <TabsContent value="frequency">
+            <PositionalFrequencyView />
+          </TabsContent>
 
           {/* AI Predictions Tab */}
           <TabsContent value="ai-predictions">
