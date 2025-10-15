@@ -11,22 +11,6 @@ export interface LotteryResult {
 
 // Comprehensive historical lottery results from 2009-2025
 export const lotteryHistory: LotteryResult[] = [
-  // 2025 October data
-  { date: "01.10.25", day: "Wed", lottery: "Akshaya", draw: "AK-787", result: "784922", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "03.10.25", day: "Fri", lottery: "Nirmal", draw: "NR-453", result: "323274", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "04.10.25", day: "Sat", lottery: "Karunya", draw: "KR-725", result: "252617", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "05.10.25", day: "Sun", lottery: "Samrudhi", draw: "SM-27", result: "275170", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "06.10.25", day: "Mon", lottery: "Bhagyathara", draw: "BG-23", result: "736437", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "07.10.25", day: "Tue", lottery: "Sthree Sakthi", draw: "SS-488", result: "313693", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "08.10.25", day: "Wed", lottery: "Dhanalekshmi", draw: "DL-21", result: "289424", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "09.10.25", day: "Thu", lottery: "Karunya Plus", draw: "KN-593", result: "511475", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "10.10.25", day: "Fri", lottery: "Suvarna Keralam", draw: "SK-22", result: "265228", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "11.10.25", day: "Sat", lottery: "Karunya", draw: "KR-726", result: "705767", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "12.10.25", day: "Sun", lottery: "Samrudhi", draw: "SM-28", result: "796935", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "13.10.25", day: "Mon", lottery: "Bhagyathara", draw: "BG-24", result: "219935", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "14.10.25", day: "Tue", lottery: "Win-Win", draw: "W-821", result: "649740", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "15.10.25", day: "Wed", lottery: "Akshaya", draw: "AK-788", result: "867458", year: 2025, month: 10, lotteryType: "regular" },
-  
   // 2025 September data
   { date: "01.09.25", day: "Mon", lottery: "Bhagyathara", draw: "18", result: "357510", year: 2025, month: 9, lotteryType: "regular" },
   { date: "02.09.25", day: "Tue", lottery: "Sthree Sakthi", draw: "483", result: "502763", year: 2025, month: 9, lotteryType: "regular" },
