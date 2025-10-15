@@ -2,22 +2,47 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { generateAllPredictions, type PredictionSet } from "@/utils/predictionGenerator";
-import { Sparkles, RefreshCw, Copy, CheckCircle2 } from "lucide-react";
+import { generateEnhancedPredictions, type EnhancedPredictionSet, savePredictionToDatabase } from "@/utils/enhancedPredictionGenerator";
+import { Sparkles, RefreshCw, Copy, CheckCircle2, TrendingUp, Brain } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export const PredictionSetsView = () => {
-  const [predictionSets, setPredictionSets] = useState<PredictionSet[]>([]);
+  const [predictionSets, setPredictionSets] = useState<EnhancedPredictionSet[]>([]);
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [includeAI, setIncludeAI] = useState(false);
 
   useEffect(() => {
     regeneratePredictions();
   }, []);
 
-  const regeneratePredictions = () => {
-    const predictions = generateAllPredictions();
-    setPredictionSets(predictions);
-    toast.success("Generated new predictions based on statistical analysis");
+  const regeneratePredictions = async () => {
+    setIsLoading(true);
+    try {
+      const newPredictions = await generateEnhancedPredictions();
+      
+      // Save predictions to database
+      for (const pred of newPredictions) {
+        await savePredictionToDatabase(pred);
+      }
+
+      // Optionally fetch AI predictions
+      if (includeAI) {
+        const { data: aiPred, error } = await supabase.functions.invoke('generate-ml-predictions');
+        if (!error && aiPred) {
+          newPredictions.push(aiPred);
+        }
+      }
+
+      setPredictionSets(newPredictions);
+      toast.success(`Generated ${newPredictions.length} enhanced prediction sets with accuracy tracking`);
+    } catch (error) {
+      console.error('Error generating predictions:', error);
+      toast.error("Failed to generate predictions");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const copyToClipboard = (text: string, id: string) => {
@@ -28,16 +53,19 @@ export const PredictionSetsView = () => {
   };
 
   const getConfidenceBadge = (confidence: string) => {
-    switch (confidence) {
-      case "high":
-        return <Badge variant="default" className="bg-green-500">High Confidence</Badge>;
-      case "medium":
-        return <Badge variant="secondary">Medium Confidence</Badge>;
-      case "low":
-        return <Badge variant="outline">Low Confidence</Badge>;
-      default:
-        return <Badge variant="outline">{confidence}</Badge>;
-    }
+    const variants = {
+      "very_high": { variant: "default" as const, label: "Very High", color: "bg-green-500" },
+      "high": { variant: "default" as const, label: "High", color: "bg-blue-500" },
+      "medium": { variant: "secondary" as const, label: "Medium", color: "" },
+      "low": { variant: "outline" as const, label: "Low", color: "" },
+      "very_low": { variant: "outline" as const, label: "Very Low", color: "bg-red-500" },
+    };
+    const conf = variants[confidence as keyof typeof variants] || variants.medium;
+    return (
+      <Badge variant={conf.variant} className={conf.color}>
+        {conf.label}
+      </Badge>
+    );
   };
 
   return (
@@ -49,16 +77,34 @@ export const PredictionSetsView = () => {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Sparkles className="h-6 w-6" />
-                AI-Generated Predictions
+                Enhanced AI Predictions
               </CardTitle>
               <CardDescription className="mt-2">
-                Statistical analysis-based predictions using 5 different methods
+                8 advanced methods with database-backed accuracy tracking and weighted recency analysis
               </CardDescription>
             </div>
-            <Button onClick={regeneratePredictions} variant="outline" className="gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Regenerate
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={() => {
+                  setIncludeAI(!includeAI);
+                  toast.info(includeAI ? "AI predictions disabled" : "AI predictions enabled");
+                }} 
+                variant={includeAI ? "default" : "outline"}
+                size="sm"
+              >
+                <Brain className="h-4 w-4 mr-2" />
+                {includeAI ? "AI Active" : "Enable AI"}
+              </Button>
+              <Button 
+                onClick={regeneratePredictions} 
+                variant="outline" 
+                className="gap-2"
+                disabled={isLoading}
+              >
+                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                {isLoading ? "Generating..." : "Regenerate"}
+              </Button>
+            </div>
           </div>
         </CardHeader>
       </Card>
@@ -67,9 +113,9 @@ export const PredictionSetsView = () => {
       <Card className="border-yellow-500/50 bg-yellow-500/5">
         <CardContent className="pt-6">
           <p className="text-sm text-muted-foreground">
-            <strong className="text-foreground">⚠️ Disclaimer:</strong> These predictions are generated using statistical analysis of historical data. 
+            <strong className="text-foreground">⚠️ Disclaimer:</strong> These predictions use advanced statistical analysis with database-backed accuracy tracking. 
             Lottery outcomes are random and unpredictable. These numbers should be used for entertainment purposes only. 
-            Past frequency does not guarantee future results. Please gamble responsibly.
+            Past performance does not guarantee future results. Please gamble responsibly.
           </p>
         </CardContent>
       </Card>
@@ -79,11 +125,30 @@ export const PredictionSetsView = () => {
         <Card key={setIndex} className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <div className="flex items-start justify-between">
-              <div className="space-y-2">
-                <CardTitle className="text-xl">
+              <div className="space-y-2 flex-1">
+                <CardTitle className="text-xl flex items-center gap-2 flex-wrap">
                   {set.method}
+                  {set.accuracy && (
+                    <Badge variant="outline" className="text-xs font-normal">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      {set.accuracy.avgMatchingDigits.toFixed(1)} avg match
+                    </Badge>
+                  )}
                 </CardTitle>
                 <CardDescription>{set.description}</CardDescription>
+                {set.accuracy && set.accuracy.exactMatches + set.accuracy.last4Matches > 0 && (
+                  <div className="flex gap-3 mt-2 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                      Exact: {set.accuracy.exactMatches}
+                    </span>
+                    <span>•</span>
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                      Last 4: {set.accuracy.last4Matches}
+                    </span>
+                  </div>
+                )}
               </div>
               {getConfidenceBadge(set.confidence)}
             </div>
