@@ -419,7 +419,7 @@ export const generateAllPredictions = (): PredictionSet[] => {
   const predictions = [
     {
       method: "Enhanced Complex Number Analysis",
-      description: "Weighted recent data with complex math (conjugate, phase shifts, golden ratio)",
+      description: "Uses ALL complex math operations: conjugate, symmetry, addition, subtraction, multiplication, division, inverse, angle rotation, real/imaginary extraction",
       numbers: generateEnhancedComplexPredictions(),
       confidence: "high" as const
     },

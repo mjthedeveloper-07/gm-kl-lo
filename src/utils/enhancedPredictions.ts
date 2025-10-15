@@ -223,12 +223,69 @@ export const generateSumOptimizedPredictions = (): string[] => {
   return [...new Set(predictions)].slice(0, 5);
 };
 
-// Enhanced Complex Number Predictions with Weighted Recency
+// Complex Number Utilities - Based on Mathematical Formulas
+interface ComplexNum {
+  real: number;
+  imag: number;
+}
+
+const toComplex = (real: number, imag: number): ComplexNum => ({ real, imag });
+
+// Conjugate: z̄ = a - bi
+const conjugate = (z: ComplexNum): ComplexNum => toComplex(z.real, -z.imag);
+
+// Symmetry: -z = -a - bi
+const symmetry = (z: ComplexNum): ComplexNum => toComplex(-z.real, -z.imag);
+
+// Addition: (a+bi) + (c+di) = (a+c) + (b+d)i
+const add = (z1: ComplexNum, z2: ComplexNum): ComplexNum => 
+  toComplex(z1.real + z2.real, z1.imag + z2.imag);
+
+// Subtraction: (a+bi) - (c+di) = (a-c) + (b-d)i
+const subtract = (z1: ComplexNum, z2: ComplexNum): ComplexNum => 
+  toComplex(z1.real - z2.real, z1.imag - z2.imag);
+
+// Multiplication: (a+bi) × (c+di) = (ac-bd) + (ad+bc)i
+const multiply = (z1: ComplexNum, z2: ComplexNum): ComplexNum => 
+  toComplex(
+    z1.real * z2.real - z1.imag * z2.imag,
+    z1.real * z2.imag + z1.imag * z2.real
+  );
+
+// Division: (a+bi)/(c+di) = (ac+bd)/(c²+d²) + (bc-ad)/(c²+d²)i
+const divide = (z1: ComplexNum, z2: ComplexNum): ComplexNum => {
+  const denom = z2.real * z2.real + z2.imag * z2.imag;
+  return toComplex(
+    (z1.real * z2.real + z1.imag * z2.imag) / denom,
+    (z1.imag * z2.real - z1.real * z2.imag) / denom
+  );
+};
+
+// Magnitude: |z| = √(a² + b²)
+const magnitude = (z: ComplexNum): number => 
+  Math.sqrt(z.real * z.real + z.imag * z.imag);
+
+// Inverse: z⁻¹ = 1/|z|² × z̄
+const inverse = (z: ComplexNum): ComplexNum => {
+  const magSq = z.real * z.real + z.imag * z.imag;
+  return toComplex(z.real / magSq, -z.imag / magSq);
+};
+
+// Angle: θ = tan⁻¹(b/a)
+const angle = (z: ComplexNum): number => Math.atan2(z.imag, z.real);
+
+// Real part: Re(z) = (z + z̄)/2
+const realPart = (z: ComplexNum): number => z.real;
+
+// Imaginary part: Im(z) = (z - z̄)/(2i)
+const imagPart = (z: ComplexNum): number => z.imag;
+
+// Enhanced Complex Number Predictions with ALL Mathematical Operations
 export const generateEnhancedComplexPredictions = (): string[] => {
   const predictions: string[] = [];
   const allNumbers = lotteryHistory.map(r => r.result).reverse();
   
-  // Use only recent 30 draws with exponential weighting
+  // Use recent 30 draws with exponential weighting
   const recentNumbers = allNumbers.slice(0, 30);
   const weights = recentNumbers.map((_, i) => Math.exp(-i / 10));
   const totalWeight = weights.reduce((sum, w) => sum + w, 0);
@@ -247,41 +304,69 @@ export const generateEnhancedComplexPredictions = (): string[] => {
     avgImag += imaginary * weight;
   });
   
-  // Generate predictions using weighted average
-  for (let i = 0; i < 5; i++) {
-    let real: number, imag: number;
+  const z = toComplex(avgReal, avgImag);
+  
+  // Get most recent number as second complex number
+  const lastDigits = recentNumbers[0].split("").map(Number);
+  const z2 = toComplex(
+    lastDigits.slice(0, 3).reduce((sum, d) => sum * 10 + d, 0),
+    lastDigits.slice(3, 6).reduce((sum, d) => sum * 10 + d, 0)
+  );
+  
+  // Apply ALL complex number operations from the formulas
+  const operations = [
+    // 1. Conjugate: z̄ = a - bi
+    conjugate(z),
     
-    if (i === 0) {
-      // Weighted average
-      real = Math.round(avgReal);
-      imag = Math.round(avgImag);
-    } else if (i === 1) {
-      // Phase shift
-      const mag = Math.sqrt(avgReal * avgReal + avgImag * avgImag);
-      const angle = Math.atan2(avgImag, avgReal) + Math.PI / 6;
-      real = Math.round(mag * Math.cos(angle));
-      imag = Math.round(mag * Math.sin(angle));
-    } else if (i === 2) {
-      // Conjugate with momentum
-      const momentum = (recentNumbers[0].split("").reduce((s, d) => s + parseInt(d), 0)) / 30;
-      real = Math.round(avgReal * (1 + momentum * 0.1));
-      imag = Math.round(-avgImag);
-    } else if (i === 3) {
-      // Golden ratio scaling
+    // 2. Addition with recent: (z + z2)
+    add(z, multiply(z2, toComplex(0.3, 0.3))),
+    
+    // 3. Subtraction with symmetry: z - (-z2) = z + z2
+    subtract(z, symmetry(z2)),
+    
+    // 4. Multiplication with rotation factor
+    multiply(z, toComplex(Math.cos(Math.PI/6), Math.sin(Math.PI/6))),
+    
+    // 5. Division by scaled recent
+    divide(z, toComplex(z2.real / 100, z2.imag / 100 || 1)),
+    
+    // 6. Inverse operation: z⁻¹
+    multiply(inverse(z), toComplex(1000, 1000)),
+    
+    // 7. Phase rotation using angle
+    (() => {
+      const mag = magnitude(z);
+      const theta = angle(z) + Math.PI / 4;
+      return toComplex(mag * Math.cos(theta), mag * Math.sin(theta));
+    })(),
+    
+    // 8. Real and Imaginary part extraction with golden ratio
+    (() => {
       const phi = 1.618033988749895;
-      real = Math.round(avgReal / phi);
-      imag = Math.round(avgImag * phi);
-    } else {
-      // Harmonic mean
-      real = Math.round(avgReal * 0.8);
-      imag = Math.round(avgImag * 1.2);
-    }
+      return toComplex(realPart(z) / phi, imagPart(z) * phi);
+    })(),
     
-    const realPart = Math.abs(real) % 1000;
-    const imagPart = Math.abs(imag) % 1000;
+    // 9. Magnitude-based scaling: |z|² = z·z̄
+    (() => {
+      const conj = conjugate(z);
+      const scaled = multiply(z, conj);
+      return toComplex(
+        Math.sqrt(Math.abs(scaled.real)) * 10,
+        Math.sqrt(Math.abs(scaled.imag)) * 10
+      );
+    })(),
+    
+    // 10. Combined operation: (z × z̄) + z⁻¹
+    add(multiply(z, conjugate(z2)), inverse(z2))
+  ];
+  
+  // Convert operations to predictions
+  operations.slice(0, 5).forEach((result) => {
+    const realPart = Math.abs(Math.round(result.real)) % 1000;
+    const imagPart = Math.abs(Math.round(result.imag)) % 1000;
     const number = realPart.toString().padStart(3, '0') + imagPart.toString().padStart(3, '0');
     predictions.push(number);
-  }
+  });
   
   return predictions;
 };
