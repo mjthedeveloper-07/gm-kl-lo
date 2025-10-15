@@ -409,48 +409,83 @@ export const generatePhaseBasedPredictions = (analysis: StatisticalAnalysis): st
 export const generateAllPredictions = (): PredictionSet[] => {
   const analysis = analyzeHistoricalData();
   
-  return [
+  // Import enhanced predictions
+  const {
+    generatePositionalHotColdPredictions,
+    generateGapBasedPredictions,
+    generateSumOptimizedPredictions,
+    generateEnhancedComplexPredictions,
+    calculateConfidence
+  } = require("@/utils/enhancedPredictions");
+  
+  const predictions = [
+    {
+      method: "Enhanced Complex Number Analysis",
+      description: "Weighted recent data with complex math (conjugate, phase shifts, golden ratio)",
+      numbers: generateEnhancedComplexPredictions(),
+      confidence: "high" as const
+    },
+    {
+      method: "Gap Analysis Predictions",
+      description: "Identifies overdue digits based on appearance gaps and historical patterns",
+      numbers: generateGapBasedPredictions(),
+      confidence: "high" as const
+    },
+    {
+      method: "Positional Hot/Cold Analysis",
+      description: "Tracks hot (frequent recent) and cold (due) digits for each position",
+      numbers: generatePositionalHotColdPredictions(),
+      confidence: "high" as const
+    },
+    {
+      method: "Sum Range Optimization",
+      description: "Targets predictions within statistically optimal digit sum ranges",
+      numbers: generateSumOptimizedPredictions(),
+      confidence: "medium" as const
+    },
     {
       method: "High-Frequency Based",
       description: "Uses most frequent digits from each position",
       numbers: generateFrequencyBasedPredictions(analysis),
-      confidence: "high"
-    },
-    {
-      method: "Probability-Weighted",
-      description: "Random selection weighted by historical frequency",
-      numbers: generateProbabilityWeightedPredictions(analysis),
-      confidence: "medium"
+      confidence: "medium" as const
     },
     {
       method: "Trend-Based",
       description: "Based on temporal patterns and hot pairs",
       numbers: generateTrendBasedPredictions(analysis),
-      confidence: "medium"
-    },
-    {
-      method: "Hot-Cold Balanced",
-      description: "Balances most and least frequent digits",
-      numbers: generateBalancedPredictions(analysis),
-      confidence: "low"
+      confidence: "medium" as const
     },
     {
       method: "Pattern Matching",
       description: "Built from most common adjacent digit pairs",
       numbers: generatePatternMatchingPredictions(analysis),
-      confidence: "medium"
+      confidence: "medium" as const
     },
     {
-      method: "Complex Number Analysis",
-      description: "Uses complex number operations (conjugate, magnitude, multiplication) on historical data",
+      method: "Complex Number Analysis (Classic)",
+      description: "Classic complex number operations on historical data",
       numbers: generateComplexNumberPredictions(analysis),
-      confidence: "high"
+      confidence: "medium" as const
     },
     {
       method: "Phase & Magnitude Based",
       description: "Analyzes phase angles and magnitudes of complex representations",
       numbers: generatePhaseBasedPredictions(analysis),
-      confidence: "medium"
+      confidence: "low" as const
+    },
+    {
+      method: "Hot-Cold Balanced",
+      description: "Balances most and least frequent digits",
+      numbers: generateBalancedPredictions(analysis),
+      confidence: "low" as const
     }
   ];
+  
+  // Recalculate confidence for predictions based on enhanced scoring
+  return predictions.map(pred => ({
+    ...pred,
+    confidence: pred.numbers.length > 0 
+      ? calculateConfidence(pred.numbers[0], pred.method)
+      : pred.confidence
+  }));
 };
