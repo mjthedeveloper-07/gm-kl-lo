@@ -1,4 +1,11 @@
 import { lotteryHistory } from "@/data/lotteryHistory";
+import {
+  generatePositionalHotColdPredictions,
+  generateGapBasedPredictions,
+  generateSumOptimizedPredictions,
+  generateEnhancedComplexPredictions,
+  calculateConfidence
+} from "@/utils/enhancedPredictions";
 
 export interface PositionalFrequency {
   position: number;
@@ -408,15 +415,6 @@ export const generatePhaseBasedPredictions = (analysis: StatisticalAnalysis): st
 // Generate all prediction sets
 export const generateAllPredictions = (): PredictionSet[] => {
   const analysis = analyzeHistoricalData();
-  
-  // Import enhanced predictions
-  const {
-    generatePositionalHotColdPredictions,
-    generateGapBasedPredictions,
-    generateSumOptimizedPredictions,
-    generateEnhancedComplexPredictions,
-    calculateConfidence
-  } = require("@/utils/enhancedPredictions");
   
   const predictions = [
     {
