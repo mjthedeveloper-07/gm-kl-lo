@@ -52,7 +52,7 @@ export const PredictionSetsView = () => {
                 AI-Generated Predictions
               </CardTitle>
               <CardDescription className="mt-2">
-                Advanced statistical predictions using 10 enhanced methods including weighted recency, gap analysis, and complex mathematics
+                Statistical analysis-based predictions using 5 different methods
               </CardDescription>
             </div>
             <Button onClick={regeneratePredictions} variant="outline" className="gap-2">
