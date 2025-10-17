@@ -12,6 +12,7 @@ import { PredictionValidator } from "@/components/PredictionValidator";
 import { StatisticalAnalysisView } from "@/components/StatisticalAnalysisView";
 import { PredictionSetsView } from "@/components/PredictionSetsView";
 import { NovaChatbot } from "@/components/NovaChatbot";
+import { PositionalFrequencyView } from "@/components/PositionalFrequencyView";
 
 type MathFunction = "COS" | "SIN" | "TAN" | "√";
 type DigitExtraction = ".3 NOS" | "L3 NOS" | ".2 NOS";
@@ -344,14 +345,14 @@ const Index = () => {
   const predictionResults = predictions.map(p => p.result);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/10">
+    <div className="min-h-screen bg-gradient-subtle">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
-        <div className="text-center mb-12 space-y-4">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary-glow shadow-glow mb-4">
+        <div className="text-center mb-12 space-y-4 animate-fade-in">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-primary shadow-glow mb-4 animate-scale-in">
             <Sparkles className="w-10 h-10 text-primary-foreground" />
           </div>
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-primary via-primary-glow to-accent bg-clip-text text-transparent">
+          <h1 className="text-5xl font-bold bg-gradient-accent bg-clip-text text-transparent">
             Lottery Number Predictor
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -361,7 +362,7 @@ const Index = () => {
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Input Section */}
-          <Card className="shadow-card border-2 border-primary/20">
+          <Card className="shadow-elevated border-2 border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-glow animate-fade-in">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-2xl">
                 <Calculator className="w-6 h-6 text-primary" />
@@ -403,7 +404,7 @@ const Index = () => {
 
               <Button
                 onClick={runAllFormulas}
-                className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-primary via-primary-glow to-accent hover:opacity-90 transition-opacity shadow-glow"
+                className="w-full h-14 text-lg font-semibold bg-gradient-accent hover:scale-105 transition-all duration-300 shadow-glow hover:shadow-elevated"
               >
                 <Sparkles className="w-5 h-5 mr-2" />
                 Run All {TRIG_FORMULAS.length + ARITHMETIC_FORMULAS.length} Formulas
@@ -413,24 +414,33 @@ const Index = () => {
         </div>
 
         {/* Results & Analysis Tabs */}
-        <Tabs defaultValue="ai-predictions" className="mt-8">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="ai-predictions">
+        <Tabs defaultValue="frequency" className="mt-8 animate-fade-in">
+          <TabsList className="grid w-full grid-cols-7 bg-card/50 backdrop-blur-sm border border-border/50">
+            <TabsTrigger value="frequency" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Frequency AI
+            </TabsTrigger>
+            <TabsTrigger value="ai-predictions" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300">
               <Zap className="h-4 w-4 mr-2" />
               AI Predictions
             </TabsTrigger>
-            <TabsTrigger value="predictions">Formulas</TabsTrigger>
-            <TabsTrigger value="validation">Validation</TabsTrigger>
-            <TabsTrigger value="analysis">
+            <TabsTrigger value="predictions" className="data-[state=active]:bg-gradient-accent data-[state=active]:text-accent-foreground transition-all duration-300">Formulas</TabsTrigger>
+            <TabsTrigger value="validation" className="data-[state=active]:bg-gradient-secondary data-[state=active]:text-accent-foreground transition-all duration-300">Validation</TabsTrigger>
+            <TabsTrigger value="analysis" className="data-[state=active]:bg-gradient-gold data-[state=active]:text-secondary-foreground transition-all duration-300">
               <BarChart3 className="h-4 w-4 mr-2" />
               Analysis
             </TabsTrigger>
-            <TabsTrigger value="patterns">Patterns</TabsTrigger>
-            <TabsTrigger value="history">
+            <TabsTrigger value="patterns" className="data-[state=active]:bg-gradient-accent data-[state=active]:text-accent-foreground transition-all duration-300">Patterns</TabsTrigger>
+            <TabsTrigger value="history" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300">
               <Database className="h-4 w-4 mr-2" />
               History
             </TabsTrigger>
           </TabsList>
+
+          {/* Frequency Analysis Tab */}
+          <TabsContent value="frequency">
+            <PositionalFrequencyView />
+          </TabsContent>
 
           {/* AI Predictions Tab */}
           <TabsContent value="ai-predictions">
@@ -438,8 +448,8 @@ const Index = () => {
           </TabsContent>
 
           {/* Predictions Tab */}
-          <TabsContent value="predictions">
-            <Card className="shadow-card border-2 border-accent/20">
+          <TabsContent value="predictions" className="animate-fade-in">
+            <Card className="shadow-elevated border-2 border-accent/20 hover:border-accent/40 transition-all duration-300">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-2xl">
                   <TrendingUp className="w-6 h-6 text-accent" />
@@ -459,18 +469,18 @@ const Index = () => {
                     {predictions.map((pred, idx) => (
                       <div
                         key={idx}
-                        className={`bg-gradient-to-br from-card to-card/50 p-3 rounded-lg border transition-all ${
+                        className={`bg-gradient-to-br from-card to-card/50 p-3 rounded-lg border transition-all duration-300 hover:scale-[1.02] hover:shadow-glow ${
                           pred.combinedResult 
-                            ? 'border-accent border-2 hover:border-accent shadow-md' 
+                            ? 'border-accent border-2 hover:border-accent' 
                             : 'border-border hover:border-primary/50'
                         }`}
                       >
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <span className={`text-xs font-bold px-2 py-1 rounded whitespace-nowrap ${
+                            <span className={`text-xs font-bold px-2 py-1 rounded whitespace-nowrap transition-all duration-300 ${
                               pred.formulaType === "trig" 
-                                ? "bg-purple-500/10 text-purple-600 dark:text-purple-400" 
-                                : "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                ? "bg-primary/10 text-primary hover:bg-primary/20" 
+                                : "bg-accent/10 text-accent hover:bg-accent/20"
                             }`}>
                               {pred.label}
                             </span>
@@ -503,7 +513,7 @@ const Index = () => {
               </CardContent>
             </Card>
             {/* How It Works Section */}
-            <Card className="mt-8 bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
+            <Card className="mt-8 bg-gradient-subtle border-primary/20 shadow-elevated hover:border-primary/40 transition-all duration-300 animate-fade-in">
               <CardHeader>
                 <CardTitle>How It Works</CardTitle>
               </CardHeader>
@@ -531,22 +541,22 @@ const Index = () => {
           </TabsContent>
 
           {/* Validation Tab */}
-          <TabsContent value="validation">
+          <TabsContent value="validation" className="animate-fade-in">
             <PredictionValidator predictions={predictionResults} />
           </TabsContent>
 
           {/* Statistical Analysis Tab */}
-          <TabsContent value="analysis">
+          <TabsContent value="analysis" className="animate-fade-in">
             <StatisticalAnalysisView />
           </TabsContent>
 
           {/* Patterns Tab */}
-          <TabsContent value="patterns">
+          <TabsContent value="patterns" className="animate-fade-in">
             <PatternAnalysis pattern={drawNumber.replace(/\D/g, "")} />
           </TabsContent>
 
           {/* History Tab */}
-          <TabsContent value="history">
+          <TabsContent value="history" className="animate-fade-in">
             <HistoricalDataTable highlightPattern={drawNumber.replace(/\D/g, "")} />
           </TabsContent>
         </Tabs>
