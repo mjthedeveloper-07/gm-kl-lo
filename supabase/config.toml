@@ -1,7 +1,7 @@
 project_id = "fnlmeqnulqvqmtuzqmkm"
 
 [functions.nova-chat]
-verify_jwt = false
+verify_jwt = true
 
 [functions.import-lottery-data]
-verify_jwt = false
+verify_jwt = true

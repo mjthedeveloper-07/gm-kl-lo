@@ -4,8 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap } from "lucide-react";
+import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap, LogOut, User } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { HistoricalDataTable } from "@/components/HistoricalDataTable";
 import { PatternAnalysis } from "@/components/PatternAnalysis";
 import { PredictionValidator } from "@/components/PredictionValidator";
@@ -158,6 +160,8 @@ const ARITHMETIC_FORMULAS: ArithmeticFormula[] = [
 ];
 
 const Index = () => {
+  const { user, signOut, isAdmin } = useAuth();
+  const navigate = useNavigate();
   const [drawNumber, setDrawNumber] = useState("");
   
   // Validate that draw number is 3 digits
@@ -350,6 +354,25 @@ const Index = () => {
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
         <div className="text-center mb-12 space-y-4 animate-fade-in">
+          <div className="flex justify-end mb-4 gap-2">
+            {user ? (
+              <>
+                <Button variant="outline" className="gap-2">
+                  <User className="w-4 h-4" />
+                  {user.email}
+                </Button>
+                <Button variant="outline" onClick={signOut} className="gap-2">
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <Button onClick={() => navigate('/auth')} className="gap-2">
+                <User className="w-4 h-4" />
+                Sign In
+              </Button>
+            )}
+          </div>
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-primary shadow-glow mb-4 animate-scale-in">
             <Sparkles className="w-10 h-10 text-primary-foreground" />
           </div>

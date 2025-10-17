@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Message {
   role: "user" | "assistant";
@@ -13,6 +14,7 @@ interface Message {
 }
 
 export const NovaChatbot = () => {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -33,6 +35,16 @@ export const NovaChatbot = () => {
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
+
+    // Check if user is authenticated
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to use the AI chatbot",
+        variant: "destructive",
+      });
+      return;
+    }
 
     // Input validation
     const trimmedInput = input.trim();
