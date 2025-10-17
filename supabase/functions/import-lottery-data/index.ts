@@ -36,18 +36,78 @@ serve(async (req) => {
       );
     }
 
+    // Batch size limit to prevent abuse
+    if (results.length > 500) {
+      return new Response(
+        JSON.stringify({ error: 'Batch size too large. Maximum 500 results per request.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.log(`Processing ${results.length} lottery results for import`);
+
+    // Known lottery types for validation
+    const validLotteryTypes = ['regular', 'bumper'];
+    const minYear = 2009;
+    const maxYear = new Date().getFullYear() + 1; // Allow next year for scheduling
 
     // Validate all results before inserting
     const validResults = results.filter(r => {
-      const isValid = /^\d{6}$/.test(r.result) && 
-                     r.date && 
-                     r.lottery_name && 
-                     r.draw_number;
-      if (!isValid) {
-        console.warn(`Skipping invalid result:`, r);
+      // Basic format validation
+      const hasValidFormat = /^\d{6}$/.test(r.result) && 
+                             r.date && 
+                             r.lottery_name && 
+                             r.draw_number;
+      
+      if (!hasValidFormat) {
+        console.warn(`Skipping invalid format:`, r);
+        return false;
       }
-      return isValid;
+
+      // Date validation
+      const resultDate = new Date(r.date);
+      const now = new Date();
+      
+      if (isNaN(resultDate.getTime())) {
+        console.warn(`Skipping invalid date:`, r.date);
+        return false;
+      }
+
+      // No future dates beyond 7 days
+      const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      if (resultDate > sevenDaysFromNow) {
+        console.warn(`Skipping future date:`, r.date);
+        return false;
+      }
+
+      // No dates before 2009 (when Kerala Lottery data starts)
+      if (r.year < minYear || r.year > maxYear) {
+        console.warn(`Skipping year out of range:`, r.year);
+        return false;
+      }
+
+      // Validate month
+      if (r.month < 1 || r.month > 12) {
+        console.warn(`Skipping invalid month:`, r.month);
+        return false;
+      }
+
+      // Validate lottery type if present
+      if (r.lottery_type && !validLotteryTypes.includes(r.lottery_type.toLowerCase())) {
+        console.warn(`Skipping invalid lottery type:`, r.lottery_type);
+        return false;
+      }
+
+      // Statistical validation - reject obviously invalid results
+      const allSame = /^(\d)\1{5}$/.test(r.result); // All same digit
+      const sequential = /^012345|123456|234567|345678|456789|567890$/.test(r.result);
+      
+      if (allSame || sequential) {
+        console.warn(`Skipping statistically unlikely result:`, r.result);
+        return false;
+      }
+
+      return true;
     });
 
     console.log(`${validResults.length} valid results to insert`);

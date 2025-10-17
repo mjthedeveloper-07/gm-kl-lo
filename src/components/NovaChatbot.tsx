@@ -34,7 +34,27 @@ export const NovaChatbot = () => {
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
-    const userMessage: Message = { role: "user", content: input };
+    // Input validation
+    const trimmedInput = input.trim();
+    if (trimmedInput.length === 0) {
+      toast({
+        title: "Empty message",
+        description: "Please enter a message.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (trimmedInput.length > 1000) {
+      toast({
+        title: "Message too long",
+        description: "Please limit your message to 1000 characters.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const userMessage: Message = { role: "user", content: trimmedInput };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
@@ -45,6 +65,10 @@ export const NovaChatbot = () => {
       });
 
       if (error) throw error;
+
+      if (!data || !data.choices || !data.choices[0]) {
+        throw new Error("Invalid response from AI");
+      }
 
       const assistantMessage: Message = {
         role: "assistant",
@@ -148,6 +172,7 @@ export const NovaChatbot = () => {
                 placeholder="Ask about predictions, patterns..."
                 disabled={isLoading}
                 className="flex-1"
+                maxLength={1000}
               />
               <Button
                 onClick={sendMessage}
