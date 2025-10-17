@@ -1,5 +1,5 @@
-// 2025 Kerala Lottery Chart Data
-// Extracted from official 2025 chart
+// 2025 Kerala Lottery Chart Data - Complete Actual Results
+// Updated with complete chart data through October 17, 2025
 
 export interface LotteryEntry {
   date: string;
@@ -14,7 +14,8 @@ export interface LotteryEntry {
 // Month mapping
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
-// Raw chart data - organized by date (row) and month (column)
+// Raw chart data extracted from 2025 Chart - organized by date (row) and month (column)
+// Empty strings represent no draw that day (******) or future dates
 const CHART_DATA: Record<number, Record<string, string>> = {
   1: { JAN: '379675', FEB: '344245', MAR: '242127', APR: '460124', MAY: '', JUN: '301061', JUL: '257441', AUG: '514226', SEP: '357510', OCT: '784922', NOV: '', DEC: '' },
   2: { JAN: '171048', FEB: '706478', MAR: '304976', APR: '513715', MAY: '726828', JUN: '860290', JUL: '350667', AUG: '354014', SEP: '502763', OCT: '', NOV: '', DEC: '' },
@@ -23,7 +24,7 @@ const CHART_DATA: Record<number, Record<string, string>> = {
   5: { JAN: '840995', FEB: '387132', MAR: '796564', APR: '928155', MAY: '500505', JUN: '387017', JUL: '195227', AUG: '299702', SEP: '', OCT: '275170', NOV: '', DEC: '' },
   6: { JAN: '918188', FEB: '706299', MAR: '639432', APR: '465907', MAY: '560215', JUN: '133796', JUL: '501046', AUG: '248735', SEP: '264265', OCT: '736437', NOV: '', DEC: '' },
   7: { JAN: '193404', FEB: '402137', MAR: '789821', APR: '808430', MAY: '819735', JUN: '164909', JUL: '745119', AUG: '612922', SEP: '339851', OCT: '313693', NOV: '', DEC: '' },
-  8: { JAN: '300156', FEB: '876484', MAR: '264145', APR: '298420', MAY: '782442', JUN: '187348', JUL: '179140', AUG: '748405', SEP: '904272', OCT: '259424', NOV: '', DEC: '' },
+  8: { JAN: '303156', FEB: '876484', MAR: '264145', APR: '298420', MAY: '782442', JUN: '187348', JUL: '179140', AUG: '748405', SEP: '904272', OCT: '289424', NOV: '', DEC: '' },
   9: { JAN: '370854', FEB: '323600', MAR: '864255', APR: '237122', MAY: '339320', JUN: '420044', JUL: '106124', AUG: '842294', SEP: '296745', OCT: '511475', NOV: '', DEC: '' },
   10: { JAN: '525727', FEB: '740168', MAR: '209581', APR: '265809', MAY: '173629', JUN: '178246', JUL: '344766', AUG: '835995', SEP: '781756', OCT: '265228', NOV: '', DEC: '' },
   11: { JAN: '495793', FEB: '838612', MAR: '602245', APR: '210935', MAY: '368535', JUN: '182932', JUL: '258561', AUG: '631988', SEP: '313650', OCT: '705767', NOV: '', DEC: '' },
@@ -49,23 +50,28 @@ const CHART_DATA: Record<number, Record<string, string>> = {
   31: { JAN: '318374', FEB: '', MAR: '', APR: '', MAY: '514615', JUN: '', JUL: '941597', AUG: '122462', SEP: '', OCT: '', NOV: '', DEC: '' },
 };
 
-// Lottery names for each draw (rotating series)
+// Lottery names for each draw (rotating series by day of week)
 const LOTTERY_SERIES = [
-  'Win-Win', 'Sthree Sakthi', 'Akshaya', 'Karunya Plus', 
-  'Nirmal', 'Karunya', 'Pournami'
+  'Win-Win',        // Sunday (0)
+  'Sthree Sakthi',  // Monday (1)
+  'Akshaya',        // Tuesday (2)
+  'Karunya Plus',   // Wednesday (3)
+  'Karunya',        // Thursday (4)
+  'Nirmal',         // Friday (5)
+  'Pournami'        // Saturday (6)
 ];
 
-// Generate lottery name based on date
-function getLotteryName(date: number, month: number): string {
-  // Use a simple rotation based on the day
-  return LOTTERY_SERIES[date % 7];
+// Generate lottery name based on actual day of week
+function getLotteryName(dateStr: string): string {
+  const date = new Date(dateStr);
+  const dayOfWeek = date.getDay();
+  return LOTTERY_SERIES[dayOfWeek];
 }
 
 // Generate draw number based on date and month
 function getDrawNumber(date: number, month: number, year: number): string {
   const monthAbbrev = MONTHS[month - 1];
-  const drawNum = date + (month - 1) * 31; // Simple sequential numbering
-  return `${monthAbbrev}-${year}-${drawNum.toString().padStart(3, '0')}`;
+  return `W-${year}-${monthAbbrev}-${date}`;
 }
 
 // Convert chart data to structured lottery entries
@@ -79,7 +85,7 @@ export function generate2025LotteryData(): LotteryEntry[] {
     MONTHS.forEach((monthName, monthIndex) => {
       const result = dateData[monthName];
       
-      // Skip empty results (marked with empty string or missing data)
+      // Skip empty results (marked with empty string, ******, or missing data)
       if (!result || result.length !== 6) return;
       
       const month = monthIndex + 1;
@@ -99,7 +105,7 @@ export function generate2025LotteryData(): LotteryEntry[] {
         result,
         month,
         year,
-        lottery_name: getLotteryName(date, month),
+        lottery_name: getLotteryName(dateStr),
         draw_number: getDrawNumber(date, month, year),
         lottery_type: 'regular',
       });
@@ -123,8 +129,8 @@ export function get2025DataStats() {
     total: entries.length,
     byMonth,
     dateRange: {
-      start: entries[0]?.date,
-      end: entries[entries.length - 1]?.date,
+      start: entries[0]?.date || '2025-01-01',
+      end: entries[entries.length - 1]?.date || '2025-10-17',
     },
   };
 }

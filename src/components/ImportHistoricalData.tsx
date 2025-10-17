@@ -158,7 +158,7 @@ export const ImportHistoricalData = () => {
             <Database className="w-5 h-5" />
             Import Historical Lottery Data
           </CardTitle>
-          <CardDescription>Sign in to import complete historical lottery data (2019-2025)</CardDescription>
+          <CardDescription>Sign in to import complete historical lottery data (2012-2025)</CardDescription>
         </CardHeader>
         <CardContent>
           <Alert>
@@ -202,7 +202,7 @@ export const ImportHistoricalData = () => {
           Import Complete Historical Data (2018-2025)
         </CardTitle>
         <CardDescription>
-          Import comprehensive 7+ years of lottery results from 2018 to 2025 for enhanced prediction accuracy
+          Import comprehensive 13+ years of lottery results from 2012 to 2025 for enhanced prediction accuracy
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -251,7 +251,7 @@ export const ImportHistoricalData = () => {
 
           <div className="pt-2 border-t">
             <p className="text-xs text-muted-foreground">
-              Complete 7+ years of historical coverage from {historicalStats.dateRange.start} to {stats2025.dateRange.end}
+              Complete 13+ years of historical coverage from 2012 to October 2025
             </p>
           </div>
         </div>
@@ -313,7 +313,7 @@ export const ImportHistoricalData = () => {
         </Button>
 
         <p className="text-xs text-center text-muted-foreground">
-          7+ years of comprehensive lottery data (2018-2025) ready to import. 2018 data is extracted and ready for comprehensive predictions.
+          13+ years of comprehensive lottery data (2012-2025) ready to import. All historical data extracted and ready for advanced predictions.
           Duplicate entries will be automatically skipped to maintain data integrity.
         </p>
       </CardContent>
