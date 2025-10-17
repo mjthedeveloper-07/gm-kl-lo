@@ -16,6 +16,7 @@ import { PredictionSetsView } from "@/components/PredictionSetsView";
 import { NovaChatbot } from "@/components/NovaChatbot";
 import { PositionalFrequencyView } from "@/components/PositionalFrequencyView";
 import { DataImportView } from "@/components/DataImportView";
+import { Import2025Data } from "@/components/Import2025Data";
 
 type MathFunction = "COS" | "SIN" | "TAN" | "√";
 type DigitExtraction = ".3 NOS" | "L3 NOS" | ".2 NOS";
@@ -590,7 +591,10 @@ const Index = () => {
 
           {/* Data Import Tab */}
           <TabsContent value="data-import" className="animate-fade-in">
-            <DataImportView />
+            <div className="space-y-6">
+              <Import2025Data />
+              <DataImportView />
+            </div>
           </TabsContent>
         </Tabs>
       </div>
