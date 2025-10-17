@@ -24,7 +24,7 @@ export const ImportHistoricalData = () => {
   const [isImporting, setIsImporting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<any>(null);
-  const [selectedYears, setSelectedYears] = useState<number[]>([2019, 2020, 2021, 2022, 2023, 2024, 2025]);
+  const [selectedYears, setSelectedYears] = useState<number[]>([2012, 2013, 2014, 2015, 2016, 2017, 2019, 2020, 2021, 2022, 2023, 2024, 2025]);
 
   const historicalStats = getHistoricalDataStats();
   const stats2025 = get2025DataStats();
@@ -38,6 +38,12 @@ export const ImportHistoricalData = () => {
   };
 
   const yearDataGenerators = {
+    2012: () => generateAllHistoricalData().filter(entry => entry.year === 2012),
+    2013: () => generateAllHistoricalData().filter(entry => entry.year === 2013),
+    2014: () => generateAllHistoricalData().filter(entry => entry.year === 2014),
+    2015: () => generateAllHistoricalData().filter(entry => entry.year === 2015),
+    2016: () => generateAllHistoricalData().filter(entry => entry.year === 2016),
+    2017: () => generateAllHistoricalData().filter(entry => entry.year === 2017),
     2019: generate2019LotteryData,
     2020: generate2020LotteryData,
     2021: generate2021LotteryData,
@@ -186,10 +192,10 @@ export const ImportHistoricalData = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Database className="w-5 h-5 text-primary" />
-          Import Complete Historical Data (2019-2025)
+          Import Complete Historical Data (2012-2025)
         </CardTitle>
         <CardDescription>
-          Import comprehensive lottery results from 2019 to 2025 for enhanced predictions
+          Import comprehensive 13+ years of lottery results from 2012 to 2025 for maximum prediction accuracy
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -238,7 +244,7 @@ export const ImportHistoricalData = () => {
 
           <div className="pt-2 border-t">
             <p className="text-xs text-muted-foreground">
-              Complete historical coverage from {historicalStats.dateRange.start} to {stats2025.dateRange.end}
+              Complete 13+ years of historical coverage from {historicalStats.dateRange.start} to {stats2025.dateRange.end}
             </p>
           </div>
         </div>
@@ -300,7 +306,7 @@ export const ImportHistoricalData = () => {
         </Button>
 
         <p className="text-xs text-center text-muted-foreground">
-          This will import all lottery results from selected years.
+          13+ years of comprehensive lottery data (2012-2025) for maximum prediction accuracy.
           Duplicate entries will be automatically skipped to maintain data integrity.
         </p>
       </CardContent>
