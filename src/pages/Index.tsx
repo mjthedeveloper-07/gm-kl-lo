@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap } from "lucide-react";
+import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap, Target } from "lucide-react";
 import { toast } from "sonner";
 import { HistoricalDataTable } from "@/components/HistoricalDataTable";
 import { PatternAnalysis } from "@/components/PatternAnalysis";
@@ -12,6 +12,7 @@ import { PredictionValidator } from "@/components/PredictionValidator";
 import { StatisticalAnalysisView } from "@/components/StatisticalAnalysisView";
 import { PredictionSetsView } from "@/components/PredictionSetsView";
 import { NovaChatbot } from "@/components/NovaChatbot";
+import { ResultAnalysisView } from "@/components/ResultAnalysisView";
 
 type MathFunction = "COS" | "SIN" | "TAN" | "√";
 type DigitExtraction = ".3 NOS" | "L3 NOS" | ".2 NOS";
@@ -419,8 +420,11 @@ const Index = () => {
               <Zap className="h-4 w-4 mr-2" />
               AI Predictions
             </TabsTrigger>
+            <TabsTrigger value="validation">
+              <Target className="h-4 w-4 mr-2" />
+              Result Validation
+            </TabsTrigger>
             <TabsTrigger value="predictions">Formulas</TabsTrigger>
-            <TabsTrigger value="validation">Validation</TabsTrigger>
             <TabsTrigger value="analysis">
               <BarChart3 className="h-4 w-4 mr-2" />
               Analysis
@@ -532,7 +536,7 @@ const Index = () => {
 
           {/* Validation Tab */}
           <TabsContent value="validation">
-            <PredictionValidator predictions={predictionResults} />
+            <ResultAnalysisView />
           </TabsContent>
 
           {/* Statistical Analysis Tab */}
