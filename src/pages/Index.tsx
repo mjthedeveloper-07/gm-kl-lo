@@ -13,6 +13,7 @@ import { StatisticalAnalysisView } from "@/components/StatisticalAnalysisView";
 import { PredictionSetsView } from "@/components/PredictionSetsView";
 import { NovaChatbot } from "@/components/NovaChatbot";
 import { ResultAnalysisView } from "@/components/ResultAnalysisView";
+import { AIPredictionView } from "@/components/AIPredictionView";
 
 type MathFunction = "COS" | "SIN" | "TAN" | "√";
 type DigitExtraction = ".3 NOS" | "L3 NOS" | ".2 NOS";
@@ -414,8 +415,12 @@ const Index = () => {
         </div>
 
         {/* Results & Analysis Tabs */}
-        <Tabs defaultValue="ai-predictions" className="mt-8">
-          <TabsList className="grid w-full grid-cols-6">
+        <Tabs defaultValue="ai-tomorrow" className="mt-8">
+          <TabsList className="grid w-full grid-cols-7">
+            <TabsTrigger value="ai-tomorrow">
+              <Sparkles className="h-4 w-4 mr-2" />
+              AI Tomorrow
+            </TabsTrigger>
             <TabsTrigger value="ai-predictions">
               <Zap className="h-4 w-4 mr-2" />
               AI Predictions
@@ -435,6 +440,11 @@ const Index = () => {
               History
             </TabsTrigger>
           </TabsList>
+
+          {/* AI Tomorrow Tab */}
+          <TabsContent value="ai-tomorrow">
+            <AIPredictionView />
+          </TabsContent>
 
           {/* AI Predictions Tab */}
           <TabsContent value="ai-predictions">
