@@ -12,6 +12,7 @@ export interface LotteryResult {
 // Comprehensive historical lottery results from 2009-2025
 export const lotteryHistory: LotteryResult[] = [
   // 2025 October data
+  { date: "17.10.25", day: "Fri", lottery: "Nirmal", draw: "NR-454", result: "749913", year: 2025, month: 10, lotteryType: "regular" },
   { date: "01.10.25", day: "Wed", lottery: "Akshaya", draw: "AK-787", result: "784922", year: 2025, month: 10, lotteryType: "regular" },
   { date: "03.10.25", day: "Fri", lottery: "Nirmal", draw: "NR-453", result: "323274", year: 2025, month: 10, lotteryType: "regular" },
   { date: "04.10.25", day: "Sat", lottery: "Karunya", draw: "KR-725", result: "252617", year: 2025, month: 10, lotteryType: "regular" },

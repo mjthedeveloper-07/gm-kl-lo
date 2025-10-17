@@ -2,3 +2,6 @@ project_id = "fnlmeqnulqvqmtuzqmkm"
 
 [functions.nova-chat]
 verify_jwt = false
+
+[functions.import-lottery-data]
+verify_jwt = false

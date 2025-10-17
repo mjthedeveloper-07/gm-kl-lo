@@ -13,6 +13,7 @@ import { StatisticalAnalysisView } from "@/components/StatisticalAnalysisView";
 import { PredictionSetsView } from "@/components/PredictionSetsView";
 import { NovaChatbot } from "@/components/NovaChatbot";
 import { PositionalFrequencyView } from "@/components/PositionalFrequencyView";
+import { DataImportView } from "@/components/DataImportView";
 
 type MathFunction = "COS" | "SIN" | "TAN" | "√";
 type DigitExtraction = ".3 NOS" | "L3 NOS" | ".2 NOS";
@@ -415,7 +416,7 @@ const Index = () => {
 
         {/* Results & Analysis Tabs */}
         <Tabs defaultValue="frequency" className="mt-8 animate-fade-in">
-          <TabsList className="grid w-full grid-cols-7 bg-card/50 backdrop-blur-sm border border-border/50">
+          <TabsList className="grid w-full grid-cols-8 bg-card/50 backdrop-blur-sm border border-border/50">
             <TabsTrigger value="frequency" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300">
               <TrendingUp className="h-4 w-4 mr-2" />
               Frequency AI
@@ -434,6 +435,10 @@ const Index = () => {
             <TabsTrigger value="history" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300">
               <Database className="h-4 w-4 mr-2" />
               History
+            </TabsTrigger>
+            <TabsTrigger value="data-import" className="data-[state=active]:bg-gradient-secondary data-[state=active]:text-secondary-foreground transition-all duration-300">
+              <Database className="h-4 w-4 mr-2" />
+              Data Import
             </TabsTrigger>
           </TabsList>
 
@@ -558,6 +563,11 @@ const Index = () => {
           {/* History Tab */}
           <TabsContent value="history" className="animate-fade-in">
             <HistoricalDataTable highlightPattern={drawNumber.replace(/\D/g, "")} />
+          </TabsContent>
+
+          {/* Data Import Tab */}
+          <TabsContent value="data-import" className="animate-fade-in">
+            <DataImportView />
           </TabsContent>
         </Tabs>
       </div>
