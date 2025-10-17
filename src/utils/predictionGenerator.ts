@@ -1,4 +1,5 @@
 import type { LotteryResult } from "@/utils/databaseQueries";
+import { generateAllAdvancedPredictions } from './advancedPredictions';
 
 export interface PositionalFrequency {
   position: number;

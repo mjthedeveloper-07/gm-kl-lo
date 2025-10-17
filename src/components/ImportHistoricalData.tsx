@@ -10,6 +10,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { 
   generateAllHistoricalData, 
   getHistoricalDataStats,
+  generate2013LotteryData,
+  generate2014LotteryData,
+  generate2015LotteryData,
+  generate2016LotteryData,
+  generate2017LotteryData,
+  generate2018LotteryData,
   generate2019LotteryData,
   generate2020LotteryData,
   generate2021LotteryData,
@@ -17,7 +23,6 @@ import {
   generate2023LotteryData,
   generate2024LotteryData,
 } from '@/utils/historicalLotteryData';
-import { generate2018LotteryData } from '@/utils/lottery2018Data';
 import { generate2025LotteryData, get2025DataStats } from '@/utils/lottery2025Data';
 
 export const ImportHistoricalData = () => {
@@ -25,13 +30,13 @@ export const ImportHistoricalData = () => {
   const [isImporting, setIsImporting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<any>(null);
-  const [selectedYears, setSelectedYears] = useState<number[]>([2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]);
+  const [selectedYears, setSelectedYears] = useState<number[]>([2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]);
 
   const historicalStats = getHistoricalDataStats();
   const stats2025 = get2025DataStats();
   
   const allStats = {
-    total: historicalStats.total + stats2025.total,
+    total: historicalStats.totalEntries + stats2025.total,
     byYear: {
       ...historicalStats.byYear,
       2025: stats2025.total,
@@ -39,6 +44,12 @@ export const ImportHistoricalData = () => {
   };
 
   const yearDataGenerators: Record<number, () => any[]> = {
+    2012: () => historicalStats.byYear[2012] ? generateAllHistoricalData().filter(d => d.year === 2012) : [],
+    2013: generate2013LotteryData,
+    2014: generate2014LotteryData,
+    2015: generate2015LotteryData,
+    2016: generate2016LotteryData,
+    2017: generate2017LotteryData,
     2018: generate2018LotteryData,
     2019: generate2019LotteryData,
     2020: generate2020LotteryData,
