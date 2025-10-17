@@ -3,21 +3,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { generateAllPredictions, type PredictionSet } from "@/utils/predictionGenerator";
-import { Sparkles, RefreshCw, Copy, CheckCircle2 } from "lucide-react";
+import { useLotteryData } from "@/hooks/useLotteryData";
+import { Sparkles, RefreshCw, Copy, CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const PredictionSetsView = () => {
   const [predictionSets, setPredictionSets] = useState<PredictionSet[]>([]);
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
+  const { data: lotteryHistory, isLoading } = useLotteryData();
 
   useEffect(() => {
-    regeneratePredictions();
-  }, []);
+    if (lotteryHistory.length > 0) {
+      regeneratePredictions();
+    }
+  }, [lotteryHistory]);
 
   const regeneratePredictions = () => {
-    const predictions = generateAllPredictions();
+    if (lotteryHistory.length === 0) {
+      toast.error("No lottery data available. Please import data first.");
+      return;
+    }
+    const predictions = generateAllPredictions(lotteryHistory);
     setPredictionSets(predictions);
-    toast.success("Generated new predictions based on statistical analysis");
+    toast.success(`Generated predictions using ${lotteryHistory.length} historical results`);
   };
 
   const copyToClipboard = (text: string, id: string) => {
@@ -42,26 +50,35 @@ export const PredictionSetsView = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-6 w-6" />
-                AI-Generated Predictions
-              </CardTitle>
-              <CardDescription className="mt-2">
-                Statistical analysis-based predictions using 5 different methods
-              </CardDescription>
-            </div>
-            <Button onClick={regeneratePredictions} variant="outline" className="gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Regenerate
-            </Button>
-          </div>
-        </CardHeader>
-      </Card>
+      {isLoading ? (
+        <Card>
+          <CardContent className="pt-6 flex items-center justify-center gap-2">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <p>Loading lottery data...</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          {/* Header */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="h-6 w-6" />
+                    AI-Generated Predictions
+                  </CardTitle>
+                  <CardDescription className="mt-2">
+                    Statistical analysis using {lotteryHistory.length} historical results
+                  </CardDescription>
+                </div>
+                <Button onClick={regeneratePredictions} variant="outline" className="gap-2">
+                  <RefreshCw className="h-4 w-4" />
+                  Regenerate
+                </Button>
+              </div>
+            </CardHeader>
+          </Card>
 
       {/* Disclaimer */}
       <Card className="border-yellow-500/50 bg-yellow-500/5">
@@ -137,7 +154,9 @@ export const PredictionSetsView = () => {
             </div>
           </CardContent>
         </Card>
-      ))}
+          ))}
+        </>
+      )}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { lotteryHistory } from "@/data/lotteryHistory";
+import type { LotteryResult } from "@/utils/databaseQueries";
 
 export interface PositionalFrequency {
   position: number;
@@ -37,7 +37,7 @@ export interface StatisticalAnalysis {
 }
 
 // Perform comprehensive statistical analysis
-export const analyzeHistoricalData = (): StatisticalAnalysis => {
+export const analyzeHistoricalData = (lotteryHistory: LotteryResult[]): StatisticalAnalysis => {
   const allNumbers = lotteryHistory.map(r => r.result);
   
   // Overall digit frequency
@@ -311,7 +311,7 @@ const complexDivide = (z1: ComplexNumber, z2: ComplexNumber): ComplexNumber => {
 };
 
 // Method 6: Complex Number Analysis
-export const generateComplexNumberPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generateComplexNumberPredictions = (analysis: StatisticalAnalysis, lotteryHistory: LotteryResult[]): string[] => {
   const predictions: string[] = [];
   const allNumbers = lotteryHistory.map(r => r.result);
   
@@ -367,7 +367,7 @@ export const generateComplexNumberPredictions = (analysis: StatisticalAnalysis):
 };
 
 // Method 7: Phase and Magnitude Analysis
-export const generatePhaseBasedPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generatePhaseBasedPredictions = (analysis: StatisticalAnalysis, lotteryHistory: LotteryResult[]): string[] => {
   const predictions: string[] = [];
   const allNumbers = lotteryHistory.map(r => r.result);
   const recentNumbers = allNumbers.slice(-30);
@@ -406,7 +406,7 @@ export const generatePhaseBasedPredictions = (analysis: StatisticalAnalysis): st
 };
 
 // Method 8: Exponential Form Analysis (z = |z|e^(iθ))
-export const generateExponentialFormPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generateExponentialFormPredictions = (analysis: StatisticalAnalysis, lotteryHistory: LotteryResult[]): string[] => {
   const predictions: string[] = [];
   const allNumbers = lotteryHistory.map(r => r.result);
   const recentNumbers = allNumbers.slice(-20);
@@ -439,7 +439,7 @@ export const generateExponentialFormPredictions = (analysis: StatisticalAnalysis
 };
 
 // Method 9: Complex Roots Analysis (nth roots)
-export const generateComplexRootsPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generateComplexRootsPredictions = (analysis: StatisticalAnalysis, lotteryHistory: LotteryResult[]): string[] => {
   const predictions: string[] = [];
   const allNumbers = lotteryHistory.map(r => r.result);
   const recentNumbers = allNumbers.slice(-15);
@@ -472,7 +472,7 @@ export const generateComplexRootsPredictions = (analysis: StatisticalAnalysis): 
 };
 
 // Method 10: Exponentiation Analysis (z^n = |z|^n·e^(inθ))
-export const generateExponentiationPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generateExponentiationPredictions = (analysis: StatisticalAnalysis, lotteryHistory: LotteryResult[]): string[] => {
   const predictions: string[] = [];
   const allNumbers = lotteryHistory.map(r => r.result);
   const recentNumbers = allNumbers.slice(-10);
@@ -505,7 +505,7 @@ export const generateExponentiationPredictions = (analysis: StatisticalAnalysis)
 };
 
 // Method 11: Real and Imaginary Decomposition (Re(z) = (z+z̄)/2, Im(z) = (z-z̄)/2i)
-export const generateRealImaginaryDecompositionPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generateRealImaginaryDecompositionPredictions = (analysis: StatisticalAnalysis, lotteryHistory: LotteryResult[]): string[] => {
   const predictions: string[] = [];
   const allNumbers = lotteryHistory.map(r => r.result);
   const recentNumbers = allNumbers.slice(-25);
@@ -546,8 +546,8 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
 };
 
 // Generate all prediction sets
-export const generateAllPredictions = (): PredictionSet[] => {
-  const analysis = analyzeHistoricalData();
+export const generateAllPredictions = (lotteryHistory: LotteryResult[]): PredictionSet[] => {
+  const analysis = analyzeHistoricalData(lotteryHistory);
   
   return [
     {
@@ -583,37 +583,37 @@ export const generateAllPredictions = (): PredictionSet[] => {
     {
       method: "Complex Number Analysis",
       description: "Uses complex number operations (conjugate, magnitude, multiplication) on historical data",
-      numbers: generateComplexNumberPredictions(analysis),
+      numbers: generateComplexNumberPredictions(analysis, lotteryHistory),
       confidence: "high"
     },
     {
       method: "Phase & Magnitude Based",
       description: "Analyzes phase angles and magnitudes of complex representations",
-      numbers: generatePhaseBasedPredictions(analysis),
+      numbers: generatePhaseBasedPredictions(analysis, lotteryHistory),
       confidence: "medium"
     },
     {
       method: "Exponential Form (z=|z|e^iθ)",
       description: "Uses exponential form conversions with angle and magnitude transformations",
-      numbers: generateExponentialFormPredictions(analysis),
+      numbers: generateExponentialFormPredictions(analysis, lotteryHistory),
       confidence: "high"
     },
     {
       method: "Complex Roots (nth roots)",
       description: "Applies nth root formula: ⁿ√|z|·e^(i(θ+2kπ)/n) for pattern extraction",
-      numbers: generateComplexRootsPredictions(analysis),
+      numbers: generateComplexRootsPredictions(analysis, lotteryHistory),
       confidence: "medium"
     },
     {
       method: "Exponentiation (z^n)",
       description: "Uses power formula: z^n = |z|^n·e^(inθ) with fractional exponents",
-      numbers: generateExponentiationPredictions(analysis),
+      numbers: generateExponentiationPredictions(analysis, lotteryHistory),
       confidence: "medium"
     },
     {
       method: "Real/Imaginary Decomposition",
       description: "Applies Re(z)=(z+z̄)/2 and Im(z)=(z-z̄)/2i formulas for component analysis",
-      numbers: generateRealImaginaryDecompositionPredictions(analysis),
+      numbers: generateRealImaginaryDecompositionPredictions(analysis, lotteryHistory),
       confidence: "high"
     }
   ];

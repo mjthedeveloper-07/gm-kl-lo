@@ -1,15 +1,34 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { analyzeHistoricalData } from "@/utils/predictionGenerator";
-import { getYearRange, lotteryHistory, getBumperResults, getRegularResults } from "@/data/lotteryHistory";
-import { TrendingUp, TrendingDown, BarChart3, Database } from "lucide-react";
+import { useLotteryData } from "@/hooks/useLotteryData";
+import { fetchYearRange } from "@/utils/databaseQueries";
+import { TrendingUp, TrendingDown, BarChart3, Database, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export const StatisticalAnalysisView = () => {
-  const analysis = analyzeHistoricalData();
-  const { min, max } = getYearRange();
+  const { data: lotteryHistory, isLoading } = useLotteryData();
+  const [yearRange, setYearRange] = useState({ min: 2009, max: new Date().getFullYear() });
+
+  useEffect(() => {
+    fetchYearRange().then(setYearRange);
+  }, []);
+
+  if (isLoading || lotteryHistory.length === 0) {
+    return (
+      <Card>
+        <CardContent className="pt-6 flex items-center justify-center gap-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <p>Loading statistical analysis...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const analysis = analyzeHistoricalData(lotteryHistory);
   const totalResults = lotteryHistory.length;
-  const bumperCount = getBumperResults().length;
-  const regularCount = getRegularResults().length;
+  const bumperCount = lotteryHistory.filter(r => r.lotteryType === 'bumper').length;
+  const regularCount = lotteryHistory.filter(r => r.lotteryType === 'regular').length;
 
   return (
     <div className="space-y-6">
@@ -21,7 +40,7 @@ export const StatisticalAnalysisView = () => {
             Comprehensive Dataset Overview
           </CardTitle>
           <CardDescription>
-            {max - min + 1} years of Kerala Lottery historical data ({min}-{max})
+            {yearRange.max - yearRange.min + 1} years of Kerala Lottery historical data ({yearRange.min}-{yearRange.max})
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -1,16 +1,30 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getPatternStats, getDigitFrequency, getMostCommonLast4Patterns, getHotAndColdNumbers } from "@/utils/lotteryAnalysis";
 import { Badge } from "@/components/ui/badge";
-import { Flame, Snowflake, TrendingUp } from "lucide-react";
+import { useLotteryData } from "@/hooks/useLotteryData";
+import { Flame, Snowflake, TrendingUp, Loader2 } from "lucide-react";
 
 interface PatternAnalysisProps {
   pattern?: string;
 }
 
 export const PatternAnalysis = ({ pattern }: PatternAnalysisProps) => {
-  const patternStats = pattern ? getPatternStats(pattern) : null;
-  const { hot, cold } = getHotAndColdNumbers();
-  const commonPatterns = getMostCommonLast4Patterns();
+  const { data: lotteryHistory, isLoading } = useLotteryData();
+
+  if (isLoading || lotteryHistory.length === 0) {
+    return (
+      <Card>
+        <CardContent className="pt-6 flex items-center justify-center gap-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <p>Loading pattern analysis...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const patternStats = pattern ? getPatternStats(pattern, lotteryHistory) : null;
+  const { hot, cold } = getHotAndColdNumbers(lotteryHistory);
+  const commonPatterns = getMostCommonLast4Patterns(lotteryHistory);
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

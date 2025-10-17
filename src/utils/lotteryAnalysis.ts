@@ -1,4 +1,4 @@
-import { lotteryHistory, getLast3Digits, getLast4Digits, type LotteryResult } from "@/data/lotteryHistory";
+import { getLast3Digits, getLast4Digits, type LotteryResult } from "@/utils/databaseQueries";
 
 export interface HistoricalMatch {
   type: "exact" | "last4" | "last3";
@@ -28,7 +28,7 @@ export interface PredictionValidation {
 }
 
 // Find historical matches for a prediction
-export const findHistoricalMatches = (prediction: string): HistoricalMatch[] => {
+export const findHistoricalMatches = (prediction: string, lotteryHistory: LotteryResult[]): HistoricalMatch[] => {
   const matches: HistoricalMatch[] = [];
   
   lotteryHistory.forEach(result => {
@@ -62,8 +62,8 @@ export const findHistoricalMatches = (prediction: string): HistoricalMatch[] => 
 };
 
 // Get frequency analysis for a 3-digit pattern
-export const getPatternStats = (pattern: string): PatternStats => {
-  const matchingResults = lotteryHistory.filter(r => 
+export const getPatternStats = (pattern: string, lotteryHistory: LotteryResult[]): PatternStats => {
+  const matchingResults = lotteryHistory.filter(r =>
     getLast3Digits(r.result) === pattern || r.result.includes(pattern)
   );
   
@@ -76,7 +76,7 @@ export const getPatternStats = (pattern: string): PatternStats => {
 };
 
 // Get frequency of all digits (0-9)
-export const getDigitFrequency = (): DigitFrequency[] => {
+export const getDigitFrequency = (lotteryHistory: LotteryResult[]): DigitFrequency[] => {
   const digitCounts: { [key: string]: number } = {};
   
   // Initialize counts
@@ -103,7 +103,7 @@ export const getDigitFrequency = (): DigitFrequency[] => {
 };
 
 // Get most common last 4-digit patterns
-export const getMostCommonLast4Patterns = (): PatternStats[] => {
+export const getMostCommonLast4Patterns = (lotteryHistory: LotteryResult[]): PatternStats[] => {
   const patternCounts: { [key: string]: LotteryResult[] } = {};
   
   lotteryHistory.forEach(result => {
@@ -126,9 +126,9 @@ export const getMostCommonLast4Patterns = (): PatternStats[] => {
 };
 
 // Validate predictions against history
-export const validatePredictions = (predictions: string[]): PredictionValidation[] => {
+export const validatePredictions = (predictions: string[], lotteryHistory: LotteryResult[]): PredictionValidation[] => {
   return predictions.map(prediction => {
-    const matches = findHistoricalMatches(prediction);
+    const matches = findHistoricalMatches(prediction, lotteryHistory);
     const hasExactMatch = matches.some(m => m.type === "exact");
     const hasPartialMatch = matches.some(m => m.type === "last4" || m.type === "last3");
     
@@ -150,8 +150,8 @@ export const validatePredictions = (predictions: string[]): PredictionValidation
 };
 
 // Get hot and cold numbers
-export const getHotAndColdNumbers = () => {
-  const frequency = getDigitFrequency();
+export const getHotAndColdNumbers = (lotteryHistory: LotteryResult[]) => {
+  const frequency = getDigitFrequency(lotteryHistory);
   const hot = frequency.slice(0, 3);
   const cold = frequency.slice(-3).reverse();
   
@@ -159,7 +159,7 @@ export const getHotAndColdNumbers = () => {
 };
 
 // Analyze draw number frequency
-export const getDrawNumberFrequency = (): { draw: string; count: number }[] => {
+export const getDrawNumberFrequency = (lotteryHistory: LotteryResult[]): { draw: string; count: number }[] => {
   const drawCounts: { [key: string]: number } = {};
   
   lotteryHistory.forEach(result => {
