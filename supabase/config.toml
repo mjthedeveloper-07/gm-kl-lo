@@ -2,6 +2,3 @@ project_id = "fnlmeqnulqvqmtuzqmkm"
 
 [functions.nova-chat]
 verify_jwt = false
-
-[functions.lottery-prediction]
-verify_jwt = false

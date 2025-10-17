@@ -1,4 +1,11 @@
 import { lotteryHistory } from "@/data/lotteryHistory";
+import {
+  generatePositionalHotColdPredictions,
+  generateGapBasedPredictions,
+  generateSumOptimizedPredictions,
+  generateEnhancedComplexPredictions,
+  calculateConfidence
+} from "@/utils/enhancedPredictions";
 
 export interface PositionalFrequency {
   position: number;
@@ -405,216 +412,78 @@ export const generatePhaseBasedPredictions = (analysis: StatisticalAnalysis): st
   return predictions;
 };
 
-// Method 8: Exponential Form Analysis (z = |z|e^(iθ))
-export const generateExponentialFormPredictions = (analysis: StatisticalAnalysis): string[] => {
-  const predictions: string[] = [];
-  const allNumbers = lotteryHistory.map(r => r.result);
-  const recentNumbers = allNumbers.slice(-20);
-  
-  const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
-    const digits = num.split("").map(Number);
-    const real = digits.slice(0, 3).reduce((sum, d) => sum * 10 + d, 0);
-    const imaginary = digits.slice(3, 6).reduce((sum, d) => sum * 10 + d, 0);
-    return createComplex(real, imaginary);
-  });
-  
-  for (let i = 0; i < 5; i++) {
-    const baseComplex = complexNumbers[complexNumbers.length - 1 - (i % 5)];
-    const magnitude = complexMagnitude(baseComplex);
-    const angle = complexAngle(baseComplex);
-    
-    // Apply exponential transformations: z = |z|·e^(iθ)
-    const newAngle = angle + (i * Math.PI / 8) + Math.PI / 4;
-    const newMagnitude = magnitude * (0.85 + i * 0.075);
-    
-    // Convert back: z = |z|(cos θ + i sin θ)
-    const real = Math.abs(Math.round(newMagnitude * Math.cos(newAngle))) % 1000;
-    const imaginary = Math.abs(Math.round(newMagnitude * Math.sin(newAngle))) % 1000;
-    
-    const number = real.toString().padStart(3, '0') + imaginary.toString().padStart(3, '0');
-    predictions.push(number);
-  }
-  
-  return predictions;
-};
-
-// Method 9: Complex Roots Analysis (nth roots)
-export const generateComplexRootsPredictions = (analysis: StatisticalAnalysis): string[] => {
-  const predictions: string[] = [];
-  const allNumbers = lotteryHistory.map(r => r.result);
-  const recentNumbers = allNumbers.slice(-15);
-  
-  const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
-    const digits = num.split("").map(Number);
-    const real = digits.slice(0, 3).reduce((sum, d) => sum * 10 + d, 0);
-    const imaginary = digits.slice(3, 6).reduce((sum, d) => sum * 10 + d, 0);
-    return createComplex(real, imaginary);
-  });
-  
-  // Use formula: ⁿ√|z|·e^(i(θ+2kπ)/n)
-  for (let k = 0; k < 5; k++) {
-    const baseComplex = complexNumbers[complexNumbers.length - 1];
-    const magnitude = complexMagnitude(baseComplex);
-    const angle = complexAngle(baseComplex);
-    
-    const n = 2 + (k % 3); // 2nd, 3rd, or 4th root
-    const rootMagnitude = Math.pow(magnitude, 1 / n);
-    const rootAngle = (angle + 2 * k * Math.PI) / n;
-    
-    const real = Math.abs(Math.round(rootMagnitude * Math.cos(rootAngle) * 10)) % 1000;
-    const imaginary = Math.abs(Math.round(rootMagnitude * Math.sin(rootAngle) * 10)) % 1000;
-    
-    const number = real.toString().padStart(3, '0') + imaginary.toString().padStart(3, '0');
-    predictions.push(number);
-  }
-  
-  return predictions;
-};
-
-// Method 10: Exponentiation Analysis (z^n = |z|^n·e^(inθ))
-export const generateExponentiationPredictions = (analysis: StatisticalAnalysis): string[] => {
-  const predictions: string[] = [];
-  const allNumbers = lotteryHistory.map(r => r.result);
-  const recentNumbers = allNumbers.slice(-10);
-  
-  const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
-    const digits = num.split("").map(Number);
-    const real = digits.slice(0, 3).reduce((sum, d) => sum * 10 + d, 0);
-    const imaginary = digits.slice(3, 6).reduce((sum, d) => sum * 10 + d, 0);
-    return createComplex(real, imaginary);
-  });
-  
-  for (let i = 0; i < 5; i++) {
-    const baseComplex = complexNumbers[complexNumbers.length - 1 - i];
-    const magnitude = complexMagnitude(baseComplex);
-    const angle = complexAngle(baseComplex);
-    
-    // Apply z^n formula
-    const n = 1.5 + (i * 0.2); // fractional powers
-    const newMagnitude = Math.pow(magnitude, n) / 100; // scale down
-    const newAngle = n * angle;
-    
-    const real = Math.abs(Math.round(newMagnitude * Math.cos(newAngle))) % 1000;
-    const imaginary = Math.abs(Math.round(newMagnitude * Math.sin(newAngle))) % 1000;
-    
-    const number = real.toString().padStart(3, '0') + imaginary.toString().padStart(3, '0');
-    predictions.push(number);
-  }
-  
-  return predictions;
-};
-
-// Method 11: Real and Imaginary Decomposition (Re(z) = (z+z̄)/2, Im(z) = (z-z̄)/2i)
-export const generateRealImaginaryDecompositionPredictions = (analysis: StatisticalAnalysis): string[] => {
-  const predictions: string[] = [];
-  const allNumbers = lotteryHistory.map(r => r.result);
-  const recentNumbers = allNumbers.slice(-25);
-  
-  const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
-    const digits = num.split("").map(Number);
-    const real = digits.slice(0, 3).reduce((sum, d) => sum * 10 + d, 0);
-    const imaginary = digits.slice(3, 6).reduce((sum, d) => sum * 10 + d, 0);
-    return createComplex(real, imaginary);
-  });
-  
-  // Calculate average
-  const avgReal = complexNumbers.reduce((sum, z) => sum + z.real, 0) / complexNumbers.length;
-  const avgImag = complexNumbers.reduce((sum, z) => sum + z.imaginary, 0) / complexNumbers.length;
-  const avgComplex = createComplex(avgReal, avgImag);
-  const conjugate = complexConjugate(avgComplex);
-  
-  for (let i = 0; i < 5; i++) {
-    // Apply Re(z) = (z + z̄)/2 and Im(z) = (z - z̄)/(2i) transformations
-    const weight = 0.7 + (i * 0.15);
-    
-    // Real part decomposition
-    const realPart = Math.abs(Math.round((avgComplex.real + conjugate.real) / 2 * weight)) % 1000;
-    
-    // Imaginary part decomposition  
-    const imagPart = Math.abs(Math.round((avgComplex.imaginary - conjugate.imaginary) / 2 * weight)) % 1000;
-    
-    // Mix with recent trends
-    const recent = complexNumbers[complexNumbers.length - 1 - i];
-    const mixedReal = Math.round((realPart + recent.real * 0.3)) % 1000;
-    const mixedImag = Math.round((imagPart + recent.imaginary * 0.3)) % 1000;
-    
-    const number = mixedReal.toString().padStart(3, '0') + mixedImag.toString().padStart(3, '0');
-    predictions.push(number);
-  }
-  
-  return predictions;
-};
-
 // Generate all prediction sets
 export const generateAllPredictions = (): PredictionSet[] => {
   const analysis = analyzeHistoricalData();
   
-  return [
+  const predictions = [
+    {
+      method: "Enhanced Complex Number Analysis",
+      description: "Weighted recent data with complex math (conjugate, phase shifts, golden ratio)",
+      numbers: generateEnhancedComplexPredictions(),
+      confidence: "high" as const
+    },
+    {
+      method: "Gap Analysis Predictions",
+      description: "Identifies overdue digits based on appearance gaps and historical patterns",
+      numbers: generateGapBasedPredictions(),
+      confidence: "high" as const
+    },
+    {
+      method: "Positional Hot/Cold Analysis",
+      description: "Tracks hot (frequent recent) and cold (due) digits for each position",
+      numbers: generatePositionalHotColdPredictions(),
+      confidence: "high" as const
+    },
+    {
+      method: "Sum Range Optimization",
+      description: "Targets predictions within statistically optimal digit sum ranges",
+      numbers: generateSumOptimizedPredictions(),
+      confidence: "medium" as const
+    },
     {
       method: "High-Frequency Based",
       description: "Uses most frequent digits from each position",
       numbers: generateFrequencyBasedPredictions(analysis),
-      confidence: "high"
-    },
-    {
-      method: "Probability-Weighted",
-      description: "Random selection weighted by historical frequency",
-      numbers: generateProbabilityWeightedPredictions(analysis),
-      confidence: "medium"
+      confidence: "medium" as const
     },
     {
       method: "Trend-Based",
       description: "Based on temporal patterns and hot pairs",
       numbers: generateTrendBasedPredictions(analysis),
-      confidence: "medium"
-    },
-    {
-      method: "Hot-Cold Balanced",
-      description: "Balances most and least frequent digits",
-      numbers: generateBalancedPredictions(analysis),
-      confidence: "low"
+      confidence: "medium" as const
     },
     {
       method: "Pattern Matching",
       description: "Built from most common adjacent digit pairs",
       numbers: generatePatternMatchingPredictions(analysis),
-      confidence: "medium"
+      confidence: "medium" as const
     },
     {
-      method: "Complex Number Analysis",
-      description: "Uses complex number operations (conjugate, magnitude, multiplication) on historical data",
+      method: "Complex Number Analysis (Classic)",
+      description: "Classic complex number operations on historical data",
       numbers: generateComplexNumberPredictions(analysis),
-      confidence: "high"
+      confidence: "medium" as const
     },
     {
       method: "Phase & Magnitude Based",
       description: "Analyzes phase angles and magnitudes of complex representations",
       numbers: generatePhaseBasedPredictions(analysis),
-      confidence: "medium"
+      confidence: "low" as const
     },
     {
-      method: "Exponential Form (z=|z|e^iθ)",
-      description: "Uses exponential form conversions with angle and magnitude transformations",
-      numbers: generateExponentialFormPredictions(analysis),
-      confidence: "high"
-    },
-    {
-      method: "Complex Roots (nth roots)",
-      description: "Applies nth root formula: ⁿ√|z|·e^(i(θ+2kπ)/n) for pattern extraction",
-      numbers: generateComplexRootsPredictions(analysis),
-      confidence: "medium"
-    },
-    {
-      method: "Exponentiation (z^n)",
-      description: "Uses power formula: z^n = |z|^n·e^(inθ) with fractional exponents",
-      numbers: generateExponentiationPredictions(analysis),
-      confidence: "medium"
-    },
-    {
-      method: "Real/Imaginary Decomposition",
-      description: "Applies Re(z)=(z+z̄)/2 and Im(z)=(z-z̄)/2i formulas for component analysis",
-      numbers: generateRealImaginaryDecompositionPredictions(analysis),
-      confidence: "high"
+      method: "Hot-Cold Balanced",
+      description: "Balances most and least frequent digits",
+      numbers: generateBalancedPredictions(analysis),
+      confidence: "low" as const
     }
   ];
+  
+  // Recalculate confidence for predictions based on enhanced scoring
+  return predictions.map(pred => ({
+    ...pred,
+    confidence: pred.numbers.length > 0 
+      ? calculateConfidence(pred.numbers[0], pred.method)
+      : pred.confidence
+  }));
 };
