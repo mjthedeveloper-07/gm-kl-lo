@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap, LogOut, User, Calendar, Brain } from "lucide-react";
+import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap, LogOut, User, Calendar, Brain, Target, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -20,6 +20,8 @@ import { Import2025Data } from "@/components/Import2025Data";
 
 import { October2025Analysis } from "@/components/October2025Analysis";
 import { ComprehensivePredictionDashboard } from "@/components/ComprehensivePredictionDashboard";
+import { SeedNumberAnalyzer } from "@/components/SeedNumberAnalyzer";
+import { GapAnalysisView } from "@/components/GapAnalysisView";
 
 type MathFunction = "COS" | "SIN" | "TAN" | "√";
 type DigitExtraction = ".3 NOS" | "L3 NOS" | ".2 NOS";
@@ -448,6 +450,14 @@ const Index = () => {
               <Brain className="h-4 w-4 mr-2" />
               AI Dashboard
             </TabsTrigger>
+            <TabsTrigger value="seed-analyzer" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300">
+              <Target className="h-4 w-4 mr-2" />
+              Seed Analyzer
+            </TabsTrigger>
+            <TabsTrigger value="gap-analysis" className="data-[state=active]:bg-gradient-accent data-[state=active]:text-accent-foreground transition-all duration-300">
+              <Clock className="h-4 w-4 mr-2" />
+              Gap Analysis
+            </TabsTrigger>
             <TabsTrigger value="october-analysis" className="data-[state=active]:bg-gradient-gold data-[state=active]:text-secondary-foreground transition-all duration-300">
               <Calendar className="h-4 w-4 mr-2" />
               Oct 18
@@ -480,6 +490,16 @@ const Index = () => {
           {/* Comprehensive AI Dashboard Tab */}
           <TabsContent value="comprehensive-ai">
             <ComprehensivePredictionDashboard />
+          </TabsContent>
+
+          {/* Seed Number Analyzer Tab */}
+          <TabsContent value="seed-analyzer">
+            <SeedNumberAnalyzer />
+          </TabsContent>
+
+          {/* Gap Analysis Tab */}
+          <TabsContent value="gap-analysis">
+            <GapAnalysisView />
           </TabsContent>
 
           {/* October 18 Analysis Tab */}
