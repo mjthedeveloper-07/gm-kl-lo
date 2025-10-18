@@ -22,10 +22,43 @@ export const October2025Analysis = () => {
     );
   }
 
+  // Check if October 18 result is available
+  const actualResult = lotteryHistory.find(r => {
+    if (r.year !== 2025 || r.month !== 10) return false;
+    const dayOfMonth = parseInt(r.date.split('.')[0]);
+    return dayOfMonth === 18;
+  });
+  const actualValue = actualResult ? parseInt(actualResult.result) : null;
+
   // Run comprehensive analysis
   const octoberAnalysis = analyzeOctoberTrend(lotteryHistory);
   const datePattern = getDatePatternAnalysis(lotteryHistory, 18);
   const deltaAnalysis = calculateDeltaAnalysis(octoberAnalysis.lastNResults);
+
+  // Calculate accuracy for each candidate
+  const calculateAccuracy = (predicted: number, actual: number) => {
+    const predStr = predicted.toString();
+    const actStr = actual.toString();
+    
+    const last4Match = predStr.slice(-4) === actStr.slice(-4);
+    const last3Match = predStr.slice(-3) === actStr.slice(-3);
+    
+    let matchingDigits = 0;
+    for (let i = 0; i < predStr.length; i++) {
+      if (predStr[i] === actStr[i]) matchingDigits++;
+    }
+    
+    const difference = Math.abs(predicted - actual);
+    const percentError = (difference / actual * 100).toFixed(2);
+    
+    return {
+      last4Match,
+      last3Match,
+      matchingDigits,
+      difference,
+      percentError
+    };
+  };
 
   // Define the three candidates
   const candidates = [
@@ -76,14 +109,17 @@ export const October2025Analysis = () => {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header Card */}
-      <Card className="bg-gradient-primary shadow-glow border-primary">
+      <Card className={actualValue ? "bg-gradient-subtle shadow-glow border-green-500" : "bg-gradient-primary shadow-glow border-primary"}>
         <CardHeader>
           <CardTitle className="text-3xl flex items-center gap-2 text-primary-foreground">
             <Calendar className="w-8 h-8" />
-            October 18, 2025 Special Analysis
+            October 18, 2025 {actualValue ? "- Result Available" : "Special Analysis"}
           </CardTitle>
           <CardDescription className="text-primary-foreground/80">
-            Comprehensive prediction analysis based on October 2025 trends, frequency patterns, and historical data
+            {actualValue 
+              ? `Actual Result: ${actualValue.toLocaleString()} | Prediction Accuracy Analysis`
+              : "Comprehensive prediction analysis based on October 2025 trends, frequency patterns, and historical data"
+            }
           </CardDescription>
         </CardHeader>
       </Card>
@@ -151,54 +187,91 @@ export const October2025Analysis = () => {
           <h2 className="text-2xl font-bold">Prediction Candidates</h2>
         </div>
 
-        {candidates.map((candidate, index) => (
-          <Card 
-            key={index} 
-            className="shadow-elevated hover:shadow-glow transition-all duration-300 border-2"
-            style={{ borderColor: candidate.color }}
-          >
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <CardTitle className="text-xl">{candidate.name}</CardTitle>
-                    <Badge 
-                      variant={candidate.confidence === "High" ? "default" : "secondary"}
-                      style={candidate.confidence === "High" ? { backgroundColor: candidate.color } : {}}
-                    >
-                      {candidate.confidence} Confidence
-                    </Badge>
-                    <Badge variant="outline">{candidate.method}</Badge>
+        {candidates.map((candidate, index) => {
+          const accuracy = actualValue ? calculateAccuracy(candidate.value, actualValue) : null;
+          
+          return (
+            <Card 
+              key={index} 
+              className="shadow-elevated hover:shadow-glow transition-all duration-300 border-2"
+              style={{ borderColor: candidate.color }}
+            >
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <CardTitle className="text-xl">{candidate.name}</CardTitle>
+                      <Badge 
+                        variant={candidate.confidence === "High" ? "default" : "secondary"}
+                        style={candidate.confidence === "High" ? { backgroundColor: candidate.color } : {}}
+                      >
+                        {candidate.confidence} Confidence
+                      </Badge>
+                      <Badge variant="outline">{candidate.method}</Badge>
+                      {accuracy && accuracy.matchingDigits > 0 && (
+                        <Badge variant="default" className="bg-green-500">
+                          {accuracy.matchingDigits} digit{accuracy.matchingDigits > 1 ? 's' : ''} matched
+                        </Badge>
+                      )}
+                    </div>
+                    <CardDescription>{candidate.rationale}</CardDescription>
                   </div>
-                  <CardDescription>{candidate.rationale}</CardDescription>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyToClipboard(candidate.value.toString(), index)}
+                    className="ml-4"
+                  >
+                    {copiedIndex === index ? (
+                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                  </Button>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => copyToClipboard(candidate.value.toString(), index)}
-                  className="ml-4"
-                >
-                  {copiedIndex === index ? (
-                    <CheckCircle2 className="w-4 h-4 text-green-500" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-4">
-                <div className="text-5xl font-bold tabular-nums" style={{ color: candidate.color }}>
-                  {candidate.value.toLocaleString()}
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-4">
+                  <div className="text-5xl font-bold tabular-nums" style={{ color: candidate.color }}>
+                    {candidate.value.toLocaleString()}
+                  </div>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <div>Last 4: <span className="font-mono font-bold">{candidate.value.toString().slice(-4)}</span></div>
+                    <div>Last 3: <span className="font-mono font-bold">{candidate.value.toString().slice(-3)}</span></div>
+                  </div>
                 </div>
-                <div className="text-sm text-muted-foreground space-y-1">
-                  <div>Last 4: <span className="font-mono font-bold">{candidate.value.toString().slice(-4)}</span></div>
-                  <div>Last 3: <span className="font-mono font-bold">{candidate.value.toString().slice(-3)}</span></div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                
+                {accuracy && (
+                  <div className="mt-4 pt-4 border-t space-y-2">
+                    <div className="font-semibold text-sm mb-2">Accuracy Analysis:</div>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">Difference:</span>
+                        <span className="ml-2 font-mono font-bold">{accuracy.difference.toLocaleString()}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Error:</span>
+                        <span className="ml-2 font-mono font-bold">{accuracy.percentError}%</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Last 4:</span>
+                        <Badge variant={accuracy.last4Match ? "default" : "secondary"} className="ml-2">
+                          {accuracy.last4Match ? "✓ Match" : "✗ No Match"}
+                        </Badge>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Last 3:</span>
+                        <Badge variant={accuracy.last3Match ? "default" : "secondary"} className="ml-2">
+                          {accuracy.last3Match ? "✓ Match" : "✗ No Match"}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Supporting Analysis */}
