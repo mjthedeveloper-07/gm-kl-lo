@@ -546,11 +546,185 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
   return predictions;
 };
 
+// October 2025 Specific Methods
+
+// Trend Projection Method
+export const generateTrendProjectionPredictions = (lotteryHistory: LotteryResult[]): string[] => {
+  const predictions: string[] = [];
+  
+  // Filter October 2025 data
+  const octoberData = lotteryHistory
+    .filter(r => r.year === 2025 && r.month === 10)
+    .map(r => parseInt(r.result));
+  
+  if (octoberData.length < 2) return predictions;
+  
+  // Calculate average daily increase
+  const totalIncrease = octoberData[octoberData.length - 1] - octoberData[0];
+  const avgDailyIncrease = totalIncrease / (octoberData.length - 1);
+  
+  // Project forward 3 days from last result
+  const lastResult = octoberData[octoberData.length - 1];
+  const baseProjection = Math.round(lastResult + (avgDailyIncrease * 3));
+  
+  // Generate variations
+  for (let i = 0; i < 5; i++) {
+    const variation = baseProjection + (i - 2) * 10000; // ±20k variation
+    predictions.push(variation.toString().padStart(6, '0'));
+  }
+  
+  return predictions;
+};
+
+// October Frequency Method
+export const generateOctoberFrequencyPredictions = (lotteryHistory: LotteryResult[]): string[] => {
+  const predictions: string[] = [];
+  
+  // Filter October 2025 data
+  const octoberData = lotteryHistory.filter(r => r.year === 2025 && r.month === 10);
+  
+  // Position frequency for October
+  const positionCounts: { [pos: number]: { [digit: string]: number } } = {};
+  for (let pos = 0; pos < 6; pos++) {
+    positionCounts[pos] = {};
+    for (let d = 0; d <= 9; d++) positionCounts[pos][d.toString()] = 0;
+  }
+  
+  octoberData.forEach(result => {
+    for (let pos = 0; pos < 6; pos++) {
+      const digit = result.result[pos];
+      if (digit) {
+        positionCounts[pos][digit] = (positionCounts[pos][digit] || 0) + 1;
+      }
+    }
+  });
+  
+  // Generate predictions using top digits per position
+  for (let variant = 0; variant < 5; variant++) {
+    let number = "";
+    for (let pos = 0; pos < 6; pos++) {
+      const posData = Object.entries(positionCounts[pos])
+        .map(([digit, count]) => ({ digit, count }))
+        .sort((a, b) => b.count - a.count);
+      
+      const digitIndex = variant % Math.min(3, posData.length);
+      number += posData[digitIndex]?.digit || '0';
+    }
+    predictions.push(number);
+  }
+  
+  return predictions;
+};
+
+// Volatility Average Method
+export const generateVolatilityAveragePredictions = (lotteryHistory: LotteryResult[]): string[] => {
+  const predictions: string[] = [];
+  
+  // Filter October 2025 data - get recent high values
+  const octoberData = lotteryHistory
+    .filter(r => r.year === 2025 && r.month === 10)
+    .map(r => parseInt(r.result))
+    .sort((a, b) => b - a);
+  
+  if (octoberData.length < 4) return predictions;
+  
+  // Take top 4 high values and calculate average
+  const topValues = octoberData.slice(0, 4);
+  const average = Math.round(topValues.reduce((a, b) => a + b, 0) / topValues.length);
+  
+  // Generate variations around the conservative average
+  for (let i = 0; i < 5; i++) {
+    const variation = average + (i - 2) * 15000; // ±30k variation
+    predictions.push(variation.toString().padStart(6, '0'));
+  }
+  
+  return predictions;
+};
+
+// Date Pattern Method (18th of each month)
+export const generateDatePatternPredictions = (lotteryHistory: LotteryResult[]): string[] => {
+  const predictions: string[] = [];
+  
+  // Get all 18th dates from 2025
+  const date18Results = lotteryHistory
+    .filter(r => {
+      const dayOfMonth = parseInt(r.date.split('.')[0]);
+      return dayOfMonth === 18 && r.year === 2025;
+    })
+    .map(r => parseInt(r.result));
+  
+  if (date18Results.length === 0) return predictions;
+  
+  const average = Math.round(date18Results.reduce((a, b) => a + b, 0) / date18Results.length);
+  
+  // Adjust for October trend (higher values)
+  const octoberAdjustment = 200000; // October tends higher
+  const adjustedAverage = average + octoberAdjustment;
+  
+  // Generate variations
+  for (let i = 0; i < 5; i++) {
+    const variation = adjustedAverage + (i - 2) * 25000;
+    predictions.push(variation.toString().padStart(6, '0'));
+  }
+  
+  return predictions;
+};
+
+// Saturday Pattern Method
+export const generateSaturdayPatternPredictions = (lotteryHistory: LotteryResult[]): string[] => {
+  const predictions: string[] = [];
+  
+  // Get all Saturday results (assuming Oct 18 is Saturday)
+  // Filter for day 18, 11, 4, 25 (potential Saturdays in October)
+  const saturdayResults = lotteryHistory
+    .filter(r => {
+      const dayOfMonth = parseInt(r.date.split('.')[0]);
+      return r.month === 10 && [4, 11, 18, 25].includes(dayOfMonth);
+    })
+    .map(r => parseInt(r.result));
+  
+  if (saturdayResults.length === 0) return predictions;
+  
+  const average = Math.round(saturdayResults.reduce((a, b) => a + b, 0) / saturdayResults.length);
+  
+  // Generate variations
+  for (let i = 0; i < 5; i++) {
+    const variation = average + (i - 2) * 20000;
+    predictions.push(variation.toString().padStart(6, '0'));
+  }
+  
+  return predictions;
+};
+
 // Generate all prediction sets
 export const generateAllPredictions = (lotteryHistory: LotteryResult[]): PredictionSet[] => {
   const analysis = analyzeHistoricalData(lotteryHistory);
   
-  return [
+  const allSets: PredictionSet[] = [
+    {
+      method: "October Trend Projection",
+      description: "Based on average daily increase of ~5,896 from October 1-17, projects forward 3 days",
+      numbers: generateTrendProjectionPredictions(lotteryHistory),
+      confidence: "high"
+    },
+    {
+      method: "October Frequency-Based",
+      description: "Uses most frequent digits per position from October 2025 data only",
+      numbers: generateOctoberFrequencyPredictions(lotteryHistory),
+      confidence: "high"
+    },
+    {
+      method: "Conservative Average (Oct Highs)",
+      description: "Average of recent high values from October (705757, 706935, 649740, 867468)",
+      numbers: generateVolatilityAveragePredictions(lotteryHistory),
+      confidence: "medium"
+    },
+    {
+      method: "Date Pattern (18th)",
+      description: "Based on historical 18th date patterns across all months, adjusted for October trend",
+      numbers: generateDatePatternPredictions(lotteryHistory),
+      confidence: "medium"
+    },
     {
       method: "High-Frequency Based",
       description: "Uses most frequent digits from each position",
@@ -618,4 +792,6 @@ export const generateAllPredictions = (lotteryHistory: LotteryResult[]): Predict
       confidence: "high"
     }
   ];
+  
+  return allSets;
 };

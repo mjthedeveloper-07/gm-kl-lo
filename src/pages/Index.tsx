@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap, LogOut, User } from "lucide-react";
+import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap, LogOut, User, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +17,8 @@ import { NovaChatbot } from "@/components/NovaChatbot";
 import { PositionalFrequencyView } from "@/components/PositionalFrequencyView";
 import { DataImportView } from "@/components/DataImportView";
 import { Import2025Data } from "@/components/Import2025Data";
+
+import { October2025Analysis } from "@/components/October2025Analysis";
 
 type MathFunction = "COS" | "SIN" | "TAN" | "√";
 type DigitExtraction = ".3 NOS" | "L3 NOS" | ".2 NOS";
@@ -439,8 +441,12 @@ const Index = () => {
         </div>
 
         {/* Results & Analysis Tabs */}
-        <Tabs defaultValue="frequency" className="mt-8 animate-fade-in">
-          <TabsList className="grid w-full grid-cols-8 bg-card/50 backdrop-blur-sm border border-border/50">
+        <Tabs defaultValue="october-analysis" className="mt-8 animate-fade-in">
+          <TabsList className="grid w-full grid-cols-9 bg-card/50 backdrop-blur-sm border border-border/50">
+            <TabsTrigger value="october-analysis" className="data-[state=active]:bg-gradient-gold data-[state=active]:text-secondary-foreground transition-all duration-300">
+              <Calendar className="h-4 w-4 mr-2" />
+              Oct 18
+            </TabsTrigger>
             <TabsTrigger value="frequency" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300">
               <TrendingUp className="h-4 w-4 mr-2" />
               Frequency AI
@@ -465,6 +471,11 @@ const Index = () => {
               Data Import
             </TabsTrigger>
           </TabsList>
+
+          {/* October 18 Analysis Tab */}
+          <TabsContent value="october-analysis">
+            <October2025Analysis />
+          </TabsContent>
 
           {/* Frequency Analysis Tab */}
           <TabsContent value="frequency">
