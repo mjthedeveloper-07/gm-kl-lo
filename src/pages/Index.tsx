@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap, LogOut, User, Calendar, Brain, Target, Clock, Star } from "lucide-react";
+import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap, LogOut, User, Calendar, Brain, Target, Clock, Star, Activity } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -24,6 +24,7 @@ import { SeedNumberAnalyzer } from "@/components/SeedNumberAnalyzer";
 import { GapAnalysisView } from "@/components/GapAnalysisView";
 import { DisclaimerBanner } from "@/components/DisclaimerBanner";
 import { FavoritesManager } from "@/components/FavoritesManager";
+import AdvancedAnalysisDashboard from "@/components/AdvancedAnalysisDashboard";
 
 type MathFunction = "COS" | "SIN" | "TAN" | "√";
 type DigitExtraction = ".3 NOS" | "L3 NOS" | ".2 NOS";
@@ -452,7 +453,11 @@ const Index = () => {
 
         {/* Results & Analysis Tabs */}
         <Tabs defaultValue="comprehensive" className="space-y-6 animate-fade-in">
-          <TabsList className="grid w-full grid-cols-11 lg:grid-cols-11 gap-1">
+          <TabsList className="grid w-full grid-cols-12 lg:grid-cols-12 gap-1">
+            <TabsTrigger value="advanced" className="gap-1 text-xs lg:text-sm">
+              <Activity className="w-3 h-3 lg:w-4 lg:h-4" />
+              <span className="hidden sm:inline">Advanced</span>
+            </TabsTrigger>
             <TabsTrigger value="comprehensive" className="gap-1 text-xs lg:text-sm">
               <Brain className="w-3 h-3 lg:w-4 lg:h-4" />
               <span className="hidden sm:inline">Dashboard</span>
@@ -498,6 +503,11 @@ const Index = () => {
               <span className="hidden sm:inline">History</span>
             </TabsTrigger>
           </TabsList>
+
+          {/* Advanced Analysis Dashboard Tab */}
+          <TabsContent value="advanced">
+            <AdvancedAnalysisDashboard />
+          </TabsContent>
 
           {/* Comprehensive AI Dashboard Tab */}
           <TabsContent value="comprehensive">

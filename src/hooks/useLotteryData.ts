@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { fetchAllLotteryResults, type LotteryResult } from '@/utils/databaseQueries';
 import { useToast } from '@/hooks/use-toast';
 
+export type { LotteryResult };
+
 export const useLotteryData = () => {
   const [data, setData] = useState<LotteryResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
