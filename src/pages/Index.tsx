@@ -4,7 +4,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap, LogOut, User, Calendar, Brain, Target, Clock, Star, Activity } from "lucide-react";
+import { 
+  Sparkles, 
+  Calculator, 
+  TrendingUp, 
+  Database, 
+  BarChart3, 
+  Zap, 
+  LogOut, 
+  User, 
+  Calendar, 
+  Brain, 
+  Target, 
+  Clock, 
+  Star,
+  Activity 
+} from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
