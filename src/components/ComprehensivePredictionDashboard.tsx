@@ -18,6 +18,7 @@ import { generateAllPredictions, type PredictionSet } from '@/utils/predictionGe
 import { generateAllAdvancedPredictions, type AdvancedPredictionSet } from '@/utils/advancedPredictions';
 import { validatePredictions } from '@/utils/lotteryAnalysis';
 import { toast } from 'sonner';
+import { ExportResults } from '@/components/ExportResults';
 
 export const ComprehensivePredictionDashboard = () => {
   const { data: lotteryHistory, isLoading } = useLotteryData();
@@ -166,7 +167,7 @@ export const ComprehensivePredictionDashboard = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <CardTitle className="flex items-center gap-2 text-2xl">
                 <Brain className="h-6 w-6 text-primary" />
@@ -176,10 +177,32 @@ export const ComprehensivePredictionDashboard = () => {
                 AI-powered predictions using multiple statistical and mathematical methods
               </CardDescription>
             </div>
-            <Button onClick={generateAllPredictionSets} size="lg" className="gap-2">
-              <Zap className="h-4 w-4" />
-              Generate Predictions
-            </Button>
+            <div className="flex gap-2">
+              {(standardPredictions.length > 0 || advancedPredictions.length > 0) && (
+                <ExportResults
+                  data={[
+                    ...standardPredictions.map(p => ({
+                      Method: p.method,
+                      Number: p.numbers[0] || '',
+                      Confidence: p.confidence,
+                      Description: p.description
+                    })),
+                    ...advancedPredictions.map(p => ({
+                      Method: p.method,
+                      Number: p.predictions[0] || '',
+                      Confidence: p.confidence,
+                      Description: p.description
+                    }))
+                  ]}
+                  filename="lottery_predictions"
+                  title="Kerala Lottery Predictions"
+                />
+              )}
+              <Button onClick={generateAllPredictionSets} size="lg" className="gap-2">
+                <RefreshCw className="h-5 w-5" />
+                Generate Predictions
+              </Button>
+            </div>
           </div>
         </CardHeader>
       </Card>

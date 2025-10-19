@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap, LogOut, User, Calendar, Brain, Target, Clock } from "lucide-react";
+import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap, LogOut, User, Calendar, Brain, Target, Clock, Star } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +22,8 @@ import { October2025Analysis } from "@/components/October2025Analysis";
 import { ComprehensivePredictionDashboard } from "@/components/ComprehensivePredictionDashboard";
 import { SeedNumberAnalyzer } from "@/components/SeedNumberAnalyzer";
 import { GapAnalysisView } from "@/components/GapAnalysisView";
+import { DisclaimerBanner } from "@/components/DisclaimerBanner";
+import { FavoritesManager } from "@/components/FavoritesManager";
 
 type MathFunction = "COS" | "SIN" | "TAN" | "√";
 type DigitExtraction = ".3 NOS" | "L3 NOS" | ".2 NOS";
@@ -358,6 +360,11 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
+        {/* Disclaimer Banner */}
+        <div className="mb-6 animate-fade-in">
+          <DisclaimerBanner />
+        </div>
+
         {/* Header */}
         <div className="text-center mb-12 space-y-4 animate-fade-in">
           <div className="flex justify-end mb-4 gap-2">
@@ -444,51 +451,56 @@ const Index = () => {
         </div>
 
         {/* Results & Analysis Tabs */}
-        <Tabs defaultValue="comprehensive-ai" className="mt-8 animate-fade-in">
-          <TabsList className="grid w-full grid-cols-10 bg-card/50 backdrop-blur-sm border border-border/50">
-            <TabsTrigger value="comprehensive-ai" className="data-[state=active]:bg-gradient-gold data-[state=active]:text-secondary-foreground transition-all duration-300">
-              <Brain className="h-4 w-4 mr-2" />
-              AI Dashboard
+        <Tabs defaultValue="comprehensive" className="space-y-6 animate-fade-in">
+          <TabsList className="grid w-full grid-cols-11 lg:grid-cols-11 gap-1">
+            <TabsTrigger value="comprehensive" className="gap-1 text-xs lg:text-sm">
+              <Brain className="w-3 h-3 lg:w-4 lg:h-4" />
+              <span className="hidden sm:inline">Dashboard</span>
             </TabsTrigger>
-            <TabsTrigger value="seed-analyzer" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300">
-              <Target className="h-4 w-4 mr-2" />
-              Seed Analyzer
+            <TabsTrigger value="seed-analyzer" className="gap-1 text-xs lg:text-sm">
+              <Target className="w-3 h-3 lg:w-4 lg:h-4" />
+              <span className="hidden sm:inline">Seed</span>
             </TabsTrigger>
-            <TabsTrigger value="gap-analysis" className="data-[state=active]:bg-gradient-accent data-[state=active]:text-accent-foreground transition-all duration-300">
-              <Clock className="h-4 w-4 mr-2" />
-              Gap Analysis
+            <TabsTrigger value="gap-analysis" className="gap-1 text-xs lg:text-sm">
+              <Clock className="w-3 h-3 lg:w-4 lg:h-4" />
+              <span className="hidden sm:inline">Gap</span>
             </TabsTrigger>
-            <TabsTrigger value="october-analysis" className="data-[state=active]:bg-gradient-gold data-[state=active]:text-secondary-foreground transition-all duration-300">
-              <Calendar className="h-4 w-4 mr-2" />
-              Oct 18
+            <TabsTrigger value="october-analysis" className="gap-1 text-xs lg:text-sm">
+              <Calendar className="w-3 h-3 lg:w-4 lg:h-4" />
+              <span className="hidden sm:inline">October</span>
             </TabsTrigger>
-            <TabsTrigger value="frequency" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300">
-              <TrendingUp className="h-4 w-4 mr-2" />
-              Frequency AI
+            <TabsTrigger value="frequency" className="gap-1 text-xs lg:text-sm">
+              <BarChart3 className="w-3 h-3 lg:w-4 lg:h-4" />
+              <span className="hidden sm:inline">Frequency</span>
             </TabsTrigger>
-            <TabsTrigger value="ai-predictions" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300">
-              <Zap className="h-4 w-4 mr-2" />
-              AI Predictions
+            <TabsTrigger value="ai-predictions" className="gap-1 text-xs lg:text-sm">
+              <Zap className="w-3 h-3 lg:w-4 lg:h-4" />
+              <span className="hidden sm:inline">AI</span>
             </TabsTrigger>
-            <TabsTrigger value="predictions" className="data-[state=active]:bg-gradient-accent data-[state=active]:text-accent-foreground transition-all duration-300">Formulas</TabsTrigger>
-            <TabsTrigger value="validation" className="data-[state=active]:bg-gradient-secondary data-[state=active]:text-accent-foreground transition-all duration-300">Validation</TabsTrigger>
-            <TabsTrigger value="analysis" className="data-[state=active]:bg-gradient-gold data-[state=active]:text-secondary-foreground transition-all duration-300">
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Analysis
+            <TabsTrigger value="predictions" className="gap-1 text-xs lg:text-sm">
+              <TrendingUp className="w-3 h-3 lg:w-4 lg:h-4" />
+              <span className="hidden sm:inline">Predictions</span>
             </TabsTrigger>
-            <TabsTrigger value="patterns" className="data-[state=active]:bg-gradient-accent data-[state=active]:text-accent-foreground transition-all duration-300">Patterns</TabsTrigger>
-            <TabsTrigger value="history" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300">
-              <Database className="h-4 w-4 mr-2" />
-              History
+            <TabsTrigger value="favorites" className="gap-1 text-xs lg:text-sm">
+              <Star className="w-3 h-3 lg:w-4 lg:h-4" />
+              <span className="hidden sm:inline">Favorites</span>
             </TabsTrigger>
-            <TabsTrigger value="data-import" className="data-[state=active]:bg-gradient-secondary data-[state=active]:text-secondary-foreground transition-all duration-300">
-              <Database className="h-4 w-4 mr-2" />
-              Data Import
+            <TabsTrigger value="validation" className="gap-1 text-xs lg:text-sm">
+              <Calculator className="w-3 h-3 lg:w-4 lg:h-4" />
+              <span className="hidden sm:inline">Validate</span>
+            </TabsTrigger>
+            <TabsTrigger value="patterns" className="gap-1 text-xs lg:text-sm">
+              <TrendingUp className="w-3 h-3 lg:w-4 lg:h-4" />
+              <span className="hidden sm:inline">Patterns</span>
+            </TabsTrigger>
+            <TabsTrigger value="history" className="gap-1 text-xs lg:text-sm">
+              <Database className="w-3 h-3 lg:w-4 lg:h-4" />
+              <span className="hidden sm:inline">History</span>
             </TabsTrigger>
           </TabsList>
 
           {/* Comprehensive AI Dashboard Tab */}
-          <TabsContent value="comprehensive-ai">
+          <TabsContent value="comprehensive">
             <ComprehensivePredictionDashboard />
           </TabsContent>
 
@@ -608,6 +620,22 @@ const Index = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Favorites Tab */}
+          <TabsContent value="favorites" className="animate-fade-in">
+            <FavoritesManager
+              currentNumber={predictions.length > 0 ? predictions[0].result : undefined}
+              currentLabel={predictions.length > 0 ? predictions[0].label : undefined}
+            />
+          </TabsContent>
+
+          {/* Favorites Tab */}
+          <TabsContent value="favorites" className="animate-fade-in">
+            <FavoritesManager
+              currentNumber={predictions.length > 0 ? predictions[0].result : undefined}
+              currentLabel={predictions.length > 0 ? predictions[0].label : undefined}
+            />
           </TabsContent>
 
           {/* Validation Tab */}
