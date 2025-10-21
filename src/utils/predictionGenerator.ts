@@ -1,4 +1,5 @@
 import { lotteryHistory } from "@/data/lotteryHistory";
+import { generateStatisticalConsensusPredictions, generateHybridStatisticalMLPredictions } from "./advancedPredictions";
 
 export interface PositionalFrequency {
   position: number;
@@ -760,9 +761,8 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
 export const generateAllPredictions = (): PredictionSet[] => {
   const analysis = analyzeHistoricalData();
   
-  // Import advanced predictions
-  const { generateStatisticalConsensusPredictions, generateHybridStatisticalMLPredictions } = require("./advancedPredictions");
-  
+  // Advanced predictions imported via ESM at top
+
   // Add new optimized methods first
   const predictions: PredictionSet[] = [
     {

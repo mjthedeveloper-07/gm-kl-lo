@@ -1,4 +1,4 @@
-import { StatisticalAnalysis } from "./predictionGenerator";
+import type { StatisticalAnalysis } from "./predictionGenerator";
 import { chiSquareGoodnessOfFit, linearRegressionAnalysis, temporalTrendAnalysis } from "./statisticalTests";
 import { runMonteCarloSimulation } from "./monteCarloSimulation";
 import { calculateAutocorrelation } from "./timeSeriesAnalysis";
