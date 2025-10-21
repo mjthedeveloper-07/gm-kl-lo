@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -35,20 +36,20 @@ import {
 } from "@/utils/lotteryAnalysis";
 
 export function AdvancedStatisticsView() {
-  // Run statistical tests
-  const chiSquare = chiSquareGoodnessOfFit();
-  const regression = linearRegressionAnalysis();
-  const temporal = temporalTrendAnalysis();
-  const uniformity = uniformityTest();
-  const monteCarlo = runMonteCarloSimulation(5000);
-  const quickMC = quickMonteCarloTest();
-  const autocorr = calculateAutocorrelation();
-  const durbinWatson = durbinWatsonTest();
-  const clustering = kMeansClustering(5);
-  const triplets = analyzeTriplets();
-  const positionCorr = calculatePositionCorrelation();
-  const sumDist = analyzeSumDistribution();
-  const parity = analyzeParityBalance();
+  // Memoize expensive statistical calculations
+  const chiSquare = useMemo(() => chiSquareGoodnessOfFit(), []);
+  const regression = useMemo(() => linearRegressionAnalysis(), []);
+  const temporal = useMemo(() => temporalTrendAnalysis(), []);
+  const uniformity = useMemo(() => uniformityTest(), []);
+  const monteCarlo = useMemo(() => runMonteCarloSimulation(5000), []);
+  const quickMC = useMemo(() => quickMonteCarloTest(), []);
+  const autocorr = useMemo(() => calculateAutocorrelation(), []);
+  const durbinWatson = useMemo(() => durbinWatsonTest(), []);
+  const clustering = useMemo(() => kMeansClustering(5), []);
+  const triplets = useMemo(() => analyzeTriplets(), []);
+  const positionCorr = useMemo(() => calculatePositionCorrelation(), []);
+  const sumDist = useMemo(() => analyzeSumDistribution(), []);
+  const parity = useMemo(() => analyzeParityBalance(), []);
 
   return (
     <div className="space-y-6">
