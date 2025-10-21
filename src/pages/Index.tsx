@@ -415,7 +415,7 @@ const Index = () => {
 
         {/* Results & Analysis Tabs */}
         <Tabs defaultValue="ai-predictions" className="mt-8">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="ai-predictions">
               <Zap className="h-4 w-4 mr-2" />
               AI Predictions
@@ -430,6 +430,10 @@ const Index = () => {
             <TabsTrigger value="history">
               <Database className="h-4 w-4 mr-2" />
               History
+            </TabsTrigger>
+            <TabsTrigger value="advanced">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Advanced
             </TabsTrigger>
           </TabsList>
 
@@ -549,6 +553,11 @@ const Index = () => {
           {/* History Tab */}
           <TabsContent value="history">
             <HistoricalDataTable highlightPattern={drawNumber.replace(/\D/g, "")} />
+          </TabsContent>
+
+          {/* Advanced Statistics Tab */}
+          <TabsContent value="advanced">
+            <AdvancedStatisticsView />
           </TabsContent>
         </Tabs>
       </div>
