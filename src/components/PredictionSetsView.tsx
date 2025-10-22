@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { generateAllPredictions, type PredictionSet } from "@/utils/predictionGenerator";
 import { Sparkles, RefreshCw, Copy, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { ResultUpdateForm } from "./ResultUpdateForm";
+import { lotteryHistory } from "@/data/lotteryHistory";
 
 export const PredictionSetsView = () => {
   const [predictionSets, setPredictionSets] = useState<PredictionSet[]>([]);
@@ -40,8 +42,37 @@ export const PredictionSetsView = () => {
     }
   };
 
+  // Get the latest result for display
+  const latestResult = lotteryHistory[0];
+
   return (
     <div className="space-y-6">
+      {/* Result Update Form */}
+      <ResultUpdateForm onResultAdded={regeneratePredictions} />
+
+      {/* Latest Result Display */}
+      <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/30">
+        <CardHeader>
+          <CardTitle className="text-lg">Latest Result</CardTitle>
+          <CardDescription>
+            Predictions are generated based on this latest result
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">
+                {latestResult.date} ({latestResult.day}) - {latestResult.lottery}
+              </p>
+              <p className="font-mono text-3xl font-bold text-primary">
+                {latestResult.result}
+              </p>
+            </div>
+            <Badge variant="secondary">Draw {latestResult.draw}</Badge>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Header */}
       <Card>
         <CardHeader>

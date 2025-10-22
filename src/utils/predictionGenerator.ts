@@ -36,9 +36,15 @@ export interface StatisticalAnalysis {
   temporalPatterns: TemporalPattern[];
 }
 
-// Perform comprehensive statistical analysis
+// Get the latest result for trigger-based predictions
+export const getLatestResult = () => {
+  return lotteryHistory[0];
+};
+
+// Perform comprehensive statistical analysis with emphasis on latest result
 export const analyzeHistoricalData = (): StatisticalAnalysis => {
   const allNumbers = lotteryHistory.map(r => r.result);
+  const latestResult = getLatestResult();
   
   // Overall digit frequency
   const digitCounts: { [key: string]: number } = {};
@@ -145,17 +151,25 @@ export const analyzeHistoricalData = (): StatisticalAnalysis => {
   };
 };
 
-// Method 1: Frequency-Based Predictions
+// Method 1: Frequency-Based Predictions (with latest result influence)
 export const generateFrequencyBasedPredictions = (analysis: StatisticalAnalysis): string[] => {
   const predictions: string[] = [];
+  const latestResult = getLatestResult();
+  const latestDigits = latestResult.result.split("");
   
-  // Use top 3 from each position
+  // Use top 3 from each position, influenced by latest result
   for (let variant = 0; variant < 5; variant++) {
     let number = "";
     for (let pos = 0; pos < 6; pos++) {
       const posData = analysis.positionalAnalysis[pos];
-      const digitIndex = variant % 3;
-      number += posData[digitIndex].digit;
+      
+      // 30% chance to use digit from same position in latest result
+      if (variant > 0 && Math.random() < 0.3) {
+        number += latestDigits[pos];
+      } else {
+        const digitIndex = variant % 3;
+        number += posData[digitIndex].digit;
+      }
     }
     predictions.push(number);
   }
