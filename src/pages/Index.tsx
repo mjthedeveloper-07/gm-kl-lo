@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap } from "lucide-react";
+import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { HistoricalDataTable } from "@/components/HistoricalDataTable";
 import { PatternAnalysis } from "@/components/PatternAnalysis";
@@ -12,6 +12,13 @@ import { PredictionValidator } from "@/components/PredictionValidator";
 import { StatisticalAnalysisView } from "@/components/StatisticalAnalysisView";
 import { PredictionSetsView } from "@/components/PredictionSetsView";
 import { NovaChatbot } from "@/components/NovaChatbot";
+
+// Lazy load the expensive AdvancedStatisticsView component
+const AdvancedStatisticsView = lazy(() => 
+  import("@/components/AdvancedStatisticsView").then(module => ({ 
+    default: module.AdvancedStatisticsView 
+  }))
+);
 
 type MathFunction = "COS" | "SIN" | "TAN" | "√";
 type DigitExtraction = ".3 NOS" | "L3 NOS" | ".2 NOS";
@@ -414,7 +421,7 @@ const Index = () => {
 
         {/* Results & Analysis Tabs */}
         <Tabs defaultValue="ai-predictions" className="mt-8">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="ai-predictions">
               <Zap className="h-4 w-4 mr-2" />
               AI Predictions
@@ -429,6 +436,10 @@ const Index = () => {
             <TabsTrigger value="history">
               <Database className="h-4 w-4 mr-2" />
               History
+            </TabsTrigger>
+            <TabsTrigger value="advanced">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Advanced
             </TabsTrigger>
           </TabsList>
 
@@ -548,6 +559,31 @@ const Index = () => {
           {/* History Tab */}
           <TabsContent value="history">
             <HistoricalDataTable highlightPattern={drawNumber.replace(/\D/g, "")} />
+          </TabsContent>
+
+          {/* Advanced Statistics Tab */}
+          <TabsContent value="advanced">
+            <Suspense fallback={
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                    Loading Advanced Statistics...
+                  </CardTitle>
+                  <CardDescription>
+                    Computing Chi-Square, Monte Carlo, Time Series, and ML clustering analysis...
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex items-center justify-center py-12">
+                  <div className="text-center space-y-3">
+                    <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto" />
+                    <p className="text-sm text-muted-foreground">Running statistical tests...</p>
+                  </div>
+                </CardContent>
+              </Card>
+            }>
+              <AdvancedStatisticsView />
+            </Suspense>
           </TabsContent>
         </Tabs>
       </div>
