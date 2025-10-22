@@ -4,26 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap, LogOut, User, Calendar, Brain, Target, Clock, Star } from "lucide-react";
+import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
 import { HistoricalDataTable } from "@/components/HistoricalDataTable";
 import { PatternAnalysis } from "@/components/PatternAnalysis";
 import { PredictionValidator } from "@/components/PredictionValidator";
 import { StatisticalAnalysisView } from "@/components/StatisticalAnalysisView";
 import { PredictionSetsView } from "@/components/PredictionSetsView";
 import { NovaChatbot } from "@/components/NovaChatbot";
-import { PositionalFrequencyView } from "@/components/PositionalFrequencyView";
-import { DataImportView } from "@/components/DataImportView";
-import { Import2025Data } from "@/components/Import2025Data";
-
-import { October2025Analysis } from "@/components/October2025Analysis";
-import { ComprehensivePredictionDashboard } from "@/components/ComprehensivePredictionDashboard";
-import { SeedNumberAnalyzer } from "@/components/SeedNumberAnalyzer";
-import { GapAnalysisView } from "@/components/GapAnalysisView";
-import { DisclaimerBanner } from "@/components/DisclaimerBanner";
-import { FavoritesManager } from "@/components/FavoritesManager";
 
 type MathFunction = "COS" | "SIN" | "TAN" | "√";
 type DigitExtraction = ".3 NOS" | "L3 NOS" | ".2 NOS";
@@ -168,8 +156,6 @@ const ARITHMETIC_FORMULAS: ArithmeticFormula[] = [
 ];
 
 const Index = () => {
-  const { user, signOut, isAdmin } = useAuth();
-  const navigate = useNavigate();
   const [drawNumber, setDrawNumber] = useState("");
   
   // Validate that draw number is 3 digits
@@ -358,38 +344,14 @@ const Index = () => {
   const predictionResults = predictions.map(p => p.result);
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
+    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/10">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Disclaimer Banner */}
-        <div className="mb-6 animate-fade-in">
-          <DisclaimerBanner />
-        </div>
-
         {/* Header */}
-        <div className="text-center mb-12 space-y-4 animate-fade-in">
-          <div className="flex justify-end mb-4 gap-2">
-            {user ? (
-              <>
-                <Button variant="outline" className="gap-2">
-                  <User className="w-4 h-4" />
-                  {user.email}
-                </Button>
-                <Button variant="outline" onClick={signOut} className="gap-2">
-                  <LogOut className="w-4 h-4" />
-                  Sign Out
-                </Button>
-              </>
-            ) : (
-              <Button onClick={() => navigate('/auth')} className="gap-2">
-                <User className="w-4 h-4" />
-                Sign In
-              </Button>
-            )}
-          </div>
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-primary shadow-glow mb-4 animate-scale-in">
+        <div className="text-center mb-12 space-y-4">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary-glow shadow-glow mb-4">
             <Sparkles className="w-10 h-10 text-primary-foreground" />
           </div>
-          <h1 className="text-5xl font-bold bg-gradient-accent bg-clip-text text-transparent">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-primary via-primary-glow to-accent bg-clip-text text-transparent">
             Lottery Number Predictor
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -399,7 +361,7 @@ const Index = () => {
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Input Section */}
-          <Card className="shadow-elevated border-2 border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-glow animate-fade-in">
+          <Card className="shadow-card border-2 border-primary/20">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-2xl">
                 <Calculator className="w-6 h-6 text-primary" />
@@ -441,7 +403,7 @@ const Index = () => {
 
               <Button
                 onClick={runAllFormulas}
-                className="w-full h-14 text-lg font-semibold bg-gradient-accent hover:scale-105 transition-all duration-300 shadow-glow hover:shadow-elevated"
+                className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-primary via-primary-glow to-accent hover:opacity-90 transition-opacity shadow-glow"
               >
                 <Sparkles className="w-5 h-5 mr-2" />
                 Run All {TRIG_FORMULAS.length + ARITHMETIC_FORMULAS.length} Formulas
@@ -451,78 +413,24 @@ const Index = () => {
         </div>
 
         {/* Results & Analysis Tabs */}
-        <Tabs defaultValue="comprehensive" className="space-y-6 animate-fade-in">
-          <TabsList className="grid w-full grid-cols-11 lg:grid-cols-11 gap-1">
-            <TabsTrigger value="comprehensive" className="gap-1 text-xs lg:text-sm">
-              <Brain className="w-3 h-3 lg:w-4 lg:h-4" />
-              <span className="hidden sm:inline">Dashboard</span>
+        <Tabs defaultValue="ai-predictions" className="mt-8">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="ai-predictions">
+              <Zap className="h-4 w-4 mr-2" />
+              AI Predictions
             </TabsTrigger>
-            <TabsTrigger value="seed-analyzer" className="gap-1 text-xs lg:text-sm">
-              <Target className="w-3 h-3 lg:w-4 lg:h-4" />
-              <span className="hidden sm:inline">Seed</span>
+            <TabsTrigger value="predictions">Formulas</TabsTrigger>
+            <TabsTrigger value="validation">Validation</TabsTrigger>
+            <TabsTrigger value="analysis">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Analysis
             </TabsTrigger>
-            <TabsTrigger value="gap-analysis" className="gap-1 text-xs lg:text-sm">
-              <Clock className="w-3 h-3 lg:w-4 lg:h-4" />
-              <span className="hidden sm:inline">Gap</span>
-            </TabsTrigger>
-            <TabsTrigger value="october-analysis" className="gap-1 text-xs lg:text-sm">
-              <Calendar className="w-3 h-3 lg:w-4 lg:h-4" />
-              <span className="hidden sm:inline">October</span>
-            </TabsTrigger>
-            <TabsTrigger value="frequency" className="gap-1 text-xs lg:text-sm">
-              <BarChart3 className="w-3 h-3 lg:w-4 lg:h-4" />
-              <span className="hidden sm:inline">Frequency</span>
-            </TabsTrigger>
-            <TabsTrigger value="ai-predictions" className="gap-1 text-xs lg:text-sm">
-              <Zap className="w-3 h-3 lg:w-4 lg:h-4" />
-              <span className="hidden sm:inline">AI</span>
-            </TabsTrigger>
-            <TabsTrigger value="predictions" className="gap-1 text-xs lg:text-sm">
-              <TrendingUp className="w-3 h-3 lg:w-4 lg:h-4" />
-              <span className="hidden sm:inline">Predictions</span>
-            </TabsTrigger>
-            <TabsTrigger value="favorites" className="gap-1 text-xs lg:text-sm">
-              <Star className="w-3 h-3 lg:w-4 lg:h-4" />
-              <span className="hidden sm:inline">Favorites</span>
-            </TabsTrigger>
-            <TabsTrigger value="validation" className="gap-1 text-xs lg:text-sm">
-              <Calculator className="w-3 h-3 lg:w-4 lg:h-4" />
-              <span className="hidden sm:inline">Validate</span>
-            </TabsTrigger>
-            <TabsTrigger value="patterns" className="gap-1 text-xs lg:text-sm">
-              <TrendingUp className="w-3 h-3 lg:w-4 lg:h-4" />
-              <span className="hidden sm:inline">Patterns</span>
-            </TabsTrigger>
-            <TabsTrigger value="history" className="gap-1 text-xs lg:text-sm">
-              <Database className="w-3 h-3 lg:w-4 lg:h-4" />
-              <span className="hidden sm:inline">History</span>
+            <TabsTrigger value="patterns">Patterns</TabsTrigger>
+            <TabsTrigger value="history">
+              <Database className="h-4 w-4 mr-2" />
+              History
             </TabsTrigger>
           </TabsList>
-
-          {/* Comprehensive AI Dashboard Tab */}
-          <TabsContent value="comprehensive">
-            <ComprehensivePredictionDashboard />
-          </TabsContent>
-
-          {/* Seed Number Analyzer Tab */}
-          <TabsContent value="seed-analyzer">
-            <SeedNumberAnalyzer />
-          </TabsContent>
-
-          {/* Gap Analysis Tab */}
-          <TabsContent value="gap-analysis">
-            <GapAnalysisView />
-          </TabsContent>
-
-          {/* October 18 Analysis Tab */}
-          <TabsContent value="october-analysis">
-            <October2025Analysis />
-          </TabsContent>
-
-          {/* Frequency Analysis Tab */}
-          <TabsContent value="frequency">
-            <PositionalFrequencyView />
-          </TabsContent>
 
           {/* AI Predictions Tab */}
           <TabsContent value="ai-predictions">
@@ -530,8 +438,8 @@ const Index = () => {
           </TabsContent>
 
           {/* Predictions Tab */}
-          <TabsContent value="predictions" className="animate-fade-in">
-            <Card className="shadow-elevated border-2 border-accent/20 hover:border-accent/40 transition-all duration-300">
+          <TabsContent value="predictions">
+            <Card className="shadow-card border-2 border-accent/20">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-2xl">
                   <TrendingUp className="w-6 h-6 text-accent" />
@@ -551,18 +459,18 @@ const Index = () => {
                     {predictions.map((pred, idx) => (
                       <div
                         key={idx}
-                        className={`bg-gradient-to-br from-card to-card/50 p-3 rounded-lg border transition-all duration-300 hover:scale-[1.02] hover:shadow-glow ${
+                        className={`bg-gradient-to-br from-card to-card/50 p-3 rounded-lg border transition-all ${
                           pred.combinedResult 
-                            ? 'border-accent border-2 hover:border-accent' 
+                            ? 'border-accent border-2 hover:border-accent shadow-md' 
                             : 'border-border hover:border-primary/50'
                         }`}
                       >
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <span className={`text-xs font-bold px-2 py-1 rounded whitespace-nowrap transition-all duration-300 ${
+                            <span className={`text-xs font-bold px-2 py-1 rounded whitespace-nowrap ${
                               pred.formulaType === "trig" 
-                                ? "bg-primary/10 text-primary hover:bg-primary/20" 
-                                : "bg-accent/10 text-accent hover:bg-accent/20"
+                                ? "bg-purple-500/10 text-purple-600 dark:text-purple-400" 
+                                : "bg-blue-500/10 text-blue-600 dark:text-blue-400"
                             }`}>
                               {pred.label}
                             </span>
@@ -595,7 +503,7 @@ const Index = () => {
               </CardContent>
             </Card>
             {/* How It Works Section */}
-            <Card className="mt-8 bg-gradient-subtle border-primary/20 shadow-elevated hover:border-primary/40 transition-all duration-300 animate-fade-in">
+            <Card className="mt-8 bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
               <CardHeader>
                 <CardTitle>How It Works</CardTitle>
               </CardHeader>
@@ -622,48 +530,24 @@ const Index = () => {
             </Card>
           </TabsContent>
 
-          {/* Favorites Tab */}
-          <TabsContent value="favorites" className="animate-fade-in">
-            <FavoritesManager
-              currentNumber={predictions.length > 0 ? predictions[0].result : undefined}
-              currentLabel={predictions.length > 0 ? predictions[0].label : undefined}
-            />
-          </TabsContent>
-
-          {/* Favorites Tab */}
-          <TabsContent value="favorites" className="animate-fade-in">
-            <FavoritesManager
-              currentNumber={predictions.length > 0 ? predictions[0].result : undefined}
-              currentLabel={predictions.length > 0 ? predictions[0].label : undefined}
-            />
-          </TabsContent>
-
           {/* Validation Tab */}
-          <TabsContent value="validation" className="animate-fade-in">
+          <TabsContent value="validation">
             <PredictionValidator predictions={predictionResults} />
           </TabsContent>
 
           {/* Statistical Analysis Tab */}
-          <TabsContent value="analysis" className="animate-fade-in">
+          <TabsContent value="analysis">
             <StatisticalAnalysisView />
           </TabsContent>
 
           {/* Patterns Tab */}
-          <TabsContent value="patterns" className="animate-fade-in">
+          <TabsContent value="patterns">
             <PatternAnalysis pattern={drawNumber.replace(/\D/g, "")} />
           </TabsContent>
 
           {/* History Tab */}
-          <TabsContent value="history" className="animate-fade-in">
+          <TabsContent value="history">
             <HistoricalDataTable highlightPattern={drawNumber.replace(/\D/g, "")} />
-          </TabsContent>
-
-          {/* Data Import Tab */}
-          <TabsContent value="data-import" className="animate-fade-in">
-            <div className="space-y-6">
-              <Import2025Data />
-              <DataImportView />
-            </div>
           </TabsContent>
         </Tabs>
       </div>
