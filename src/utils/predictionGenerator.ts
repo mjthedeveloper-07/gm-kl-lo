@@ -1,5 +1,4 @@
 import { lotteryHistory } from "@/data/lotteryHistory";
-import { generateStatisticalConsensusPredictions, generateHybridStatisticalMLPredictions } from "./advancedPredictions";
 
 export interface PositionalFrequency {
   position: number;
@@ -761,22 +760,8 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
 export const generateAllPredictions = (): PredictionSet[] => {
   const analysis = analyzeHistoricalData();
   
-  // Advanced predictions imported via ESM at top
-
   // Add new optimized methods first
   const predictions: PredictionSet[] = [
-    {
-      method: "Statistical Consensus",
-      description: "Combines Chi-Square, Monte Carlo, Regression & Temporal analysis with ensemble voting",
-      numbers: generateStatisticalConsensusPredictions(analysis),
-      confidence: "high"
-    },
-    {
-      method: "Hybrid Statistical-ML",
-      description: "Integrates all 7 statistical methods with K-Means clustering for optimal predictions",
-      numbers: generateHybridStatisticalMLPredictions(analysis),
-      confidence: "high"
-    },
     {
       method: "Ultra High-Frequency (Optimized)",
       description: "Advanced frequency analysis with recency weighting and positional optimization",
