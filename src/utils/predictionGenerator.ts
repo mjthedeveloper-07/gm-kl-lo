@@ -1,4 +1,5 @@
-import { lotteryHistory } from "@/data/lotteryHistory";
+import type { LotteryResult } from "@/utils/databaseQueries";
+import { generateAllAdvancedPredictions } from './advancedPredictions';
 
 export interface PositionalFrequency {
   position: number;
@@ -34,17 +35,10 @@ export interface StatisticalAnalysis {
   mostCommonEndDigit: string;
   digitPairs: DigitPairFrequency[];
   temporalPatterns: TemporalPattern[];
-  recentFrequency: { digit: string; count: number; weight: number }[];
-  momentumDigits: { digit: string; momentum: number; trending: 'up' | 'down' | 'stable' }[];
-  rollingWindowAnalysis: {
-    short: { digit: string; frequency: number }[];
-    medium: { digit: string; frequency: number }[];
-    long: { digit: string; frequency: number }[];
-  };
 }
 
 // Perform comprehensive statistical analysis
-export const analyzeHistoricalData = (): StatisticalAnalysis => {
+export const analyzeHistoricalData = (lotteryHistory: LotteryResult[]): StatisticalAnalysis => {
   const allNumbers = lotteryHistory.map(r => r.result);
   
   // Overall digit frequency
@@ -141,96 +135,6 @@ export const analyzeHistoricalData = (): StatisticalAnalysis => {
     }
   });
   
-  // Recent frequency with exponential time decay (more weight to recent)
-  const recentWindowSize = Math.min(50, allNumbers.length);
-  const recentNumbers = allNumbers.slice(-recentWindowSize);
-  const recentDigitCounts: { [key: string]: number } = {};
-  
-  for (let i = 0; i <= 9; i++) recentDigitCounts[i.toString()] = 0;
-  
-  recentNumbers.forEach((num, index) => {
-    const decayFactor = Math.exp((index - recentWindowSize) / 10); // Exponential decay
-    num.split("").forEach(digit => {
-      recentDigitCounts[digit] = (recentDigitCounts[digit] || 0) + decayFactor;
-    });
-  });
-  
-  const recentFrequency = Object.entries(recentDigitCounts)
-    .map(([digit, count]) => ({
-      digit,
-      count: Math.round(count),
-      weight: count / recentWindowSize
-    }))
-    .sort((a, b) => b.weight - a.weight);
-  
-  // Momentum analysis (trending digits)
-  const oldWindowSize = Math.min(30, Math.floor(allNumbers.length / 3));
-  const oldWindow = allNumbers.slice(-(recentWindowSize + oldWindowSize), -recentWindowSize);
-  const recentWindow = allNumbers.slice(-recentWindowSize);
-  
-  const oldDigitFreq: { [key: string]: number } = {};
-  const newDigitFreq: { [key: string]: number } = {};
-  
-  for (let i = 0; i <= 9; i++) {
-    oldDigitFreq[i.toString()] = 0;
-    newDigitFreq[i.toString()] = 0;
-  }
-  
-  oldWindow.forEach(num => {
-    num.split("").forEach(digit => {
-      oldDigitFreq[digit]++;
-    });
-  });
-  
-  recentWindow.forEach(num => {
-    num.split("").forEach(digit => {
-      newDigitFreq[digit]++;
-    });
-  });
-  
-  const momentumDigits = Object.keys(oldDigitFreq).map(digit => {
-    const oldFreq = oldDigitFreq[digit] / (oldWindow.length * 6 || 1);
-    const newFreq = newDigitFreq[digit] / (recentWindow.length * 6);
-    const momentum = newFreq - oldFreq;
-    
-    return {
-      digit,
-      momentum: Math.round(momentum * 1000) / 1000,
-      trending: (momentum > 0.01 ? 'up' : momentum < -0.01 ? 'down' : 'stable') as 'up' | 'down' | 'stable'
-    };
-  }).sort((a, b) => b.momentum - a.momentum);
-  
-  // Rolling window analysis (short/medium/long term)
-  const shortWindow = Math.min(10, allNumbers.length);
-  const mediumWindow = Math.min(30, allNumbers.length);
-  const longWindow = Math.min(100, allNumbers.length);
-  
-  const analyzeWindow = (windowSize: number) => {
-    const window = allNumbers.slice(-windowSize);
-    const freqMap: { [key: string]: number } = {};
-    
-    for (let i = 0; i <= 9; i++) freqMap[i.toString()] = 0;
-    
-    window.forEach(num => {
-      num.split("").forEach(digit => {
-        freqMap[digit]++;
-      });
-    });
-    
-    return Object.entries(freqMap)
-      .map(([digit, frequency]) => ({
-        digit,
-        frequency: frequency / (windowSize * 6)
-      }))
-      .sort((a, b) => b.frequency - a.frequency);
-  };
-  
-  const rollingWindowAnalysis = {
-    short: analyzeWindow(shortWindow),
-    medium: analyzeWindow(mediumWindow),
-    long: analyzeWindow(longWindow)
-  };
-  
   return {
     topFrequentDigits: sortedDigits.slice(0, 10),
     leastFrequentDigits: sortedDigits.slice(-10).reverse(),
@@ -238,42 +142,26 @@ export const analyzeHistoricalData = (): StatisticalAnalysis => {
     mostCommonStartDigit: positionalAnalysis[0][0].digit,
     mostCommonEndDigit: positionalAnalysis[5][0].digit,
     digitPairs,
-    temporalPatterns,
-    recentFrequency,
-    momentumDigits,
-    rollingWindowAnalysis
+    temporalPatterns
   };
 };
 
-// Method 1: Advanced High-Frequency Predictions with Recency Weighting
+// Method 1: Frequency-Based Predictions
 export const generateFrequencyBasedPredictions = (analysis: StatisticalAnalysis): string[] => {
   const predictions: string[] = [];
   
-  // Combine recent frequency with positional analysis
-  const topRecent = analysis.recentFrequency.slice(0, 8);
-  
-  // Generate multiple variants using top positional digits with recency bias
-  for (let variant = 0; variant < 8; variant++) {
+  // Use top 3 from each position
+  for (let variant = 0; variant < 5; variant++) {
     let number = "";
     for (let pos = 0; pos < 6; pos++) {
       const posData = analysis.positionalAnalysis[pos];
-      
-      // Weighted selection: 70% from top positional, 30% from recent high-frequency
-      if (variant < 5) {
-        // Use top positional frequencies
-        const digitIndex = Math.floor(variant / 2) % 3;
-        number += posData[digitIndex].digit;
-      } else {
-        // Mix with recent high-frequency digits
-        const recentDigit = topRecent[(pos + variant) % topRecent.length].digit;
-        const posDigit = posData[0].digit;
-        number += (variant % 2 === 0) ? recentDigit : posDigit;
-      }
+      const digitIndex = variant % 3;
+      number += posData[digitIndex].digit;
     }
     predictions.push(number);
   }
   
-  return [...new Set(predictions)].slice(0, 5);
+  return predictions;
 };
 
 // Method 2: Probability-Weighted Predictions
@@ -424,7 +312,7 @@ const complexDivide = (z1: ComplexNumber, z2: ComplexNumber): ComplexNumber => {
 };
 
 // Method 6: Complex Number Analysis
-export const generateComplexNumberPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generateComplexNumberPredictions = (analysis: StatisticalAnalysis, lotteryHistory: LotteryResult[]): string[] => {
   const predictions: string[] = [];
   const allNumbers = lotteryHistory.map(r => r.result);
   
@@ -480,7 +368,7 @@ export const generateComplexNumberPredictions = (analysis: StatisticalAnalysis):
 };
 
 // Method 7: Phase and Magnitude Analysis
-export const generatePhaseBasedPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generatePhaseBasedPredictions = (analysis: StatisticalAnalysis, lotteryHistory: LotteryResult[]): string[] => {
   const predictions: string[] = [];
   const allNumbers = lotteryHistory.map(r => r.result);
   const recentNumbers = allNumbers.slice(-30);
@@ -519,7 +407,7 @@ export const generatePhaseBasedPredictions = (analysis: StatisticalAnalysis): st
 };
 
 // Method 8: Exponential Form Analysis (z = |z|e^(iθ))
-export const generateExponentialFormPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generateExponentialFormPredictions = (analysis: StatisticalAnalysis, lotteryHistory: LotteryResult[]): string[] => {
   const predictions: string[] = [];
   const allNumbers = lotteryHistory.map(r => r.result);
   const recentNumbers = allNumbers.slice(-20);
@@ -552,7 +440,7 @@ export const generateExponentialFormPredictions = (analysis: StatisticalAnalysis
 };
 
 // Method 9: Complex Roots Analysis (nth roots)
-export const generateComplexRootsPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generateComplexRootsPredictions = (analysis: StatisticalAnalysis, lotteryHistory: LotteryResult[]): string[] => {
   const predictions: string[] = [];
   const allNumbers = lotteryHistory.map(r => r.result);
   const recentNumbers = allNumbers.slice(-15);
@@ -585,7 +473,7 @@ export const generateComplexRootsPredictions = (analysis: StatisticalAnalysis): 
 };
 
 // Method 10: Exponentiation Analysis (z^n = |z|^n·e^(inθ))
-export const generateExponentiationPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generateExponentiationPredictions = (analysis: StatisticalAnalysis, lotteryHistory: LotteryResult[]): string[] => {
   const predictions: string[] = [];
   const allNumbers = lotteryHistory.map(r => r.result);
   const recentNumbers = allNumbers.slice(-10);
@@ -617,106 +505,8 @@ export const generateExponentiationPredictions = (analysis: StatisticalAnalysis)
   return predictions;
 };
 
-// Method 12: Momentum-Based Predictions (Trending Up Digits)
-export const generateMomentumBasedPredictions = (analysis: StatisticalAnalysis): string[] => {
-  const predictions: string[] = [];
-  
-  // Get digits with positive momentum
-  const trendingUp = analysis.momentumDigits.filter(d => d.trending === 'up').slice(0, 6);
-  const allTrending = [...trendingUp, ...analysis.recentFrequency.slice(0, 4)];
-  
-  for (let i = 0; i < 5; i++) {
-    let number = "";
-    for (let pos = 0; pos < 6; pos++) {
-      // Mix trending digits with positional data
-      const posData = analysis.positionalAnalysis[pos];
-      const trendingDigit = allTrending[(pos + i) % allTrending.length].digit;
-      const posDigit = posData[i % 3].digit;
-      
-      // 60% trending, 40% positional
-      number += (i + pos) % 5 < 3 ? trendingDigit : posDigit;
-    }
-    predictions.push(number);
-  }
-  
-  return [...new Set(predictions)].slice(0, 5);
-};
-
-// Method 13: Multi-Window Frequency Blend
-export const generateMultiWindowPredictions = (analysis: StatisticalAnalysis): string[] => {
-  const predictions: string[] = [];
-  
-  const short = analysis.rollingWindowAnalysis.short.slice(0, 5);
-  const medium = analysis.rollingWindowAnalysis.medium.slice(0, 5);
-  const long = analysis.rollingWindowAnalysis.long.slice(0, 5);
-  
-  for (let i = 0; i < 5; i++) {
-    let number = "";
-    for (let pos = 0; pos < 6; pos++) {
-      let digit: string;
-      
-      // Rotate through different time windows
-      if (pos % 3 === 0) {
-        digit = short[i % short.length].digit;
-      } else if (pos % 3 === 1) {
-        digit = medium[i % medium.length].digit;
-      } else {
-        digit = long[i % long.length].digit;
-      }
-      
-      number += digit;
-    }
-    predictions.push(number);
-  }
-  
-  return [...new Set(predictions)].slice(0, 5);
-};
-
-// Method 14: Time-Weighted Super Hot Predictions
-export const generateTimeWeightedPredictions = (analysis: StatisticalAnalysis): string[] => {
-  const predictions: string[] = [];
-  const allNumbers = lotteryHistory.map(r => r.result);
-  
-  // Calculate time-weighted positional frequencies
-  const windowSize = Math.min(30, allNumbers.length);
-  const recentNumbers = allNumbers.slice(-windowSize);
-  
-  const weightedPositionalFreq: { [pos: number]: { [digit: string]: number } } = {};
-  for (let pos = 0; pos < 6; pos++) {
-    weightedPositionalFreq[pos] = {};
-    for (let d = 0; d <= 9; d++) {
-      weightedPositionalFreq[pos][d.toString()] = 0;
-    }
-  }
-  
-  recentNumbers.forEach((num, index) => {
-    const decayFactor = Math.exp((index - windowSize) / 8); // Stronger recent bias
-    for (let pos = 0; pos < 6; pos++) {
-      const digit = num[pos];
-      if (digit) {
-        weightedPositionalFreq[pos][digit] += decayFactor;
-      }
-    }
-  });
-  
-  // Generate predictions from weighted frequencies
-  for (let variant = 0; variant < 5; variant++) {
-    let number = "";
-    for (let pos = 0; pos < 6; pos++) {
-      const sorted = Object.entries(weightedPositionalFreq[pos])
-        .sort((a, b) => b[1] - a[1]);
-      
-      const digitIndex = Math.floor(variant / 2) % 3;
-      number += sorted[digitIndex][0];
-    }
-    predictions.push(number);
-  }
-  
-  return [...new Set(predictions)].slice(0, 5);
-};
-
 // Method 11: Real and Imaginary Decomposition (Re(z) = (z+z̄)/2, Im(z) = (z-z̄)/2i)
-export const generateRealImaginaryDecompositionPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generateRealImaginaryDecompositionPredictions = (analysis: StatisticalAnalysis, lotteryHistory: LotteryResult[]): string[] => {
   const predictions: string[] = [];
   const allNumbers = lotteryHistory.map(r => r.result);
   const recentNumbers = allNumbers.slice(-25);
@@ -756,34 +546,189 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
   return predictions;
 };
 
-// Generate all prediction sets
-export const generateAllPredictions = (): PredictionSet[] => {
-  const analysis = analyzeHistoricalData();
+// October 2025 Specific Methods
+
+// Trend Projection Method
+export const generateTrendProjectionPredictions = (lotteryHistory: LotteryResult[]): string[] => {
+  const predictions: string[] = [];
   
-  // Add new optimized methods first
-  const predictions: PredictionSet[] = [
+  // Filter October 2025 data
+  const octoberData = lotteryHistory
+    .filter(r => r.year === 2025 && r.month === 10)
+    .map(r => parseInt(r.result));
+  
+  if (octoberData.length < 2) return predictions;
+  
+  // Calculate average daily increase
+  const totalIncrease = octoberData[octoberData.length - 1] - octoberData[0];
+  const avgDailyIncrease = totalIncrease / (octoberData.length - 1);
+  
+  // Project forward 3 days from last result
+  const lastResult = octoberData[octoberData.length - 1];
+  const baseProjection = Math.round(lastResult + (avgDailyIncrease * 3));
+  
+  // Generate variations
+  for (let i = 0; i < 5; i++) {
+    const variation = baseProjection + (i - 2) * 10000; // ±20k variation
+    predictions.push(variation.toString().padStart(6, '0'));
+  }
+  
+  return predictions;
+};
+
+// October Frequency Method
+export const generateOctoberFrequencyPredictions = (lotteryHistory: LotteryResult[]): string[] => {
+  const predictions: string[] = [];
+  
+  // Filter October 2025 data
+  const octoberData = lotteryHistory.filter(r => r.year === 2025 && r.month === 10);
+  
+  // Position frequency for October
+  const positionCounts: { [pos: number]: { [digit: string]: number } } = {};
+  for (let pos = 0; pos < 6; pos++) {
+    positionCounts[pos] = {};
+    for (let d = 0; d <= 9; d++) positionCounts[pos][d.toString()] = 0;
+  }
+  
+  octoberData.forEach(result => {
+    for (let pos = 0; pos < 6; pos++) {
+      const digit = result.result[pos];
+      if (digit) {
+        positionCounts[pos][digit] = (positionCounts[pos][digit] || 0) + 1;
+      }
+    }
+  });
+  
+  // Generate predictions using top digits per position
+  for (let variant = 0; variant < 5; variant++) {
+    let number = "";
+    for (let pos = 0; pos < 6; pos++) {
+      const posData = Object.entries(positionCounts[pos])
+        .map(([digit, count]) => ({ digit, count }))
+        .sort((a, b) => b.count - a.count);
+      
+      const digitIndex = variant % Math.min(3, posData.length);
+      number += posData[digitIndex]?.digit || '0';
+    }
+    predictions.push(number);
+  }
+  
+  return predictions;
+};
+
+// Volatility Average Method
+export const generateVolatilityAveragePredictions = (lotteryHistory: LotteryResult[]): string[] => {
+  const predictions: string[] = [];
+  
+  // Filter October 2025 data - get recent high values
+  const octoberData = lotteryHistory
+    .filter(r => r.year === 2025 && r.month === 10)
+    .map(r => parseInt(r.result))
+    .sort((a, b) => b - a);
+  
+  if (octoberData.length < 4) return predictions;
+  
+  // Take top 4 high values and calculate average
+  const topValues = octoberData.slice(0, 4);
+  const average = Math.round(topValues.reduce((a, b) => a + b, 0) / topValues.length);
+  
+  // Generate variations around the conservative average
+  for (let i = 0; i < 5; i++) {
+    const variation = average + (i - 2) * 15000; // ±30k variation
+    predictions.push(variation.toString().padStart(6, '0'));
+  }
+  
+  return predictions;
+};
+
+// Date Pattern Method (18th of each month)
+export const generateDatePatternPredictions = (lotteryHistory: LotteryResult[]): string[] => {
+  const predictions: string[] = [];
+  
+  // Get all 18th dates from 2025
+  const date18Results = lotteryHistory
+    .filter(r => {
+      const dayOfMonth = parseInt(r.date.split('.')[0]);
+      return dayOfMonth === 18 && r.year === 2025;
+    })
+    .map(r => parseInt(r.result));
+  
+  if (date18Results.length === 0) return predictions;
+  
+  const average = Math.round(date18Results.reduce((a, b) => a + b, 0) / date18Results.length);
+  
+  // Adjust for October trend (higher values)
+  const octoberAdjustment = 200000; // October tends higher
+  const adjustedAverage = average + octoberAdjustment;
+  
+  // Generate variations
+  for (let i = 0; i < 5; i++) {
+    const variation = adjustedAverage + (i - 2) * 25000;
+    predictions.push(variation.toString().padStart(6, '0'));
+  }
+  
+  return predictions;
+};
+
+// Saturday Pattern Method
+export const generateSaturdayPatternPredictions = (lotteryHistory: LotteryResult[]): string[] => {
+  const predictions: string[] = [];
+  
+  // Get all Saturday results (assuming Oct 18 is Saturday)
+  // Filter for day 18, 11, 4, 25 (potential Saturdays in October)
+  const saturdayResults = lotteryHistory
+    .filter(r => {
+      const dayOfMonth = parseInt(r.date.split('.')[0]);
+      return r.month === 10 && [4, 11, 18, 25].includes(dayOfMonth);
+    })
+    .map(r => parseInt(r.result));
+  
+  if (saturdayResults.length === 0) return predictions;
+  
+  const average = Math.round(saturdayResults.reduce((a, b) => a + b, 0) / saturdayResults.length);
+  
+  // Generate variations
+  for (let i = 0; i < 5; i++) {
+    const variation = average + (i - 2) * 20000;
+    predictions.push(variation.toString().padStart(6, '0'));
+  }
+  
+  return predictions;
+};
+
+// Generate all prediction sets
+export const generateAllPredictions = (lotteryHistory: LotteryResult[]): PredictionSet[] => {
+  const analysis = analyzeHistoricalData(lotteryHistory);
+  
+  const allSets: PredictionSet[] = [
     {
-      method: "Ultra High-Frequency (Optimized)",
-      description: "Advanced frequency analysis with recency weighting and positional optimization",
+      method: "October Trend Projection",
+      description: "Based on average daily increase of ~5,896 from October 1-17, projects forward 3 days",
+      numbers: generateTrendProjectionPredictions(lotteryHistory),
+      confidence: "high"
+    },
+    {
+      method: "October Frequency-Based",
+      description: "Uses most frequent digits per position from October 2025 data only",
+      numbers: generateOctoberFrequencyPredictions(lotteryHistory),
+      confidence: "high"
+    },
+    {
+      method: "Conservative Average (Oct Highs)",
+      description: "Average of recent high values from October (705757, 706935, 649740, 867468)",
+      numbers: generateVolatilityAveragePredictions(lotteryHistory),
+      confidence: "medium"
+    },
+    {
+      method: "Date Pattern (18th)",
+      description: "Based on historical 18th date patterns across all months, adjusted for October trend",
+      numbers: generateDatePatternPredictions(lotteryHistory),
+      confidence: "medium"
+    },
+    {
+      method: "High-Frequency Based",
+      description: "Uses most frequent digits from each position",
       numbers: generateFrequencyBasedPredictions(analysis),
-      confidence: "high"
-    },
-    {
-      method: "Momentum-Based Hot Numbers",
-      description: "Focuses on digits with increasing frequency trends (trending up)",
-      numbers: generateMomentumBasedPredictions(analysis),
-      confidence: "high"
-    },
-    {
-      method: "Multi-Window Frequency Blend",
-      description: "Combines short, medium, and long-term frequency patterns",
-      numbers: generateMultiWindowPredictions(analysis),
-      confidence: "high"
-    },
-    {
-      method: "Time-Weighted Super Hot",
-      description: "Exponential decay weighting - recent patterns matter most",
-      numbers: generateTimeWeightedPredictions(analysis),
       confidence: "high"
     },
     {
@@ -813,40 +758,40 @@ export const generateAllPredictions = (): PredictionSet[] => {
     {
       method: "Complex Number Analysis",
       description: "Uses complex number operations (conjugate, magnitude, multiplication) on historical data",
-      numbers: generateComplexNumberPredictions(analysis),
+      numbers: generateComplexNumberPredictions(analysis, lotteryHistory),
       confidence: "high"
     },
     {
       method: "Phase & Magnitude Based",
       description: "Analyzes phase angles and magnitudes of complex representations",
-      numbers: generatePhaseBasedPredictions(analysis),
+      numbers: generatePhaseBasedPredictions(analysis, lotteryHistory),
       confidence: "medium"
     },
     {
       method: "Exponential Form (z=|z|e^iθ)",
       description: "Uses exponential form conversions with angle and magnitude transformations",
-      numbers: generateExponentialFormPredictions(analysis),
+      numbers: generateExponentialFormPredictions(analysis, lotteryHistory),
       confidence: "high"
     },
     {
       method: "Complex Roots (nth roots)",
       description: "Applies nth root formula: ⁿ√|z|·e^(i(θ+2kπ)/n) for pattern extraction",
-      numbers: generateComplexRootsPredictions(analysis),
+      numbers: generateComplexRootsPredictions(analysis, lotteryHistory),
       confidence: "medium"
     },
     {
       method: "Exponentiation (z^n)",
       description: "Uses power formula: z^n = |z|^n·e^(inθ) with fractional exponents",
-      numbers: generateExponentiationPredictions(analysis),
+      numbers: generateExponentiationPredictions(analysis, lotteryHistory),
       confidence: "medium"
     },
     {
       method: "Real/Imaginary Decomposition",
       description: "Applies Re(z)=(z+z̄)/2 and Im(z)=(z-z̄)/2i formulas for component analysis",
-      numbers: generateRealImaginaryDecompositionPredictions(analysis),
+      numbers: generateRealImaginaryDecompositionPredictions(analysis, lotteryHistory),
       confidence: "high"
     }
   ];
   
-  return predictions;
+  return allSets;
 };

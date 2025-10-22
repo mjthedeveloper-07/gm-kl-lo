@@ -1,18 +1,32 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { validatePredictions, type PredictionValidation } from "@/utils/lotteryAnalysis";
-import { CheckCircle2, AlertCircle, TrendingUp } from "lucide-react";
+import { useLotteryData } from "@/hooks/useLotteryData";
+import { CheckCircle2, AlertCircle, TrendingUp, Loader2 } from "lucide-react";
 
 interface PredictionValidatorProps {
   predictions: string[];
 }
 
 export const PredictionValidator = ({ predictions }: PredictionValidatorProps) => {
+  const { data: lotteryHistory, isLoading } = useLotteryData();
+
   if (predictions.length === 0) {
     return null;
   }
 
-  const validations = validatePredictions(predictions);
+  if (isLoading || lotteryHistory.length === 0) {
+    return (
+      <Card>
+        <CardContent className="pt-6 flex items-center justify-center gap-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <p>Loading validation data...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const validations = validatePredictions(predictions, lotteryHistory);
   const withMatches = validations.filter(v => v.matches.length > 0);
 
   return (
