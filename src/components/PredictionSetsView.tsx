@@ -9,15 +9,29 @@ import { toast } from "sonner";
 export const PredictionSetsView = () => {
   const [predictionSets, setPredictionSets] = useState<PredictionSet[]>([]);
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    regeneratePredictions();
+    // Defer expensive computation to avoid blocking render
+    const timer = setTimeout(() => {
+      regeneratePredictions();
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   const regeneratePredictions = () => {
-    const predictions = generateAllPredictions();
-    setPredictionSets(predictions);
-    toast.success("Generated new predictions based on statistical analysis");
+    setIsLoading(true);
+    try {
+      const predictions = generateAllPredictions();
+      setPredictionSets(predictions);
+      toast.success("Generated new predictions based on statistical analysis");
+    } catch (error) {
+      console.error("Error generating predictions:", error);
+      toast.error("Failed to generate predictions. Please refresh the page.");
+      setPredictionSets([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const copyToClipboard = (text: string, id: string) => {
@@ -55,8 +69,8 @@ export const PredictionSetsView = () => {
                 Statistical analysis-based predictions using 5 different methods
               </CardDescription>
             </div>
-            <Button onClick={regeneratePredictions} variant="outline" className="gap-2">
-              <RefreshCw className="h-4 w-4" />
+            <Button onClick={regeneratePredictions} variant="outline" className="gap-2" disabled={isLoading}>
+              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               Regenerate
             </Button>
           </div>
@@ -74,8 +88,18 @@ export const PredictionSetsView = () => {
         </CardContent>
       </Card>
 
+      {/* Loading State */}
+      {isLoading && (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <RefreshCw className="h-12 w-12 mx-auto mb-4 animate-spin text-primary" />
+            <p className="text-muted-foreground">Generating predictions...</p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Prediction Sets */}
-      {predictionSets.map((set, setIndex) => (
+      {!isLoading && predictionSets.map((set, setIndex) => (
         <Card key={setIndex} className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <div className="flex items-start justify-between">

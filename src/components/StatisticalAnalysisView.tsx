@@ -5,7 +5,20 @@ import { getYearRange, lotteryHistory, getBumperResults, getRegularResults } fro
 import { TrendingUp, TrendingDown, BarChart3, Database } from "lucide-react";
 
 export const StatisticalAnalysisView = () => {
-  const analysis = analyzeHistoricalData();
+  let analysis;
+  try {
+    analysis = analyzeHistoricalData();
+  } catch (error) {
+    console.error("Error analyzing historical data:", error);
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <p className="text-muted-foreground">Failed to load statistical analysis. Please refresh the page.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+  
   const { min, max } = getYearRange();
   const totalResults = lotteryHistory.length;
   const bumperCount = getBumperResults().length;
