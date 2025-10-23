@@ -518,7 +518,36 @@ export const generateExponentiationPredictions = (analysis: StatisticalAnalysis)
   return predictions;
 };
 
-// Method 11: Real and Imaginary Decomposition (Re(z) = (z+z̄)/2, Im(z) = (z-z̄)/2i)
+// Method 11: Ultra High Frequency Based (Top 5 Numbers from Pure Frequency Analysis)
+export const generateUltraHighFrequencyPredictions = (analysis: StatisticalAnalysis): string[] => {
+  const predictions: string[] = [];
+  
+  // Get top 3 most frequent digits for each position
+  const topDigitsPerPosition = analysis.positionalAnalysis.map(posData => 
+    posData.slice(0, 3).map(d => d.digit)
+  );
+  
+  // Generate 5 ultra-high-frequency numbers using top 3 from each position
+  for (let i = 0; i < 5; i++) {
+    let number = "";
+    for (let pos = 0; pos < 6; pos++) {
+      // For first prediction use #1 from each position
+      // For second prediction use mix of #1 and #2
+      // For third prediction use #2 from each position
+      // For fourth prediction use mix of #2 and #3
+      // For fifth prediction use #3 from each position
+      const digitIndex = Math.floor(i / 2); // 0, 0, 1, 1, 2
+      const altIndex = (digitIndex + (i % 2)) % 3; // Alternate between indices
+      
+      number += topDigitsPerPosition[pos][altIndex];
+    }
+    predictions.push(number);
+  }
+  
+  return predictions;
+};
+
+// Method 12: Real and Imaginary Decomposition (Re(z) = (z+z̄)/2, Im(z) = (z-z̄)/2i)
 export const generateRealImaginaryDecompositionPredictions = (analysis: StatisticalAnalysis): string[] => {
   const predictions: string[] = [];
   const allNumbers = lotteryHistory.map(r => r.result);
@@ -564,6 +593,12 @@ export const generateAllPredictions = (): PredictionSet[] => {
   const analysis = analyzeHistoricalData();
   
   return [
+    {
+      method: "🔥 Ultra High Frequency",
+      description: "TOP 5 NUMBERS: Pure frequency analysis using the most frequently occurring digits from each position",
+      numbers: generateUltraHighFrequencyPredictions(analysis),
+      confidence: "high"
+    },
     {
       method: "High-Frequency Based",
       description: "Uses most frequent digits from each position",

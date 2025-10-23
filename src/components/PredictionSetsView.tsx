@@ -83,7 +83,7 @@ export const PredictionSetsView = () => {
                 AI-Generated Predictions
               </CardTitle>
               <CardDescription className="mt-2">
-                Statistical analysis-based predictions using 5 different methods
+                Statistical analysis-based predictions using multiple advanced methods including ultra high frequency analysis
               </CardDescription>
             </div>
             <Button onClick={regeneratePredictions} variant="outline" className="gap-2">
