@@ -37,6 +37,9 @@ export const lotteryHistory: LotteryResult[] = [
   { date: "24.09.25", day: "Wed", lottery: "Dhanalekshmi", draw: "19", result: "389960", year: 2025, month: 9, lotteryType: "regular" },
   { date: "25.09.25", day: "Thu", lottery: "Karunya Plus", draw: "591", result: "430879", year: 2025, month: 9, lotteryType: "regular" },
   { date: "26.09.25", day: "Fri", lottery: "Suvarna Keralam", draw: "20", result: "648907", year: 2025, month: 9, lotteryType: "regular" },
+  { date: "28.09.25", day: "Sun", lottery: "Samrudhi", draw: "22", result: "507167", year: 2025, month: 9, lotteryType: "regular" },
+  { date: "29.09.25", day: "Mon", lottery: "Bhagyathara", draw: "22", result: "669175", year: 2025, month: 9, lotteryType: "regular" },
+  { date: "30.09.25", day: "Tue", lottery: "Sthree Sakthi", draw: "487", result: "500622", year: 2025, month: 9, lotteryType: "regular" },
   
   // 2025 October data (from 2025 chart)
   { date: "01.10.25", day: "Tue", lottery: "Win-Win", draw: "1", result: "784922", year: 2025, month: 10, lotteryType: "regular" },
