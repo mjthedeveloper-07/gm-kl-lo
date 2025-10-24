@@ -588,7 +588,67 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
   return predictions;
 };
 
-// Method 13: Sum 45 Formula (10-digit permutation with all digits 0-9)
+// Method 13: Last 4 Digits High-Probability Analysis
+export const generateLast4DigitsHighProbabilityPredictions = (analysis: StatisticalAnalysis): string[] => {
+  const predictions: string[] = [];
+  
+  // Analyze last 4 digits (positions 2-5, or positions 3-6 in 1-indexed)
+  const last4Patterns: { [pattern: string]: number } = {};
+  const allNumbers = lotteryHistory.map(r => r.result);
+  
+  // Extract all last 4 digit patterns
+  allNumbers.forEach(num => {
+    if (num.length >= 4) {
+      const last4 = num.slice(-4); // Get last 4 digits
+      last4Patterns[last4] = (last4Patterns[last4] || 0) + 1;
+    }
+  });
+  
+  // Sort patterns by frequency
+  const sortedPatterns = Object.entries(last4Patterns)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 20); // Top 20 most frequent last-4 patterns
+  
+  // Get top frequent digits for positions 3-6 (last 4 positions)
+  const last4PositionFrequencies = analysis.positionalAnalysis.slice(2, 6); // positions 2-5 (0-indexed)
+  
+  // Generate first 2 digits based on overall frequency
+  const first2PositionFrequencies = analysis.positionalAnalysis.slice(0, 2);
+  
+  // Generate 5 predictions
+  for (let i = 0; i < 5; i++) {
+    let number = "";
+    
+    // Strategy 1-3: Use top frequent patterns directly with varied first 2 digits
+    if (i < 3 && sortedPatterns[i]) {
+      // Generate first 2 digits from high frequency
+      const pos0 = first2PositionFrequencies[0][i % 3].digit;
+      const pos1 = first2PositionFrequencies[1][(i + 1) % 3].digit;
+      number = pos0 + pos1 + sortedPatterns[i][0];
+    } 
+    // Strategy 4-5: Build from individual position frequencies
+    else {
+      // First 2 digits
+      const pos0Index = (i * 2) % Math.min(5, first2PositionFrequencies[0].length);
+      const pos1Index = (i * 2 + 1) % Math.min(5, first2PositionFrequencies[1].length);
+      number += first2PositionFrequencies[0][pos0Index].digit;
+      number += first2PositionFrequencies[1][pos1Index].digit;
+      
+      // Last 4 digits - use top frequencies with variation
+      for (let pos = 0; pos < 4; pos++) {
+        const posData = last4PositionFrequencies[pos];
+        const digitIndex = (i + pos) % Math.min(3, posData.length);
+        number += posData[digitIndex].digit;
+      }
+    }
+    
+    predictions.push(number);
+  }
+  
+  return predictions;
+};
+
+// Method 14: Sum 45 Formula (10-digit permutation with all digits 0-9)
 export const generateSum45Predictions = (analysis: StatisticalAnalysis): string[] => {
   const predictions: string[] = [];
   
@@ -713,6 +773,12 @@ export const generateAllPredictions = (): PredictionSet[] => {
   const analysis = analyzeHistoricalData();
   
   return [
+    {
+      method: "🎯 Last 4 Digits HIGH-PROBABILITY",
+      description: "KERALA LOTTERY FOCUSED: Statistical analysis of most frequent last 4 digit patterns from historical data",
+      numbers: generateLast4DigitsHighProbabilityPredictions(analysis),
+      confidence: "high"
+    },
     {
       method: "✨ Sum 45 Formula",
       description: "10-DIGIT KERALA LOTTERY: All digits 0-9 used exactly once (sum = 45), frequency-weighted permutations",
