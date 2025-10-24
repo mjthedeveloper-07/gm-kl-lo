@@ -588,7 +588,67 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
   return predictions;
 };
 
-// Method 13: Day of Week AB-BC-AC Pattern Analysis
+// Method 13: Sum 45 Formula (10-digit permutation with all digits 0-9)
+export const generateSum45Predictions = (analysis: StatisticalAnalysis): string[] => {
+  const predictions: string[] = [];
+  
+  // Helper function to shuffle array based on frequency weights
+  const weightedShuffle = (digits: number[], weights: number[]): number[] => {
+    const result: number[] = [];
+    const available = [...digits];
+    const availableWeights = [...weights];
+    
+    while (available.length > 0) {
+      // Calculate total weight
+      const totalWeight = availableWeights.reduce((sum, w) => sum + w, 0);
+      
+      // Pick random index based on weights
+      let random = Math.random() * totalWeight;
+      let selectedIndex = 0;
+      
+      for (let i = 0; i < availableWeights.length; i++) {
+        random -= availableWeights[i];
+        if (random <= 0) {
+          selectedIndex = i;
+          break;
+        }
+      }
+      
+      result.push(available[selectedIndex]);
+      available.splice(selectedIndex, 1);
+      availableWeights.splice(selectedIndex, 1);
+    }
+    
+    return result;
+  };
+  
+  // Get overall digit frequencies
+  const digitFrequencies: { [key: string]: number } = {};
+  for (let i = 0; i <= 9; i++) {
+    const digit = i.toString();
+    const freq = analysis.topFrequentDigits.find(d => d.digit === digit);
+    digitFrequencies[digit] = freq ? freq.count : 1;
+  }
+  
+  // Generate 5 Sum 45 predictions
+  for (let i = 0; i < 5; i++) {
+    const allDigits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    const weights = allDigits.map(d => digitFrequencies[d.toString()] + (Math.random() * 10 * (i + 1)));
+    
+    const shuffled = weightedShuffle(allDigits, weights);
+    const number = shuffled.join('');
+    
+    // Verify Sum 45
+    const sum = shuffled.reduce((acc, n) => acc + n, 0);
+    if (sum === 45) {
+      predictions.push(number);
+    }
+  }
+  
+  return predictions;
+};
+
+// Method 14: Day of Week AB-BC-AC Pattern Analysis
 export const generateDayOfWeekABCPredictions = (analysis: StatisticalAnalysis): string[] => {
   const predictions: string[] = [];
   
@@ -653,6 +713,12 @@ export const generateAllPredictions = (): PredictionSet[] => {
   const analysis = analyzeHistoricalData();
   
   return [
+    {
+      method: "✨ Sum 45 Formula",
+      description: "10-DIGIT KERALA LOTTERY: All digits 0-9 used exactly once (sum = 45), frequency-weighted permutations",
+      numbers: generateSum45Predictions(analysis),
+      confidence: "high"
+    },
     {
       method: "📅 Day-of-Week AB-BC-AC",
       description: "NEXT 5 DAYS: Uses day-specific AB, BC, AC patterns (MON: 5-4-2, TUE: 6-0-6, WED: 7-1-8, THU: 0-4-5, FRI: 3-2-7, SAT: 0-1-7)",
