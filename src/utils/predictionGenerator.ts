@@ -588,11 +588,77 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
   return predictions;
 };
 
+// Method 13: Day of Week AB-BC-AC Pattern Analysis
+export const generateDayOfWeekABCPredictions = (analysis: StatisticalAnalysis): string[] => {
+  const predictions: string[] = [];
+  
+  // Day-of-week AB, BC, AC values based on user's chart
+  const dayPatterns = {
+    0: { AB: 0, BC: 1, AC: 7 }, // Sunday (using SAT pattern as fallback)
+    1: { AB: 5, BC: 4, AC: 2 }, // Monday
+    2: { AB: 6, BC: 0, AC: 6 }, // Tuesday
+    3: { AB: 7, BC: 1, AC: 8 }, // Wednesday
+    4: { AB: 0, BC: 4, AC: 5 }, // Thursday
+    5: { AB: 3, BC: 2, AC: 7 }, // Friday
+    6: { AB: 0, BC: 1, AC: 7 }, // Saturday
+  };
+  
+  // Get top frequent digits for each position
+  const topDigitsPerPosition = analysis.positionalAnalysis.map(posData => 
+    posData.slice(0, 5).map(d => d.digit)
+  );
+  
+  // Generate predictions for next 5 days
+  const today = new Date();
+  for (let dayOffset = 0; dayOffset < 5; dayOffset++) {
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() + dayOffset);
+    const dayOfWeek = targetDate.getDay();
+    const pattern = dayPatterns[dayOfWeek as keyof typeof dayPatterns];
+    
+    let number = "";
+    
+    // Position 0: Use AB value as index into top digits
+    const pos0Index = pattern.AB % topDigitsPerPosition[0].length;
+    number += topDigitsPerPosition[0][pos0Index];
+    
+    // Position 1: Use BC value as index
+    const pos1Index = pattern.BC % topDigitsPerPosition[1].length;
+    number += topDigitsPerPosition[1][pos1Index];
+    
+    // Position 2: Use AC value as index
+    const pos2Index = pattern.AC % topDigitsPerPosition[2].length;
+    number += topDigitsPerPosition[2][pos2Index];
+    
+    // Position 3: Use (AB + BC) as index
+    const pos3Index = (pattern.AB + pattern.BC) % topDigitsPerPosition[3].length;
+    number += topDigitsPerPosition[3][pos3Index];
+    
+    // Position 4: Use (BC + AC) as index
+    const pos4Index = (pattern.BC + pattern.AC) % topDigitsPerPosition[4].length;
+    number += topDigitsPerPosition[4][pos4Index];
+    
+    // Position 5: Use (AB + AC) as index
+    const pos5Index = (pattern.AB + pattern.AC) % topDigitsPerPosition[5].length;
+    number += topDigitsPerPosition[5][pos5Index];
+    
+    predictions.push(number);
+  }
+  
+  return predictions;
+};
+
 // Generate all prediction sets
 export const generateAllPredictions = (): PredictionSet[] => {
   const analysis = analyzeHistoricalData();
   
   return [
+    {
+      method: "📅 Day-of-Week AB-BC-AC",
+      description: "NEXT 5 DAYS: Uses day-specific AB, BC, AC patterns (MON: 5-4-2, TUE: 6-0-6, WED: 7-1-8, THU: 0-4-5, FRI: 3-2-7, SAT: 0-1-7)",
+      numbers: generateDayOfWeekABCPredictions(analysis),
+      confidence: "high"
+    },
     {
       method: "🔥 Ultra High Frequency",
       description: "TOP 5 NUMBERS: Pure frequency analysis using the most frequently occurring digits from each position",
