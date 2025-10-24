@@ -83,7 +83,7 @@ export const PredictionSetsView = () => {
                 AI-Generated Predictions
               </CardTitle>
               <CardDescription className="mt-2">
-                Advanced prediction methods: Control Number ABC Board (3-step formula), Last 4 Digits HIGH-PROBABILITY, Sum 45 formula, and day-of-week patterns
+                ABC Board Control (combining STEP 1, 2, 3 sequences), Last 4 Digits HIGH-PROBABILITY, Sum 45 formula, and advanced pattern recognition
               </CardDescription>
             </div>
             <Button onClick={regeneratePredictions} variant="outline" className="gap-2">
@@ -121,35 +121,57 @@ export const PredictionSetsView = () => {
           </CardHeader>
           <CardContent>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {set.numbers.map((number, numIndex) => (
-                <div
-                  key={numIndex}
-                  className="group relative p-4 rounded-lg border-2 border-primary/20 bg-gradient-to-br from-card to-card/50 hover:border-primary/50 hover:shadow-md transition-all"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">
-                        #{numIndex + 1}
-                      </p>
-                      <p className="font-mono text-2xl font-bold text-black dark:text-white">
-                        {number}
-                      </p>
+              {set.numbers.map((number, numIndex) => {
+                // For Control Number ABC Board, show box combination labels
+                const isABCBoard = setIndex === 0;
+                const boxLabels = ['R-R-R', 'R-B-P', 'B-R-B', 'P-B-R', 'B-P-B'];
+                
+                return (
+                  <div
+                    key={numIndex}
+                    className="group relative p-4 rounded-lg border-2 border-primary/20 bg-gradient-to-br from-card to-card/50 hover:border-primary/50 hover:shadow-md transition-all"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex-1">
+                        <p className="text-xs text-muted-foreground mb-1">
+                          {isABCBoard && numIndex < 5 ? boxLabels[numIndex] : `#${numIndex + 1}`}
+                        </p>
+                        <p className="font-mono text-2xl font-bold">
+                          {isABCBoard ? (
+                            // Highlight digits 1 and 4 for ABC Board predictions
+                            number.split('').map((digit, idx) => (
+                              <span
+                                key={idx}
+                                className={
+                                  digit === '1' || digit === '4'
+                                    ? 'text-yellow-500'
+                                    : 'text-black dark:text-white'
+                                }
+                              >
+                                {digit}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-black dark:text-white">{number}</span>
+                          )}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => copyToClipboard(number, `${setIndex}-${numIndex}`)}
+                      >
+                        {copiedIndex === `${setIndex}-${numIndex}` ? (
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                      </Button>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => copyToClipboard(number, `${setIndex}-${numIndex}`)}
-                    >
-                      {copiedIndex === `${setIndex}-${numIndex}` ? (
-                        <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                    </Button>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="mt-4 flex gap-2">
