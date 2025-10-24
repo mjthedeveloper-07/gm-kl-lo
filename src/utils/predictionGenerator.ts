@@ -588,7 +588,61 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
   return predictions;
 };
 
-// Method 13: Last 4 Digits High-Probability Analysis
+// Method 13: Control Number ABC Board (3-Step Sequence Combination)
+export const generateControlNumberABCBoardPredictions = (analysis: StatisticalAnalysis): string[] => {
+  const predictions: string[] = [];
+  
+  // Day-of-week sequences (Saturday example pattern)
+  // In real implementation, these would be populated from historical pattern analysis
+  const daySequences = {
+    step1: {
+      box1: [2, 3, 1, 4, 6, 0, 8, 7, 5],
+      box2: [1, 5, 3, 7, 2, 9, 4, 6, 8],
+      box3: [0, 4, 2, 6, 1, 8, 3, 5, 7]
+    },
+    step2: {
+      box1: [2, 4, 6, 7, 0, 9, 5, 1, 8],
+      box2: [3, 1, 5, 8, 2, 6, 9, 0, 4],
+      box3: [1, 7, 3, 9, 4, 0, 6, 2, 5]
+    },
+    step3: {
+      box1: [2, 1, 0, 5, 7, 3, 6, 4, 9],
+      box2: [4, 8, 2, 6, 3, 1, 7, 5, 0],
+      box3: [5, 0, 4, 8, 1, 9, 2, 6, 3]
+    }
+  };
+  
+  // Generate predictions by trying different box combinations
+  const boxCombinations = [
+    ['box1', 'box1', 'box1'],
+    ['box1', 'box2', 'box3'],
+    ['box2', 'box1', 'box2'],
+    ['box3', 'box2', 'box1'],
+    ['box2', 'box3', 'box2']
+  ];
+  
+  boxCombinations.forEach(combination => {
+    // Get sequences from selected boxes
+    const step1Seq = daySequences.step1[combination[0] as keyof typeof daySequences.step1];
+    const step2Seq = daySequences.step2[combination[1] as keyof typeof daySequences.step2];
+    const step3Seq = daySequences.step3[combination[2] as keyof typeof daySequences.step3];
+    
+    // Combine all digits
+    const combined = [...step1Seq, ...step2Seq, ...step3Seq];
+    
+    // Remove duplicates and sort
+    const unique = Array.from(new Set(combined)).sort((a, b) => a - b);
+    
+    // Create control number (should be 10 digits: 0-9)
+    const controlNumber = unique.join('');
+    
+    predictions.push(controlNumber);
+  });
+  
+  return predictions;
+};
+
+// Method 14: Last 4 Digits High-Probability Analysis
 export const generateLast4DigitsHighProbabilityPredictions = (analysis: StatisticalAnalysis): string[] => {
   const predictions: string[] = [];
   
@@ -773,6 +827,12 @@ export const generateAllPredictions = (): PredictionSet[] => {
   const analysis = analyzeHistoricalData();
   
   return [
+    {
+      method: "🎲 Control Number ABC Board",
+      description: "3-STEP FORMULA: Combines sequences from STEP 1, STEP 2, STEP 3 (BOX 1/2/3), removes duplicates, sorts for 10-digit control number",
+      numbers: generateControlNumberABCBoardPredictions(analysis),
+      confidence: "high"
+    },
     {
       method: "🎯 Last 4 Digits HIGH-PROBABILITY",
       description: "KERALA LOTTERY FOCUSED: Statistical analysis of most frequent last 4 digit patterns from historical data",

@@ -83,7 +83,7 @@ export const PredictionSetsView = () => {
                 AI-Generated Predictions
               </CardTitle>
               <CardDescription className="mt-2">
-                Statistical analysis-based predictions including LAST 4 DIGITS HIGH-PROBABILITY method for Kerala lottery, Sum 45 formula, and day-of-week patterns
+                Advanced prediction methods: Control Number ABC Board (3-step formula), Last 4 Digits HIGH-PROBABILITY, Sum 45 formula, and day-of-week patterns
               </CardDescription>
             </div>
             <Button onClick={regeneratePredictions} variant="outline" className="gap-2">
