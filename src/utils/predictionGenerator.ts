@@ -592,50 +592,51 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
 export const generateControlNumberABCBoardPredictions = (analysis: StatisticalAnalysis): string[] => {
   const predictions: string[] = [];
   
-  // Day-of-week sequences (Saturday example pattern)
-  // In real implementation, these would be populated from historical pattern analysis
-  const daySequences = {
+  // Saturday sequences from the images (STEP 1, STEP 2, STEP 3)
+  const saturdaySequences = {
     step1: {
-      box1: [2, 3, 1, 4, 6, 0, 8, 7, 5],
-      box2: [1, 5, 3, 7, 2, 9, 4, 6, 8],
-      box3: [0, 4, 2, 6, 1, 8, 3, 5, 7]
+      box1: [4, 2, 0, 7, 6, 8, 9, 3, 5], // RED
+      box2: [4, 3, 9, 7, 5, 8, 2, 1, 0], // BLUE
+      box3: [4, 3, 7, 2, 9, 5, 8, 6, 1]  // PURPLE
     },
     step2: {
-      box1: [2, 4, 6, 7, 0, 9, 5, 1, 8],
-      box2: [3, 1, 5, 8, 2, 6, 9, 0, 4],
-      box3: [1, 7, 3, 9, 4, 0, 6, 2, 5]
+      box1: [9, 0, 5, 3, 4, 2, 1, 6, 7], // RED
+      box2: [3, 7, 2, 8, 1, 9, 6, 5, 4], // BLUE
+      box3: [8, 4, 9, 5, 1, 7, 0, 6, 2]  // PURPLE
     },
     step3: {
-      box1: [2, 1, 0, 5, 7, 3, 6, 4, 9],
-      box2: [4, 8, 2, 6, 3, 1, 7, 5, 0],
-      box3: [5, 0, 4, 8, 1, 9, 2, 6, 3]
+      box1: [4, 7, 6, 0, 3, 2, 5, 9, 8], // RED
+      box2: [2, 0, 1, 4, 3, 5, 7, 9, 8], // BLUE
+      box3: [2, 5, 1, 0, 9, 3, 8, 7, 4]  // PURPLE
     }
   };
   
   // Generate predictions by trying different box combinations
   const boxCombinations = [
-    ['box1', 'box1', 'box1'],
-    ['box1', 'box2', 'box3'],
-    ['box2', 'box1', 'box2'],
-    ['box3', 'box2', 'box1'],
-    ['box2', 'box3', 'box2']
+    { name: 'Red-Red-Red', step1: 'box1', step2: 'box1', step3: 'box1' },
+    { name: 'Red-Blue-Purple', step1: 'box1', step2: 'box2', step3: 'box3' },
+    { name: 'Blue-Red-Blue', step1: 'box2', step2: 'box1', step3: 'box2' },
+    { name: 'Purple-Blue-Red', step1: 'box3', step2: 'box2', step3: 'box1' },
+    { name: 'Blue-Purple-Blue', step1: 'box2', step2: 'box3', step3: 'box2' }
   ];
   
   boxCombinations.forEach(combination => {
     // Get sequences from selected boxes
-    const step1Seq = daySequences.step1[combination[0] as keyof typeof daySequences.step1];
-    const step2Seq = daySequences.step2[combination[1] as keyof typeof daySequences.step2];
-    const step3Seq = daySequences.step3[combination[2] as keyof typeof daySequences.step3];
+    const step1Seq = saturdaySequences.step1[combination.step1 as keyof typeof saturdaySequences.step1];
+    const step2Seq = saturdaySequences.step2[combination.step2 as keyof typeof saturdaySequences.step2];
+    const step3Seq = saturdaySequences.step3[combination.step3 as keyof typeof saturdaySequences.step3];
     
-    // Combine all digits
+    // Combine all digits from the three sequences
     const combined = [...step1Seq, ...step2Seq, ...step3Seq];
     
-    // Remove duplicates and sort
+    // Remove duplicates and sort to get control number
     const unique = Array.from(new Set(combined)).sort((a, b) => a - b);
     
-    // Create control number (should be 10 digits: 0-9)
-    const controlNumber = unique.join('');
+    // Create control number (should contain all digits 0-9 or close to it)
+    let controlNumber = unique.join('');
     
+    // If we have all 10 digits, this is a perfect control number
+    // If we have 9 digits, one digit is missing from all three sequences
     predictions.push(controlNumber);
   });
   
