@@ -11,8 +11,12 @@ export interface LotteryResult {
 
 // Comprehensive historical lottery results from 2009-2025
 export const lotteryHistory: LotteryResult[] = [
-  // 2025 October - Latest
-  { date: "23.10.25", day: "Thu", lottery: "Akshaya", draw: "4", result: "539160", year: 2025, month: 10, lotteryType: "regular" },
+  // 2025 October - Latest (Updated through Oct 27)
+  { date: "26.10.25", day: "Sun", lottery: "Fifty Fifty", draw: "4", result: "660690", year: 2025, month: 10, lotteryType: "regular" },
+  { date: "25.10.25", day: "Sat", lottery: "Karunya", draw: "4", result: "115200", year: 2025, month: 10, lotteryType: "regular" },
+  { date: "24.10.25", day: "Fri", lottery: "Nirmal", draw: "4", result: "829220", year: 2025, month: 10, lotteryType: "regular" },
+  { date: "23.10.25", day: "Wed", lottery: "Akshaya", draw: "4", result: "539160", year: 2025, month: 10, lotteryType: "regular" },
+  { date: "22.10.25", day: "Tue", lottery: "Sthree Sakthi", draw: "3", result: "966451", year: 2025, month: 10, lotteryType: "regular" },
   
   // 2025 September data
   { date: "01.09.25", day: "Mon", lottery: "Bhagyathara", draw: "18", result: "357510", year: 2025, month: 9, lotteryType: "regular" },
@@ -48,7 +52,6 @@ export const lotteryHistory: LotteryResult[] = [
   { date: "01.10.25", day: "Tue", lottery: "Win-Win", draw: "1", result: "784922", year: 2025, month: 10, lotteryType: "regular" },
   { date: "03.10.25", day: "Thu", lottery: "Akshaya", draw: "1", result: "823274", year: 2025, month: 10, lotteryType: "regular" },
   { date: "04.10.25", day: "Fri", lottery: "Nirmal", draw: "1", result: "252617", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "05.10.25", day: "Sat", lottery: "Karunya", draw: "1", result: "275170", year: 2025, month: 10, lotteryType: "regular" },
   { date: "06.10.25", day: "Sun", lottery: "Fifty Fifty", draw: "1", result: "736437", year: 2025, month: 10, lotteryType: "regular" },
   { date: "07.10.25", day: "Mon", lottery: "Win-Win", draw: "2", result: "313693", year: 2025, month: 10, lotteryType: "regular" },
   { date: "08.10.25", day: "Tue", lottery: "Sthree Sakthi", draw: "1", result: "289424", year: 2025, month: 10, lotteryType: "regular" },
@@ -63,8 +66,8 @@ export const lotteryHistory: LotteryResult[] = [
   { date: "17.10.25", day: "Thu", lottery: "Karunya Plus", draw: "2", result: "749913", year: 2025, month: 10, lotteryType: "regular" },
   { date: "18.10.25", day: "Fri", lottery: "Nirmal", draw: "3", result: "708982", year: 2025, month: 10, lotteryType: "regular" },
   { date: "19.10.25", day: "Sat", lottery: "Karunya", draw: "3", result: "718692", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "20.10.25", day: "Sun", lottery: "Fifty Fifty", draw: "3", result: "718692", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "21.10.25", day: "Mon", lottery: "Win-Win", draw: "4", result: "235028", year: 2025, month: 10, lotteryType: "regular" },
+  { date: "20.10.25", day: "Sun", lottery: "Fifty Fifty", draw: "3", result: "176282", year: 2025, month: 10, lotteryType: "regular" },
+  { date: "21.10.25", day: "Mon", lottery: "Win-Win", draw: "4", result: "638137", year: 2025, month: 10, lotteryType: "regular" },
   
   // 2024 Bumper & Regular Lotteries (from spreadsheet)
   { date: "06.11.24", day: "Wed", lottery: "Pooja Bumper", draw: "BR-105", result: "061252", year: 2024, month: 11, lotteryType: "bumper" },
