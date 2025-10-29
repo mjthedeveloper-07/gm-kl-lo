@@ -1,5 +1,35 @@
 import { lotteryHistory, getLast3Digits, getLast4Digits, type LotteryResult } from "@/data/lotteryHistory";
 
+// Seeded random number generator for consistent predictions
+class SeededRandom {
+  private seed: number;
+
+  constructor(seed: number) {
+    this.seed = seed;
+  }
+
+  next(): number {
+    this.seed = (this.seed * 9301 + 49297) % 233280;
+    return this.seed / 233280;
+  }
+}
+
+// Generate seed from current date and latest lottery result
+const generateSeed = (): number => {
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  const latestResult = lotteryHistory[0]?.result || '1234567';
+  const seedString = today + latestResult;
+  
+  // Convert string to numeric seed
+  let hash = 0;
+  for (let i = 0; i < seedString.length; i++) {
+    const char = seedString.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash);
+};
+
 export interface HistoricalMatch {
   type: "exact" | "last4" | "last3";
   result: LotteryResult;
@@ -219,12 +249,13 @@ export const analyzeNumberPairs = (): { pair: string; frequency: number; results
 
 // Generate predictions using Delta System
 export const generateDeltaPredictions = (count: number = 10): string[] => {
+  const rng = new SeededRandom(generateSeed());
   const predictions: string[] = [];
   const deltas = [3, 5, 7, 9, 11]; // Common delta values
   
   for (let i = 0; i < count; i++) {
-    const startNum = Math.floor(Math.random() * 5) + 1; // Start with 1-5
-    const delta = deltas[Math.floor(Math.random() * deltas.length)];
+    const startNum = Math.floor(rng.next() * 5) + 1; // Start with 1-5
+    const delta = deltas[Math.floor(rng.next() * deltas.length)];
     let prediction = "";
     let current = startNum;
     
@@ -241,6 +272,7 @@ export const generateDeltaPredictions = (count: number = 10): string[] => {
 
 // Generate predictions based on sum analysis
 export const generateSumBasedPredictions = (count: number = 10): string[] => {
+  const rng = new SeededRandom(generateSeed() + 1000); // Different seed offset
   const predictions: string[] = [];
   const { commonRange } = getSumStatistics();
   const { hot } = getHotAndColdNumbers();
@@ -258,11 +290,11 @@ export const generateSumBasedPredictions = (count: number = 10): string[] => {
       
       // Choose digit close to average needed, preferring hot numbers
       let digit: string;
-      if (Math.random() < 0.7 && hotDigits.length > 0) {
-        digit = hotDigits[Math.floor(Math.random() * hotDigits.length)];
+      if (rng.next() < 0.7 && hotDigits.length > 0) {
+        digit = hotDigits[Math.floor(rng.next() * hotDigits.length)];
       } else {
         const range = Math.max(0, Math.min(9, Math.round(avgNeeded)));
-        digit = (Math.max(0, Math.min(9, range + Math.floor(Math.random() * 3) - 1))).toString();
+        digit = (Math.max(0, Math.min(9, range + Math.floor(rng.next() * 3) - 1))).toString();
       }
       
       prediction += digit;
@@ -277,6 +309,7 @@ export const generateSumBasedPredictions = (count: number = 10): string[] => {
 
 // Generate predictions based on number pairs
 export const generatePairBasedPredictions = (count: number = 10): string[] => {
+  const rng = new SeededRandom(generateSeed() + 2000); // Different seed offset
   const predictions: string[] = [];
   const topPairs = analyzeNumberPairs().slice(0, 10);
   
@@ -285,10 +318,9 @@ export const generatePairBasedPredictions = (count: number = 10): string[] => {
     let prediction = "";
     
     // Pick 2-3 random pairs and fill the rest
-    const pairsToUse = Math.floor(Math.random() * 2) + 2; // 2 or 3 pairs
-    const selectedPairs = topPairs
-      .sort(() => Math.random() - 0.5)
-      .slice(0, pairsToUse);
+    const pairsToUse = Math.floor(rng.next() * 2) + 2; // 2 or 3 pairs
+    const shuffledPairs = [...topPairs].sort(() => rng.next() - 0.5);
+    const selectedPairs = shuffledPairs.slice(0, pairsToUse);
     
     selectedPairs.forEach(p => {
       const [d1, d2] = p.pair.split("-");
@@ -300,7 +332,7 @@ export const generatePairBasedPredictions = (count: number = 10): string[] => {
     
     // Fill to 6 digits if needed
     while (digits.length < 6) {
-      const newDigit = Math.floor(Math.random() * 10).toString();
+      const newDigit = Math.floor(rng.next() * 10).toString();
       if (!digits.includes(newDigit)) {
         digits.push(newDigit);
       }
@@ -308,7 +340,7 @@ export const generatePairBasedPredictions = (count: number = 10): string[] => {
     
     // Shuffle and take first 6
     prediction = digits
-      .sort(() => Math.random() - 0.5)
+      .sort(() => rng.next() - 0.5)
       .slice(0, 6)
       .join("");
     
