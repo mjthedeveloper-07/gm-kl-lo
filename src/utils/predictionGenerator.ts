@@ -823,6 +823,87 @@ export const generateDayOfWeekABCPredictions = (analysis: StatisticalAnalysis): 
   return predictions;
 };
 
+// Lookup table helper: Returns (row + column) mod 10
+const getLookupValue = (row: number, column: number): number => {
+  return (row + column) % 10;
+};
+
+// Method 15: Formula 1 - Lookup Table (Columns A-J)
+export const generateFormula1Predictions = (analysis: StatisticalAnalysis): string[] => {
+  const predictions: string[] = [];
+  const latestResult = getLatestResult().result;
+  
+  // Extract digits from the latest result
+  const D1 = parseInt(latestResult[0]); // 1st digit
+  const D2 = parseInt(latestResult[1]); // 2nd digit
+  const D5 = parseInt(latestResult[4]); // 5th digit
+  
+  // Column mappings for Formula 1 (A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7, I=8, J=9)
+  const step1Columns = [3, 4, 5]; // D, E, F
+  const step2Columns = [7, 8, 9]; // H, I, J
+  const step3Columns = [1, 2, 8]; // B, C, I
+  
+  // Generate base prediction
+  const step1 = step1Columns.map(col => getLookupValue(D5, col)).join('');
+  const step2 = step2Columns.map(col => getLookupValue(D2, col)).join('');
+  const step3 = step3Columns.map(col => getLookupValue(D1, col)).join('');
+  
+  const basePrediction = step1 + step2 + step3;
+  predictions.push(basePrediction);
+  
+  // Generate variations by slightly modifying the digits
+  for (let i = 1; i < 5; i++) {
+    const modifiedD1 = (D1 + i) % 10;
+    const modifiedD2 = (D2 + i) % 10;
+    const modifiedD5 = (D5 + i) % 10;
+    
+    const varStep1 = step1Columns.map(col => getLookupValue(modifiedD5, col)).join('');
+    const varStep2 = step2Columns.map(col => getLookupValue(modifiedD2, col)).join('');
+    const varStep3 = step3Columns.map(col => getLookupValue(modifiedD1, col)).join('');
+    
+    predictions.push(varStep1 + varStep2 + varStep3);
+  }
+  
+  return predictions;
+};
+
+// Method 16: Formula 2 - Lookup Table (Columns K-T)
+export const generateFormula2Predictions = (analysis: StatisticalAnalysis): string[] => {
+  const predictions: string[] = [];
+  const latestResult = getLatestResult().result;
+  
+  // Extract digits from the latest result
+  const D5 = parseInt(latestResult[4]); // 5th digit
+  const D6 = parseInt(latestResult[5]); // 6th digit
+  
+  // Column mappings for Formula 2 (K=0, L=1, M=2, N=3, O=4, P=5, Q=6, R=7, S=8, T=9)
+  const step1Columns = [1, 2, 3]; // L, M, N
+  const step2Columns = [5, 6, 9]; // P, Q, T
+  const step3Columns = [0, 5, 9]; // K, P, T
+  
+  // Generate base prediction
+  const step1 = step1Columns.map(col => getLookupValue(D5, col)).join('');
+  const step2 = step2Columns.map(col => getLookupValue(D6, col)).join('');
+  const step3 = step3Columns.map(col => getLookupValue(D6, col)).join('');
+  
+  const basePrediction = step1 + step2 + step3;
+  predictions.push(basePrediction);
+  
+  // Generate variations by slightly modifying the digits
+  for (let i = 1; i < 5; i++) {
+    const modifiedD5 = (D5 + i) % 10;
+    const modifiedD6 = (D6 + i) % 10;
+    
+    const varStep1 = step1Columns.map(col => getLookupValue(modifiedD5, col)).join('');
+    const varStep2 = step2Columns.map(col => getLookupValue(modifiedD6, col)).join('');
+    const varStep3 = step3Columns.map(col => getLookupValue(modifiedD6, col)).join('');
+    
+    predictions.push(varStep1 + varStep2 + varStep3);
+  }
+  
+  return predictions;
+};
+
 // Generate all prediction sets
 export const generateAllPredictions = (): PredictionSet[] => {
   const analysis = analyzeHistoricalData();
@@ -832,6 +913,18 @@ export const generateAllPredictions = (): PredictionSet[] => {
       method: "🎲 Control Number ABC Board",
       description: "3-STEP FORMULA: Combines sequences from STEP 1, STEP 2, STEP 3 (BOX 1/2/3), removes duplicates, sorts for 10-digit control number",
       numbers: generateControlNumberABCBoardPredictions(analysis),
+      confidence: "high"
+    },
+    {
+      method: "📊 Formula 1 (A-J Lookup Table)",
+      description: "LOOKUP TABLE METHOD: Uses latest result digits (D1, D2, D5) with columns A-J. Step 1: D5→D,E,F | Step 2: D2→H,I,J | Step 3: D1→B,C,I. Formula: (row + column) mod 10",
+      numbers: generateFormula1Predictions(analysis),
+      confidence: "high"
+    },
+    {
+      method: "📈 Formula 2 (K-T Lookup Table)",
+      description: "LOOKUP TABLE METHOD: Uses latest result digits (D5, D6) with columns K-T. Step 1: D5→L,M,N | Step 2: D6→P,Q,T | Step 3: D6→K,P,T. Formula: (row + column) mod 10",
+      numbers: generateFormula2Predictions(analysis),
       confidence: "high"
     },
     {
