@@ -582,3 +582,179 @@ export const generateProbabilityBasedPredictions = (count: number = 10): string[
   
   return predictions;
 };
+
+// =============== KL DIVERGENCE ANALYSIS ===============
+
+export interface KLDivergenceResult {
+  digit: string;
+  actualFrequency: number;
+  expectedFrequency: number;
+  klDivergence: number;
+  divergenceType: 'over-represented' | 'under-represented' | 'balanced';
+}
+
+export interface PositionalKLDivergence {
+  position: number;
+  klDivergence: number;
+  topDigits: Array<{ digit: string; probability: number }>;
+}
+
+// Calculate KL divergence: D_KL(P || Q) = Σ P(i) log(P(i) / Q(i))
+const calculateKLDivergence = (actualDist: number[], expectedDist: number[]): number => {
+  const epsilon = 1e-10; // Small constant to prevent log(0)
+  let divergence = 0;
+  
+  for (let i = 0; i < actualDist.length; i++) {
+    const p = actualDist[i] + epsilon;
+    const q = expectedDist[i] + epsilon;
+    divergence += p * Math.log(p / q);
+  }
+  
+  return divergence;
+};
+
+// Analyze KL divergence for each digit (0-9)
+export const analyzeKLDivergenceByDigit = (): KLDivergenceResult[] => {
+  const digitFreq = getDigitFrequency();
+  const totalDigits = digitFreq.reduce((sum, d) => sum + d.count, 0);
+  const expectedFreq = totalDigits / 10; // Uniform distribution
+  
+  return digitFreq.map(({ digit, count }) => {
+    const actualProb = count / totalDigits;
+    const expectedProb = 1 / 10;
+    
+    // Calculate single-digit KL divergence
+    const epsilon = 1e-10;
+    const kl = actualProb * Math.log((actualProb + epsilon) / (expectedProb + epsilon));
+    
+    let divergenceType: 'over-represented' | 'under-represented' | 'balanced';
+    if (count > expectedFreq * 1.1) {
+      divergenceType = 'over-represented';
+    } else if (count < expectedFreq * 0.9) {
+      divergenceType = 'under-represented';
+    } else {
+      divergenceType = 'balanced';
+    }
+    
+    return {
+      digit,
+      actualFrequency: count,
+      expectedFrequency: expectedFreq,
+      klDivergence: kl,
+      divergenceType
+    };
+  }).sort((a, b) => Math.abs(b.klDivergence) - Math.abs(a.klDivergence));
+};
+
+// Analyze KL divergence for each position (0-5)
+export const analyzeKLDivergenceByPosition = (): PositionalKLDivergence[] => {
+  const positionalFreq = getPositionalFrequency();
+  const totalDraws = lotteryHistory.length;
+  const results: PositionalKLDivergence[] = [];
+  
+  for (let pos = 0; pos < 6; pos++) {
+    const posData = positionalFreq[pos];
+    const actualDist: number[] = [];
+    const expectedDist: number[] = [];
+    
+    // Build distributions for digits 0-9
+    for (let digit = 0; digit <= 9; digit++) {
+      const count = posData[digit.toString()] || 0;
+      actualDist.push(count / totalDraws);
+      expectedDist.push(1 / 10); // Uniform
+    }
+    
+    const kl = calculateKLDivergence(actualDist, expectedDist);
+    
+    // Get top 3 digits for this position
+    const topDigits = Object.entries(posData)
+      .map(([digit, count]) => ({
+        digit,
+        probability: count / totalDraws
+      }))
+      .sort((a, b) => b.probability - a.probability)
+      .slice(0, 3);
+    
+    results.push({
+      position: pos,
+      klDivergence: kl,
+      topDigits
+    });
+  }
+  
+  return results.sort((a, b) => b.klDivergence - a.klDivergence);
+};
+
+// Generate predictions using KL divergence insights
+export const generateKLDivergencePredictions = (count: number = 10): string[] => {
+  const predictions: string[] = [];
+  const seed = generateSeed();
+  const rng = new SeededRandom(seed + 7000);
+  
+  const digitDivergence = analyzeKLDivergenceByDigit();
+  const positionalDivergence = analyzeKLDivergenceByPosition();
+  
+  // Get high-divergence digits (both over and under-represented)
+  const overRepresented = digitDivergence
+    .filter(d => d.divergenceType === 'over-represented')
+    .slice(0, 4)
+    .map(d => d.digit);
+  
+  const underRepresented = digitDivergence
+    .filter(d => d.divergenceType === 'under-represented')
+    .slice(0, 3)
+    .map(d => d.digit);
+  
+  for (let i = 0; i < count; i++) {
+    const digits: string[] = [];
+    
+    for (let pos = 0; pos < 6; pos++) {
+      const posDiv = positionalDivergence.find(p => p.position === pos);
+      
+      // Strategy alternates:
+      // - 50% use high-KL position's top digits
+      // - 30% use over-represented digits from global analysis
+      // - 20% use under-represented (contrarian approach)
+      const strategy = rng.next();
+      
+      if (strategy < 0.5 && posDiv && posDiv.topDigits.length > 0) {
+        // Use position-specific high-probability digits
+        const topDigit = posDiv.topDigits[Math.floor(rng.next() * Math.min(3, posDiv.topDigits.length))];
+        digits.push(topDigit.digit);
+      } else if (strategy < 0.8 && overRepresented.length > 0) {
+        // Use globally over-represented digits
+        digits.push(overRepresented[Math.floor(rng.next() * overRepresented.length)]);
+      } else if (underRepresented.length > 0) {
+        // Contrarian: use under-represented digits
+        digits.push(underRepresented[Math.floor(rng.next() * underRepresented.length)]);
+      } else {
+        // Fallback: random digit
+        digits.push(Math.floor(rng.next() * 10).toString());
+      }
+    }
+    
+    predictions.push(digits.join(''));
+  }
+  
+  return predictions;
+};
+
+// Calculate symmetric KL divergence for comparison
+export const calculateSymmetricKL = (): number => {
+  const digitFreq = getDigitFrequency();
+  const totalDigits = digitFreq.reduce((sum, d) => sum + d.count, 0);
+  
+  const actualDist: number[] = [];
+  const expectedDist: number[] = [];
+  
+  for (let i = 0; i <= 9; i++) {
+    const digit = digitFreq.find(d => d.digit === i.toString());
+    actualDist.push((digit?.count || 0) / totalDigits);
+    expectedDist.push(1 / 10);
+  }
+  
+  const klPQ = calculateKLDivergence(actualDist, expectedDist);
+  const klQP = calculateKLDivergence(expectedDist, actualDist);
+  
+  return (klPQ + klQP) / 2;
+};

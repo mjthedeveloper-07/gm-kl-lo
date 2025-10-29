@@ -11,12 +11,18 @@ import {
   generatePairBasedPredictions,
   generateCombinatorialPredictions,
   generateProbabilityBasedPredictions,
+  generateKLDivergencePredictions,
   getSumStatistics,
   analyzeNumberPairs,
   analyzeCombinatorialTemplates,
   getHotAndColdNumbers,
   calculateSum,
-  type CombinatorialTemplate
+  analyzeKLDivergenceByDigit,
+  analyzeKLDivergenceByPosition,
+  calculateSymmetricKL,
+  type CombinatorialTemplate,
+  type KLDivergenceResult,
+  type PositionalKLDivergence
 } from "@/utils/lotteryAnalysis";
 
 interface Prediction {
@@ -34,7 +40,11 @@ export const AdvancedFormulasPredictions = () => {
   const [pairPredictions, setPairPredictions] = useState<Prediction[]>([]);
   const [combinatorialPreds, setCombinatorialPreds] = useState<Prediction[]>([]);
   const [probabilityPreds, setProbabilityPreds] = useState<Prediction[]>([]);
+  const [klDivergencePreds, setKLDivergencePreds] = useState<Prediction[]>([]);
   const [templates, setTemplates] = useState<CombinatorialTemplate[]>([]);
+  const [digitDivergence, setDigitDivergence] = useState<KLDivergenceResult[]>([]);
+  const [positionalDivergence, setPositionalDivergence] = useState<PositionalKLDivergence[]>([]);
+  const [symmetricKL, setSymmetricKL] = useState<number>(0);
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
   const [sumStats, setSumStats] = useState(getSumStatistics());
   const [topPairs, setTopPairs] = useState(analyzeNumberPairs().slice(0, 5));
@@ -102,11 +112,28 @@ export const AdvancedFormulasPredictions = () => {
       sum: calculateSum(num)
     }));
 
+    // KL Divergence Predictions (NEW)
+    const klResults: Prediction[] = generateKLDivergencePredictions(12).map(num => ({
+      number: num,
+      method: "KL Divergence",
+      confidence: "high",
+      sum: calculateSum(num)
+    }));
+
+    // Analyze KL divergence
+    const digitDiv = analyzeKLDivergenceByDigit();
+    const posDiv = analyzeKLDivergenceByPosition();
+    const symKL = calculateSymmetricKL();
+
     setDeltaPredictions(deltaResults);
     setSumPredictions(sumResults);
     setPairPredictions(pairResults);
     setCombinatorialPreds(combResults);
     setProbabilityPreds(probResults);
+    setKLDivergencePreds(klResults);
+    setDigitDivergence(digitDiv);
+    setPositionalDivergence(posDiv);
+    setSymmetricKL(symKL);
     
     toast.success("Generated predictions using advanced formulas");
   };
@@ -247,8 +274,12 @@ export const AdvancedFormulasPredictions = () => {
       </CardHeader>
 
       <CardContent>
-        <Tabs defaultValue="combinatorial" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+        <Tabs defaultValue="kl-divergence" className="w-full">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="kl-divergence">
+              <Brain className="w-4 h-4 mr-2" />
+              KL Divergence
+            </TabsTrigger>
             <TabsTrigger value="combinatorial">
               <Calculator className="w-4 h-4 mr-2" />
               Combinatorial
@@ -270,6 +301,76 @@ export const AdvancedFormulasPredictions = () => {
               Delta
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="kl-divergence" className="space-y-3">
+            <div className="p-3 rounded-lg bg-muted/30 border-l-4 border-primary">
+              <div className="flex items-start gap-2">
+                <Lightbulb className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-muted-foreground">
+                  <strong>Kullback-Leibler Divergence Method:</strong> Measures how actual digit distributions diverge from expected 
+                  uniform distribution. Formula: D<sub>KL</sub>(P || Q) = Σ P(i) log(P(i) / Q(i)). High divergence indicates digits 
+                  that appear significantly more/less than random chance. Predictions use both over-represented digits (hot trends) 
+                  and under-represented digits (contrarian "due" strategy).
+                </div>
+              </div>
+            </div>
+
+            {/* KL Divergence Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="p-3 rounded-lg bg-muted/50 border">
+                <div className="flex items-center gap-2 mb-2">
+                  <Brain className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium">Symmetric KL Divergence</span>
+                </div>
+                <div className="text-2xl font-bold text-primary">{symmetricKL.toFixed(6)}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Overall deviation from uniform distribution
+                </p>
+              </div>
+
+              <div className="p-3 rounded-lg bg-muted/50 border">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="w-4 h-4 text-green-500" />
+                  <span className="text-sm font-medium">Top Divergent Digits</span>
+                </div>
+                <div className="text-xs space-y-1">
+                  {digitDivergence.slice(0, 5).map((d, idx) => (
+                    <div key={idx} className="flex items-center justify-between">
+                      <span className="font-bold text-foreground">{d.digit}</span>
+                      <Badge variant={d.divergenceType === 'over-represented' ? 'default' : 'secondary'} className="text-xs">
+                        {d.divergenceType === 'over-represented' ? '↑ Over' : '↓ Under'}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Positional Divergence */}
+            <div className="p-3 rounded-lg bg-muted/50 border">
+              <div className="flex items-center gap-2 mb-2">
+                <LineChart className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium">Positional KL Divergence (Highest to Lowest)</span>
+              </div>
+              <div className="grid grid-cols-6 gap-2 text-xs">
+                {positionalDivergence.map((pos) => (
+                  <div key={pos.position} className="p-2 rounded bg-background/50 text-center">
+                    <div className="font-bold text-foreground">Pos {pos.position + 1}</div>
+                    <div className="text-muted-foreground text-xs mt-1">{pos.klDivergence.toFixed(4)}</div>
+                    <div className="text-primary font-medium mt-1">
+                      {pos.topDigits[0]?.digit}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {klDivergencePreds.map((pred, idx) => (
+                <PredictionCard key={idx} pred={pred} index={idx} type="kl" />
+              ))}
+            </div>
+          </TabsContent>
 
           <TabsContent value="combinatorial" className="space-y-3">
             <div className="p-3 rounded-lg bg-muted/30 border-l-4 border-primary">
@@ -366,6 +467,10 @@ export const AdvancedFormulasPredictions = () => {
             </p>
             <p>
               <strong>Positional Frequency:</strong> For each position i, P(digit d) = Count(d at position i) / Total draws
+            </p>
+            <p>
+              <strong>KL Divergence:</strong> D<sub>KL</sub>(P || Q) = Σ P(i) log(P(i) / Q(i)) measures distribution deviation. 
+              Symmetric KL = [D<sub>KL</sub>(P||Q) + D<sub>KL</sub>(Q||P)] / 2 for bidirectional comparison.
             </p>
             <p className="pt-2 text-xs italic">
               These formulas organize selection strategy statistically but cannot guarantee wins in random draws.
