@@ -12,6 +12,7 @@ import { PredictionValidator } from "@/components/PredictionValidator";
 import { StatisticalAnalysisView } from "@/components/StatisticalAnalysisView";
 import { PredictionSetsView } from "@/components/PredictionSetsView";
 import { NovaChatbot } from "@/components/NovaChatbot";
+import { HotNumberPredictions } from "@/components/HotNumberPredictions";
 import { getHotAndColdNumbers } from "@/utils/lotteryAnalysis";
 import { lotteryHistory } from "@/data/lotteryHistory";
 
@@ -501,8 +502,12 @@ const Index = () => {
         </div>
 
         {/* Results & Analysis Tabs */}
-        <Tabs defaultValue="ai-predictions" className="mt-8">
-          <TabsList className="grid w-full grid-cols-6">
+        <Tabs defaultValue="hot-numbers" className="mt-8">
+          <TabsList className="grid w-full grid-cols-7">
+            <TabsTrigger value="hot-numbers">
+              <Sparkles className="h-4 w-4 mr-2" />
+              Hot Numbers
+            </TabsTrigger>
             <TabsTrigger value="ai-predictions">
               <Zap className="h-4 w-4 mr-2" />
               AI Predictions
@@ -519,6 +524,11 @@ const Index = () => {
               History
             </TabsTrigger>
           </TabsList>
+
+          {/* Hot Numbers Tab */}
+          <TabsContent value="hot-numbers">
+            <HotNumberPredictions />
+          </TabsContent>
 
           {/* AI Predictions Tab */}
           <TabsContent value="ai-predictions">
