@@ -6,6 +6,7 @@ import { generateAllPredictions, type PredictionSet } from "@/utils/predictionGe
 import { Sparkles, RefreshCw, Copy, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { ResultUpdateForm } from "./ResultUpdateForm";
+import { PredictionValidator } from "./PredictionValidator";
 import { lotteryHistory } from "@/data/lotteryHistory";
 
 export const PredictionSetsView = () => {
@@ -188,6 +189,13 @@ export const PredictionSetsView = () => {
                 Copy All
               </Button>
             </div>
+
+            {/* Show validation for Formula 1 and Formula 2 */}
+            {(set.method.includes("Formula 1") || set.method.includes("Formula 2")) && (
+              <div className="mt-4 pt-4 border-t">
+                <PredictionValidator predictions={set.numbers} />
+              </div>
+            )}
           </CardContent>
         </Card>
       ))}
