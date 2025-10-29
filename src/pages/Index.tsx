@@ -13,6 +13,7 @@ import { StatisticalAnalysisView } from "@/components/StatisticalAnalysisView";
 import { PredictionSetsView } from "@/components/PredictionSetsView";
 import { NovaChatbot } from "@/components/NovaChatbot";
 import { HotNumberPredictions } from "@/components/HotNumberPredictions";
+import { AdvancedFormulasPredictions } from "@/components/AdvancedFormulasPredictions";
 import { getHotAndColdNumbers } from "@/utils/lotteryAnalysis";
 import { lotteryHistory } from "@/data/lotteryHistory";
 
@@ -503,7 +504,7 @@ const Index = () => {
 
         {/* Results & Analysis Tabs */}
         <Tabs defaultValue="hot-numbers" className="mt-8">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="hot-numbers">
               <Sparkles className="h-4 w-4 mr-2" />
               Hot Numbers
@@ -511,6 +512,10 @@ const Index = () => {
             <TabsTrigger value="ai-predictions">
               <Zap className="h-4 w-4 mr-2" />
               AI Predictions
+            </TabsTrigger>
+            <TabsTrigger value="advanced-formulas">
+              <Calculator className="h-4 w-4 mr-2" />
+              Advanced
             </TabsTrigger>
             <TabsTrigger value="predictions">Formulas</TabsTrigger>
             <TabsTrigger value="validation">Validation</TabsTrigger>
@@ -533,6 +538,11 @@ const Index = () => {
           {/* AI Predictions Tab */}
           <TabsContent value="ai-predictions">
             <PredictionSetsView />
+          </TabsContent>
+
+          {/* Advanced Formulas Tab */}
+          <TabsContent value="advanced-formulas">
+            <AdvancedFormulasPredictions />
           </TabsContent>
 
           {/* Predictions Tab */}

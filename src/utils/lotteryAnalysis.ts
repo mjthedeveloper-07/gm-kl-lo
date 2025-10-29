@@ -158,6 +158,166 @@ export const getHotAndColdNumbers = () => {
   return { hot, cold };
 };
 
+// Calculate sum of a lottery result
+export const calculateSum = (result: string): number => {
+  return result.split("").reduce((sum, digit) => sum + parseInt(digit), 0);
+};
+
+// Get sum statistics from historical data
+export const getSumStatistics = () => {
+  const sums = lotteryHistory.map(r => calculateSum(r.result));
+  const average = sums.reduce((a, b) => a + b, 0) / sums.length;
+  const sorted = [...sums].sort((a, b) => a - b);
+  const min = sorted[0];
+  const max = sorted[sorted.length - 1];
+  const median = sorted[Math.floor(sorted.length / 2)];
+  
+  // Calculate standard deviation
+  const variance = sums.reduce((sum, val) => sum + Math.pow(val - average, 2), 0) / sums.length;
+  const stdDev = Math.sqrt(variance);
+  
+  return {
+    average: Math.round(average),
+    min,
+    max,
+    median,
+    stdDev: Math.round(stdDev),
+    commonRange: {
+      lower: Math.round(average - stdDev),
+      upper: Math.round(average + stdDev)
+    }
+  };
+};
+
+// Analyze number pairs (which numbers appear together)
+export const analyzeNumberPairs = (): { pair: string; frequency: number; results: LotteryResult[] }[] => {
+  const pairCounts: { [key: string]: LotteryResult[] } = {};
+  
+  lotteryHistory.forEach(result => {
+    const digits = result.result.split("");
+    // Check all pairs of digits
+    for (let i = 0; i < digits.length - 1; i++) {
+      for (let j = i + 1; j < digits.length; j++) {
+        const pair = [digits[i], digits[j]].sort().join("-");
+        if (!pairCounts[pair]) {
+          pairCounts[pair] = [];
+        }
+        pairCounts[pair].push(result);
+      }
+    }
+  });
+  
+  return Object.entries(pairCounts)
+    .map(([pair, results]) => ({
+      pair,
+      frequency: results.length,
+      results
+    }))
+    .sort((a, b) => b.frequency - a.frequency)
+    .slice(0, 20);
+};
+
+// Generate predictions using Delta System
+export const generateDeltaPredictions = (count: number = 10): string[] => {
+  const predictions: string[] = [];
+  const deltas = [3, 5, 7, 9, 11]; // Common delta values
+  
+  for (let i = 0; i < count; i++) {
+    const startNum = Math.floor(Math.random() * 5) + 1; // Start with 1-5
+    const delta = deltas[Math.floor(Math.random() * deltas.length)];
+    let prediction = "";
+    let current = startNum;
+    
+    for (let j = 0; j < 6; j++) {
+      prediction += (current % 10).toString();
+      current += delta;
+    }
+    
+    predictions.push(prediction);
+  }
+  
+  return predictions;
+};
+
+// Generate predictions based on sum analysis
+export const generateSumBasedPredictions = (count: number = 10): string[] => {
+  const predictions: string[] = [];
+  const { commonRange } = getSumStatistics();
+  const { hot } = getHotAndColdNumbers();
+  const hotDigits = hot.map(h => h.digit);
+  
+  for (let i = 0; i < count; i++) {
+    let prediction = "";
+    let currentSum = 0;
+    
+    // Generate 6 digits trying to stay within common sum range
+    for (let j = 0; j < 6; j++) {
+      const remainingDigits = 6 - j;
+      const targetSum = (commonRange.lower + commonRange.upper) / 2;
+      const avgNeeded = (targetSum - currentSum) / remainingDigits;
+      
+      // Choose digit close to average needed, preferring hot numbers
+      let digit: string;
+      if (Math.random() < 0.7 && hotDigits.length > 0) {
+        digit = hotDigits[Math.floor(Math.random() * hotDigits.length)];
+      } else {
+        const range = Math.max(0, Math.min(9, Math.round(avgNeeded)));
+        digit = (Math.max(0, Math.min(9, range + Math.floor(Math.random() * 3) - 1))).toString();
+      }
+      
+      prediction += digit;
+      currentSum += parseInt(digit);
+    }
+    
+    predictions.push(prediction);
+  }
+  
+  return predictions;
+};
+
+// Generate predictions based on number pairs
+export const generatePairBasedPredictions = (count: number = 10): string[] => {
+  const predictions: string[] = [];
+  const topPairs = analyzeNumberPairs().slice(0, 10);
+  
+  for (let i = 0; i < count; i++) {
+    const usedDigits = new Set<string>();
+    let prediction = "";
+    
+    // Pick 2-3 random pairs and fill the rest
+    const pairsToUse = Math.floor(Math.random() * 2) + 2; // 2 or 3 pairs
+    const selectedPairs = topPairs
+      .sort(() => Math.random() - 0.5)
+      .slice(0, pairsToUse);
+    
+    selectedPairs.forEach(p => {
+      const [d1, d2] = p.pair.split("-");
+      usedDigits.add(d1);
+      usedDigits.add(d2);
+    });
+    
+    const digits = Array.from(usedDigits);
+    
+    // Fill to 6 digits if needed
+    while (digits.length < 6) {
+      const newDigit = Math.floor(Math.random() * 10).toString();
+      if (!digits.includes(newDigit)) {
+        digits.push(newDigit);
+      }
+    }
+    
+    // Shuffle and take first 6
+    prediction = digits
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 6)
+      .join("");
+    
+    predictions.push(prediction);
+  }
+  
+  return predictions;
+};
+
 // Analyze draw number frequency
 export const getDrawNumberFrequency = (): { draw: string; count: number }[] => {
   const drawCounts: { [key: string]: number } = {};
