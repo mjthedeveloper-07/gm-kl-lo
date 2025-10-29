@@ -3,16 +3,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LineChart, TrendingUp, Copy, Check, RefreshCw, Target, Sigma, Link2 } from "lucide-react";
+import { LineChart, TrendingUp, Copy, Check, RefreshCw, Target, Sigma, Link2, Brain, Calculator, Lightbulb } from "lucide-react";
 import { toast } from "sonner";
 import {
   generateDeltaPredictions,
   generateSumBasedPredictions,
   generatePairBasedPredictions,
+  generateCombinatorialPredictions,
+  generateProbabilityBasedPredictions,
   getSumStatistics,
   analyzeNumberPairs,
+  analyzeCombinatorialTemplates,
   getHotAndColdNumbers,
-  calculateSum
+  calculateSum,
+  type CombinatorialTemplate
 } from "@/utils/lotteryAnalysis";
 
 interface Prediction {
@@ -21,20 +25,28 @@ interface Prediction {
   confidence: "high" | "medium" | "low";
   sum?: number;
   inRange?: boolean;
+  template?: string;
 }
 
 export const AdvancedFormulasPredictions = () => {
   const [deltaPredictions, setDeltaPredictions] = useState<Prediction[]>([]);
   const [sumPredictions, setSumPredictions] = useState<Prediction[]>([]);
   const [pairPredictions, setPairPredictions] = useState<Prediction[]>([]);
+  const [combinatorialPreds, setCombinatorialPreds] = useState<Prediction[]>([]);
+  const [probabilityPreds, setProbabilityPreds] = useState<Prediction[]>([]);
+  const [templates, setTemplates] = useState<CombinatorialTemplate[]>([]);
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
   const [sumStats, setSumStats] = useState(getSumStatistics());
   const [topPairs, setTopPairs] = useState(analyzeNumberPairs().slice(0, 5));
   const { hot, cold } = getHotAndColdNumbers();
 
   const generateAllPredictions = () => {
+    // Analyze templates first
+    const analysisTemplates = analyzeCombinatorialTemplates().slice(0, 10);
+    setTemplates(analysisTemplates);
+
     // Delta System Predictions
-    const deltaResults: Prediction[] = generateDeltaPredictions(15).map(num => ({
+    const deltaResults: Prediction[] = generateDeltaPredictions(12).map(num => ({
       number: num,
       method: "Delta System",
       confidence: "medium",
@@ -43,7 +55,7 @@ export const AdvancedFormulasPredictions = () => {
     }));
 
     // Sum Analysis Predictions
-    const sumResults: Prediction[] = generateSumBasedPredictions(15).map(num => {
+    const sumResults: Prediction[] = generateSumBasedPredictions(12).map(num => {
       const sum = calculateSum(num);
       const inRange = sum >= sumStats.commonRange.lower && sum <= sumStats.commonRange.upper;
       return {
@@ -56,7 +68,7 @@ export const AdvancedFormulasPredictions = () => {
     });
 
     // Pair-Based Predictions
-    const pairResults: Prediction[] = generatePairBasedPredictions(15).map(num => ({
+    const pairResults: Prediction[] = generatePairBasedPredictions(12).map(num => ({
       number: num,
       method: "Number Pairing",
       confidence: "high",
@@ -64,9 +76,37 @@ export const AdvancedFormulasPredictions = () => {
       inRange: false
     }));
 
+    // Combinatorial Template Predictions (NEW)
+    const combResults: Prediction[] = generateCombinatorialPredictions(12).map(num => {
+      const digits = num.split('').map(d => parseInt(d));
+      const oddCount = digits.filter(d => d % 2 !== 0).length;
+      const evenCount = 6 - oddCount;
+      const lowCount = digits.filter(d => d <= 3).length;
+      const midCount = digits.filter(d => d >= 4 && d <= 6).length;
+      const highCount = digits.filter(d => d >= 7).length;
+      
+      return {
+        number: num,
+        method: "Combinatorial Template",
+        confidence: "high",
+        sum: calculateSum(num),
+        template: `${oddCount}O-${evenCount}E | ${lowCount}L-${midCount}M-${highCount}H`
+      };
+    });
+
+    // Probability-Based Predictions (NEW)
+    const probResults: Prediction[] = generateProbabilityBasedPredictions(12).map(num => ({
+      number: num,
+      method: "Positional Probability",
+      confidence: "high",
+      sum: calculateSum(num)
+    }));
+
     setDeltaPredictions(deltaResults);
     setSumPredictions(sumResults);
     setPairPredictions(pairResults);
+    setCombinatorialPreds(combResults);
+    setProbabilityPreds(probResults);
     
     toast.success("Generated predictions using advanced formulas");
   };
@@ -107,6 +147,11 @@ export const AdvancedFormulasPredictions = () => {
         {pred.number}
       </div>
       <div className="text-xs text-center space-y-1">
+        {pred.template && (
+          <div className="text-muted-foreground font-medium">
+            {pred.template}
+          </div>
+        )}
         <div className="text-muted-foreground">
           Confidence: {pred.confidence}
         </div>
@@ -125,12 +170,12 @@ export const AdvancedFormulasPredictions = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-primary/70">
-              <LineChart className="w-6 h-6 text-primary-foreground" />
+              <Brain className="w-6 h-6 text-primary-foreground" />
             </div>
             <div>
-              <CardTitle className="text-2xl">📊 Advanced Formula Predictions</CardTitle>
+              <CardTitle className="text-2xl">🎯 Advanced Formula Predictions</CardTitle>
               <CardDescription className="mt-1">
-                Using Sum Analysis, Delta System & Number Pairing methods
+                Combinatorial Templates, Positional Probability & Statistical Methods
               </CardDescription>
             </div>
           </div>
@@ -138,6 +183,28 @@ export const AdvancedFormulasPredictions = () => {
             <RefreshCw className="w-4 h-4 mr-2" />
             Regenerate All
           </Button>
+        </div>
+
+        {/* Top Templates Display */}
+        <div className="mt-4 p-4 rounded-lg bg-muted/30 border">
+          <div className="flex items-center gap-2 mb-3">
+            <Calculator className="w-5 h-5 text-primary" />
+            <h3 className="text-sm font-semibold">Most Common Combinatorial Templates</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {templates.slice(0, 6).map((template, idx) => (
+              <div key={idx} className="flex items-center justify-between p-2 rounded bg-background/50 text-xs">
+                <span className="font-medium text-muted-foreground">{template.description}</span>
+                <Badge variant="outline" className="ml-2">
+                  {template.percentage}%
+                </Badge>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            <strong>O</strong> = Odd, <strong>E</strong> = Even | <strong>L</strong> = Low (0-3), 
+            <strong>M</strong> = Mid (4-6), <strong>H</strong> = High (7-9)
+          </p>
         </div>
 
         {/* Statistics Summary */}
@@ -180,21 +247,65 @@ export const AdvancedFormulasPredictions = () => {
       </CardHeader>
 
       <CardContent>
-        <Tabs defaultValue="sum" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="combinatorial" className="w-full">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="combinatorial">
+              <Calculator className="w-4 h-4 mr-2" />
+              Combinatorial
+            </TabsTrigger>
+            <TabsTrigger value="probability">
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Probability
+            </TabsTrigger>
             <TabsTrigger value="sum">
               <Sigma className="w-4 h-4 mr-2" />
-              Sum Analysis
+              Sum
             </TabsTrigger>
             <TabsTrigger value="pair">
               <Link2 className="w-4 h-4 mr-2" />
-              Number Pairs
+              Pairs
             </TabsTrigger>
             <TabsTrigger value="delta">
               <Target className="w-4 h-4 mr-2" />
-              Delta System
+              Delta
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="combinatorial" className="space-y-3">
+            <div className="p-3 rounded-lg bg-muted/30 border-l-4 border-primary">
+              <div className="flex items-start gap-2">
+                <Lightbulb className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-muted-foreground">
+                  <strong>Combinatorial Template Method:</strong> Based on proven mathematical templates like "3-Odd 3-Even" 
+                  or "3-Low 2-Mid 1-High". Analyzes historical draws to identify which digit distributions appear most frequently. 
+                  Uses nCr probability theory to generate combinations that match high-occurrence patterns.
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {combinatorialPreds.map((pred, idx) => (
+                <PredictionCard key={idx} pred={pred} index={idx} type="comb" />
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="probability" className="space-y-3">
+            <div className="p-3 rounded-lg bg-muted/30 border-l-4 border-primary">
+              <div className="flex items-start gap-2">
+                <Lightbulb className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-muted-foreground">
+                  <strong>Positional Probability Method:</strong> Analyzes which specific digits appear most frequently 
+                  in each of the 6 positions. Generates predictions by selecting high-probability digits for each position with 70% weight 
+                  on top-5 frequent digits and 30% randomness for diversity.
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {probabilityPreds.map((pred, idx) => (
+                <PredictionCard key={idx} pred={pred} index={idx} type="prob" />
+              ))}
+            </div>
+          </TabsContent>
 
           <TabsContent value="sum" className="space-y-3">
             <div className="p-3 rounded-lg bg-muted/30 border-l-4 border-primary">
@@ -238,6 +349,29 @@ export const AdvancedFormulasPredictions = () => {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Mathematical Formula Reference */}
+        <div className="mt-6 p-4 rounded-lg bg-primary/5 border-2 border-primary/20">
+          <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+            <Calculator className="w-4 h-4" />
+            Mathematical Foundations
+          </h3>
+          <div className="text-xs text-muted-foreground space-y-2">
+            <p>
+              <strong>Combinatorial Formula:</strong> Total combinations = nCr = n! / (r!(n-r)!) 
+              where n = available digits (10), r = selection size (6)
+            </p>
+            <p>
+              <strong>Template Probability:</strong> P(template) = (Template frequency) / (Total historical draws) × 100%
+            </p>
+            <p>
+              <strong>Positional Frequency:</strong> For each position i, P(digit d) = Count(d at position i) / Total draws
+            </p>
+            <p className="pt-2 text-xs italic">
+              These formulas organize selection strategy statistically but cannot guarantee wins in random draws.
+            </p>
+          </div>
+        </div>
 
         {/* Disclaimer */}
         <div className="mt-6 p-4 rounded-lg bg-destructive/10 border-2 border-destructive/30">

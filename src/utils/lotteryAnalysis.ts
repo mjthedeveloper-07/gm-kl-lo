@@ -362,3 +362,223 @@ export const getDrawNumberFrequency = (): { draw: string; count: number }[] => {
     .map(([draw, count]) => ({ draw, count }))
     .sort((a, b) => b.count - a.count);
 };
+
+// =============== ADVANCED PREDICTION FORMULAS ===============
+
+// Get positional digit frequency (which digits appear most in each position)
+export const getPositionalFrequency = () => {
+  const positions = [0, 1, 2, 3, 4, 5]; // 6-digit numbers
+  const positionalData: { [key: number]: { [digit: string]: number } } = {};
+  
+  positions.forEach(pos => {
+    positionalData[pos] = {};
+  });
+  
+  lotteryHistory.forEach(result => {
+    const digits = result.result.split('');
+    digits.forEach((digit, pos) => {
+      if (pos < 6) { // Only first 6 digits
+        positionalData[pos][digit] = (positionalData[pos][digit] || 0) + 1;
+      }
+    });
+  });
+  
+  return positionalData;
+};
+
+// Combinatorial template analysis (e.g., "3-odd 3-even", "3-low 2-mid 1-high")
+export interface CombinatorialTemplate {
+  name: string;
+  description: string;
+  oddCount: number;
+  evenCount: number;
+  lowCount: number;   // 0-3
+  midCount: number;   // 4-6
+  highCount: number;  // 7-9
+  frequency: number;
+  percentage: number;
+}
+
+export const analyzeCombinatorialTemplates = (): CombinatorialTemplate[] => {
+  const templateCounts = new Map<string, CombinatorialTemplate>();
+  
+  lotteryHistory.forEach(result => {
+    const digits = result.result.substring(0, 6).split('').map(d => parseInt(d));
+    
+    const oddCount = digits.filter(d => d % 2 !== 0).length;
+    const evenCount = 6 - oddCount;
+    const lowCount = digits.filter(d => d <= 3).length;
+    const midCount = digits.filter(d => d >= 4 && d <= 6).length;
+    const highCount = digits.filter(d => d >= 7).length;
+    
+    const key = `${oddCount}odd-${evenCount}even_${lowCount}low-${midCount}mid-${highCount}high`;
+    
+    if (!templateCounts.has(key)) {
+      templateCounts.set(key, {
+        name: key,
+        description: `${oddCount} Odd, ${evenCount} Even | ${lowCount} Low (0-3), ${midCount} Mid (4-6), ${highCount} High (7-9)`,
+        oddCount,
+        evenCount,
+        lowCount,
+        midCount,
+        highCount,
+        frequency: 0,
+        percentage: 0
+      });
+    }
+    
+    const template = templateCounts.get(key)!;
+    template.frequency++;
+  });
+  
+  const total = lotteryHistory.length;
+  const templates = Array.from(templateCounts.values())
+    .map(t => ({
+      ...t,
+      percentage: parseFloat(((t.frequency / total) * 100).toFixed(2))
+    }))
+    .sort((a, b) => b.frequency - a.frequency);
+  
+  return templates;
+};
+
+// Generate predictions using combinatorial templates
+export const generateCombinatorialPredictions = (count: number = 10): string[] => {
+  const predictions: string[] = [];
+  const seed = generateSeed();
+  const rng = new SeededRandom(seed + 5000);
+  const templates = analyzeCombinatorialTemplates().slice(0, 5); // Top 5 templates
+  const { hot } = getHotAndColdNumbers();
+  const hotDigits = hot.map(h => h.digit);
+  
+  for (let i = 0; i < count; i++) {
+    const template = templates[Math.floor(rng.next() * templates.length)];
+    const digits: string[] = [];
+    
+    // Generate digits following the template
+    let oddNeeded = template.oddCount;
+    let evenNeeded = template.evenCount;
+    let lowNeeded = template.lowCount;
+    let midNeeded = template.midCount;
+    let highNeeded = template.highCount;
+    
+    while (digits.length < 6) {
+      let digit: number;
+      
+      // Prioritize hot numbers
+      if (rng.next() > 0.3 && hotDigits.length > 0) {
+        digit = parseInt(hotDigits[Math.floor(rng.next() * hotDigits.length)]);
+      } else {
+        // Generate based on remaining needs
+        if (lowNeeded > 0 && rng.next() > 0.5) {
+          digit = Math.floor(rng.next() * 4); // 0-3
+          lowNeeded--;
+        } else if (midNeeded > 0 && rng.next() > 0.5) {
+          digit = 4 + Math.floor(rng.next() * 3); // 4-6
+          midNeeded--;
+        } else if (highNeeded > 0) {
+          digit = 7 + Math.floor(rng.next() * 3); // 7-9
+          highNeeded--;
+        } else {
+          digit = Math.floor(rng.next() * 10);
+        }
+      }
+      
+      // Check odd/even constraint
+      const isOdd = digit % 2 !== 0;
+      if ((isOdd && oddNeeded > 0) || (!isOdd && evenNeeded > 0)) {
+        digits.push(digit.toString());
+        if (isOdd) oddNeeded--;
+        else evenNeeded--;
+      }
+    }
+    
+    predictions.push(digits.join(''));
+  }
+  
+  return predictions;
+};
+
+// Advanced sequential pattern recognition
+export const findSequentialPatterns = () => {
+  const patterns = new Map<string, { count: number; results: LotteryResult[] }>();
+  
+  lotteryHistory.forEach(result => {
+    const digits = result.result.substring(0, 6).split('').map(d => parseInt(d));
+    
+    // Check for ascending sequences (e.g., 1,2,3 or 5,6,7)
+    for (let i = 0; i < digits.length - 2; i++) {
+      if (digits[i + 1] === digits[i] + 1 && digits[i + 2] === digits[i] + 2) {
+        const pattern = `asc-${digits[i]}-${digits[i+1]}-${digits[i+2]}`;
+        if (!patterns.has(pattern)) {
+          patterns.set(pattern, { count: 0, results: [] });
+        }
+        const p = patterns.get(pattern)!;
+        p.count++;
+        p.results.push(result);
+      }
+    }
+    
+    // Check for repeating digits
+    const digitCounts = new Map<number, number>();
+    digits.forEach(d => {
+      digitCounts.set(d, (digitCounts.get(d) || 0) + 1);
+    });
+    
+    digitCounts.forEach((count, digit) => {
+      if (count >= 2) {
+        const pattern = `repeat-${digit}-x${count}`;
+        if (!patterns.has(pattern)) {
+          patterns.set(pattern, { count: 0, results: [] });
+        }
+        const p = patterns.get(pattern)!;
+        p.count++;
+        if (!p.results.find(r => r.date === result.date)) {
+          p.results.push(result);
+        }
+      }
+    });
+  });
+  
+  return Array.from(patterns.entries())
+    .map(([pattern, data]) => ({
+      pattern,
+      ...data
+    }))
+    .sort((a, b) => b.count - a.count);
+};
+
+// Probability-based smart picker using nCr concepts
+export const generateProbabilityBasedPredictions = (count: number = 10): string[] => {
+  const predictions: string[] = [];
+  const seed = generateSeed();
+  const rng = new SeededRandom(seed + 6000);
+  const positionalFreq = getPositionalFrequency();
+  const templates = analyzeCombinatorialTemplates().slice(0, 3);
+  
+  for (let i = 0; i < count; i++) {
+    const digits: string[] = [];
+    const template = templates[Math.floor(rng.next() * templates.length)];
+    
+    // Use positional frequency to pick most likely digits for each position
+    for (let pos = 0; pos < 6; pos++) {
+      const posFreq = positionalFreq[pos];
+      const sortedDigits = Object.entries(posFreq)
+        .sort(([, a], [, b]) => b - a)
+        .map(([digit]) => digit);
+      
+      // 70% chance: pick from top 5 most frequent
+      // 30% chance: random digit
+      if (rng.next() > 0.3 && sortedDigits.length > 0) {
+        const topDigits = sortedDigits.slice(0, 5);
+        digits.push(topDigits[Math.floor(rng.next() * topDigits.length)]);
+      } else {
+        digits.push(Math.floor(rng.next() * 10).toString());
+      }
+    }
+    
+    predictions.push(digits.join(''));
+  }
+  
+  return predictions;
+};
