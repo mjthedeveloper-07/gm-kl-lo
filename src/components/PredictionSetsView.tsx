@@ -190,12 +190,10 @@ export const PredictionSetsView = () => {
               </Button>
             </div>
 
-            {/* Show validation for Formula 1 and Formula 2 */}
-            {(set.method.includes("Formula 1") || set.method.includes("Formula 2")) && (
-              <div className="mt-4 pt-4 border-t">
-                <PredictionValidator predictions={set.numbers} />
-              </div>
-            )}
+            {/* Show historical validation for all methods */}
+            <div className="mt-4 pt-4 border-t">
+              <PredictionValidator predictions={set.numbers} />
+            </div>
           </CardContent>
         </Card>
       ))}
