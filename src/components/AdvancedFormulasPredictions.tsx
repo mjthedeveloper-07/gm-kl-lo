@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LineChart, TrendingUp, Copy, Check, RefreshCw, Target, Sigma, Link2, Brain, Calculator, Lightbulb, Sparkles } from "lucide-react";
+import { LineChart, TrendingUp, Copy, Check, RefreshCw, Target, Sigma, Link2, Brain, Calculator, Lightbulb, Sparkles, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import {
   generateDeltaPredictions,
@@ -23,11 +23,13 @@ import {
   calculateSymmetricKL,
   applyPowerMappingCorrection,
   analyzePowerMappingCompliance,
+  getTopPowerMappedNumbers,
   type CombinatorialTemplate,
   type KLDivergenceResult,
   type PositionalKLDivergence,
   type PowerMappingResult,
-  type PowerMappingCompliance
+  type PowerMappingCompliance,
+  type TopPowerMappedNumber
 } from "@/utils/lotteryAnalysis";
 import { ComplexPlaneAnalysis } from "@/components/ComplexPlaneAnalysis";
 import { ComplexFormulaValidator } from "@/components/ComplexFormulaValidator";
@@ -54,6 +56,7 @@ export const AdvancedFormulasPredictions = () => {
   const [positionalDivergence, setPositionalDivergence] = useState<PositionalKLDivergence[]>([]);
   const [symmetricKL, setSymmetricKL] = useState<number>(0);
   const [powerMappingCompliance, setPowerMappingCompliance] = useState<PowerMappingCompliance | null>(null);
+  const [topPowerMappedNumbers, setTopPowerMappedNumbers] = useState<TopPowerMappedNumber[]>([]);
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
   const [sumStats, setSumStats] = useState(getSumStatistics());
   const [topPairs, setTopPairs] = useState(analyzeNumberPairs().slice(0, 5));
@@ -147,6 +150,7 @@ export const AdvancedFormulasPredictions = () => {
 
     // Analyze power mapping compliance
     const pmCompliance = analyzePowerMappingCompliance();
+    const topPMNumbers = getTopPowerMappedNumbers(5);
 
     setDeltaPredictions(deltaResults);
     setSumPredictions(sumResults);
@@ -159,6 +163,7 @@ export const AdvancedFormulasPredictions = () => {
     setPositionalDivergence(posDiv);
     setSymmetricKL(symKL);
     setPowerMappingCompliance(pmCompliance);
+    setTopPowerMappedNumbers(topPMNumbers);
     
     toast.success("Generated predictions using advanced formulas");
   };
@@ -408,6 +413,49 @@ export const AdvancedFormulasPredictions = () => {
                 )}
               </div>
             </div>
+
+            {/* Top 5 High-Frequency Power-Mapped Numbers */}
+            {topPowerMappedNumbers.length > 0 && (
+              <div className="p-4 rounded-lg bg-gradient-to-br from-primary/5 to-primary/10 border-2 border-primary/20">
+                <div className="flex items-center gap-2 mb-3">
+                  <Trophy className="w-5 h-5 text-primary" />
+                  <h3 className="text-base font-semibold text-foreground">Top 5 High-Frequency Power-Mapped Numbers</h3>
+                </div>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Historical winning numbers that naturally followed the A(x) = (x+5) mod 10 rule, sorted by frequency
+                </p>
+                <div className="space-y-2">
+                  {topPowerMappedNumbers.map((item, idx) => (
+                    <div key={idx} className="p-3 rounded-lg bg-card border flex items-center justify-between hover:border-primary/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <Badge variant="default" className="bg-primary text-primary-foreground font-bold text-sm w-8 h-8 flex items-center justify-center rounded-full">
+                          #{idx + 1}
+                        </Badge>
+                        <div>
+                          <div className="font-mono text-lg font-bold text-primary">{item.number}</div>
+                          <div className="text-xs text-muted-foreground flex items-center gap-2 mt-1">
+                            <span className="flex items-center gap-1">
+                              <span className="font-semibold text-foreground">{item.firstDigit}</span>
+                              <span>→</span>
+                              <span className="font-semibold text-primary">{item.lastDigit}</span>
+                              <Check className="w-3 h-3 text-green-500 ml-1" />
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-semibold text-foreground">
+                          {item.frequency} {item.frequency === 1 ? 'time' : 'times'}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Last: {item.lastSeen}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {powerMappingPreds.map((pred, idx) => {

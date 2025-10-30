@@ -846,6 +846,66 @@ export const analyzePowerMappingCompliance = (): PowerMappingCompliance => {
   };
 };
 
+export interface TopPowerMappedNumber {
+  number: string;
+  firstDigit: number;
+  lastDigit: number;
+  frequency: number;
+  lastSeen: string;
+  mapping: string;
+}
+
+// Get top N power-mapped numbers by frequency
+export const getTopPowerMappedNumbers = (count: number = 5): TopPowerMappedNumber[] => {
+  const numberFrequency: { [key: string]: { count: number; lastDate: string } } = {};
+  
+  // Count frequency of compliant numbers
+  lotteryHistory.forEach(result => {
+    const number = result.result;
+    if (number.length >= 6) {
+      const firstDigit = parseInt(number[0]);
+      const lastDigit = parseInt(number[number.length - 1]);
+      const expectedLastDigit = applyPowerMapping(firstDigit);
+      
+      // Only count compliant numbers
+      if (lastDigit === expectedLastDigit) {
+        if (!numberFrequency[number]) {
+          numberFrequency[number] = { count: 0, lastDate: result.date };
+        }
+        numberFrequency[number].count++;
+        // Keep the most recent date
+        if (new Date(result.date) > new Date(numberFrequency[number].lastDate)) {
+          numberFrequency[number].lastDate = result.date;
+        }
+      }
+    }
+  });
+  
+  // Convert to array and sort by frequency
+  const sorted = Object.entries(numberFrequency)
+    .map(([number, data]) => {
+      const firstDigit = parseInt(number[0]);
+      const lastDigit = parseInt(number[number.length - 1]);
+      return {
+        number,
+        firstDigit,
+        lastDigit,
+        frequency: data.count,
+        lastSeen: data.lastDate,
+        mapping: `${firstDigit}→${lastDigit}`
+      };
+    })
+    .sort((a, b) => {
+      // Sort by frequency descending, then by most recent date
+      if (b.frequency !== a.frequency) {
+        return b.frequency - a.frequency;
+      }
+      return new Date(b.lastSeen).getTime() - new Date(a.lastSeen).getTime();
+    });
+  
+  return sorted.slice(0, count);
+};
+
 // Generate predictions that follow power mapping rules
 export const generatePowerMappedPredictions = (count: number = 12): string[] => {
   const predictions: string[] = [];
