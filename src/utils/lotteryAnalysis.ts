@@ -758,3 +758,156 @@ export const calculateSymmetricKL = (): number => {
   
   return (klPQ + klQP) / 2;
 };
+
+// ==================== POWER MAPPING PREDICTION METHOD ====================
+
+export interface PowerMappingResult {
+  original: string;
+  corrected: string;
+  isValid: boolean;
+  firstDigit: number;
+  lastDigit: number;
+  expectedLastDigit: number;
+  wasModified: boolean;
+}
+
+export interface PowerMappingCompliance {
+  totalResults: number;
+  compliantResults: number;
+  complianceRate: number;
+  mappingFrequency: { [key: string]: number };
+}
+
+// Power Mapping Function: A(x) = (x + 5) mod 10
+const applyPowerMapping = (firstDigit: number): number => {
+  return (firstDigit + 5) % 10;
+};
+
+// Validate and correct a 6-digit lottery number using power mapping
+export const applyPowerMappingCorrection = (number: string): PowerMappingResult => {
+  if (number.length !== 6 || !/^\d+$/.test(number)) {
+    throw new Error("Invalid input: Number must be exactly 6 digits");
+  }
+
+  const firstDigit = parseInt(number[0]);
+  const lastDigit = parseInt(number[5]);
+  const expectedLastDigit = applyPowerMapping(firstDigit);
+  const isValid = lastDigit === expectedLastDigit;
+
+  let corrected = number;
+  if (!isValid) {
+    corrected = number.slice(0, 5) + expectedLastDigit.toString();
+  }
+
+  return {
+    original: number,
+    corrected,
+    isValid,
+    firstDigit,
+    lastDigit,
+    expectedLastDigit,
+    wasModified: !isValid
+  };
+};
+
+// Analyze historical lottery results for power mapping compliance
+export const analyzePowerMappingCompliance = (): PowerMappingCompliance => {
+  let compliantCount = 0;
+  const mappingFrequency: { [key: string]: number } = {};
+
+  // Initialize mapping frequency counters
+  for (let i = 0; i <= 9; i++) {
+    const expected = applyPowerMapping(i);
+    const key = `${i}→${expected}`;
+    mappingFrequency[key] = 0;
+  }
+
+  lotteryHistory.forEach(result => {
+    const number = result.result;
+    if (number.length >= 6) {
+      const firstDigit = parseInt(number[0]);
+      const lastDigit = parseInt(number[number.length - 1]);
+      const expectedLastDigit = applyPowerMapping(firstDigit);
+      
+      const key = `${firstDigit}→${lastDigit}`;
+      mappingFrequency[key] = (mappingFrequency[key] || 0) + 1;
+
+      if (lastDigit === expectedLastDigit) {
+        compliantCount++;
+      }
+    }
+  });
+
+  return {
+    totalResults: lotteryHistory.length,
+    compliantResults: compliantCount,
+    complianceRate: (compliantCount / lotteryHistory.length) * 100,
+    mappingFrequency
+  };
+};
+
+// Generate predictions that follow power mapping rules
+export const generatePowerMappedPredictions = (count: number = 12): string[] => {
+  const predictions: string[] = [];
+  const rng = new SeededRandom(generateSeed());
+  const { hot } = getHotAndColdNumbers();
+  const hotDigits = hot.map(h => parseInt(h.digit));
+  const sumStats = getSumStatistics();
+
+  let attempts = 0;
+  const maxAttempts = count * 50;
+
+  while (predictions.length < count && attempts < maxAttempts) {
+    attempts++;
+    
+    // Start with a first digit (favor hot numbers 60% of the time)
+    let firstDigit: number;
+    if (rng.next() < 0.6 && hotDigits.length > 0) {
+      firstDigit = hotDigits[Math.floor(rng.next() * hotDigits.length)];
+    } else {
+      firstDigit = Math.floor(rng.next() * 10);
+    }
+
+    // Calculate required last digit based on power mapping
+    const lastDigit = applyPowerMapping(firstDigit);
+
+    // Generate middle 4 digits (favor hot numbers)
+    const middleDigits: number[] = [];
+    for (let i = 0; i < 4; i++) {
+      if (rng.next() < 0.5 && hotDigits.length > 0) {
+        middleDigits.push(hotDigits[Math.floor(rng.next() * hotDigits.length)]);
+      } else {
+        middleDigits.push(Math.floor(rng.next() * 10));
+      }
+    }
+
+    // Construct the prediction
+    const prediction = `${firstDigit}${middleDigits.join('')}${lastDigit}`;
+
+    // Verify it follows power mapping (should always be true by construction)
+    const validation = applyPowerMappingCorrection(prediction);
+    
+    // Check if sum is in reasonable range
+    const sum = calculateSum(prediction);
+    const inRange = sum >= sumStats.commonRange.lower - 5 && sum <= sumStats.commonRange.upper + 5;
+
+    // Avoid duplicates and ensure valid
+    if (!predictions.includes(prediction) && validation.isValid && inRange) {
+      predictions.push(prediction);
+    }
+  }
+
+  // If we didn't generate enough, fill with any valid power-mapped numbers
+  while (predictions.length < count) {
+    const firstDigit = Math.floor(Math.random() * 10);
+    const lastDigit = applyPowerMapping(firstDigit);
+    const middle = Array.from({ length: 4 }, () => Math.floor(Math.random() * 10)).join('');
+    const prediction = `${firstDigit}${middle}${lastDigit}`;
+    
+    if (!predictions.includes(prediction)) {
+      predictions.push(prediction);
+    }
+  }
+
+  return predictions;
+};

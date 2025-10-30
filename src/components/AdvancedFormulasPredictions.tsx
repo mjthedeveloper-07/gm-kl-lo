@@ -12,6 +12,7 @@ import {
   generateCombinatorialPredictions,
   generateProbabilityBasedPredictions,
   generateKLDivergencePredictions,
+  generatePowerMappedPredictions,
   getSumStatistics,
   analyzeNumberPairs,
   analyzeCombinatorialTemplates,
@@ -20,9 +21,13 @@ import {
   analyzeKLDivergenceByDigit,
   analyzeKLDivergenceByPosition,
   calculateSymmetricKL,
+  applyPowerMappingCorrection,
+  analyzePowerMappingCompliance,
   type CombinatorialTemplate,
   type KLDivergenceResult,
-  type PositionalKLDivergence
+  type PositionalKLDivergence,
+  type PowerMappingResult,
+  type PowerMappingCompliance
 } from "@/utils/lotteryAnalysis";
 
 interface Prediction {
@@ -41,10 +46,12 @@ export const AdvancedFormulasPredictions = () => {
   const [combinatorialPreds, setCombinatorialPreds] = useState<Prediction[]>([]);
   const [probabilityPreds, setProbabilityPreds] = useState<Prediction[]>([]);
   const [klDivergencePreds, setKLDivergencePreds] = useState<Prediction[]>([]);
+  const [powerMappingPreds, setPowerMappingPreds] = useState<Prediction[]>([]);
   const [templates, setTemplates] = useState<CombinatorialTemplate[]>([]);
   const [digitDivergence, setDigitDivergence] = useState<KLDivergenceResult[]>([]);
   const [positionalDivergence, setPositionalDivergence] = useState<PositionalKLDivergence[]>([]);
   const [symmetricKL, setSymmetricKL] = useState<number>(0);
+  const [powerMappingCompliance, setPowerMappingCompliance] = useState<PowerMappingCompliance | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
   const [sumStats, setSumStats] = useState(getSumStatistics());
   const [topPairs, setTopPairs] = useState(analyzeNumberPairs().slice(0, 5));
@@ -120,10 +127,24 @@ export const AdvancedFormulasPredictions = () => {
       sum: calculateSum(num)
     }));
 
+    // Power Mapping Predictions (NEW)
+    const powerResults: Prediction[] = generatePowerMappedPredictions(12).map(num => {
+      const validation = applyPowerMappingCorrection(num);
+      return {
+        number: num,
+        method: "Power Mapping",
+        confidence: validation.isValid ? "high" : "medium",
+        sum: calculateSum(num)
+      };
+    });
+
     // Analyze KL divergence
     const digitDiv = analyzeKLDivergenceByDigit();
     const posDiv = analyzeKLDivergenceByPosition();
     const symKL = calculateSymmetricKL();
+
+    // Analyze power mapping compliance
+    const pmCompliance = analyzePowerMappingCompliance();
 
     setDeltaPredictions(deltaResults);
     setSumPredictions(sumResults);
@@ -131,9 +152,11 @@ export const AdvancedFormulasPredictions = () => {
     setCombinatorialPreds(combResults);
     setProbabilityPreds(probResults);
     setKLDivergencePreds(klResults);
+    setPowerMappingPreds(powerResults);
     setDigitDivergence(digitDiv);
     setPositionalDivergence(posDiv);
     setSymmetricKL(symKL);
+    setPowerMappingCompliance(pmCompliance);
     
     toast.success("Generated predictions using advanced formulas");
   };
@@ -274,19 +297,23 @@ export const AdvancedFormulasPredictions = () => {
       </CardHeader>
 
       <CardContent>
-        <Tabs defaultValue="kl-divergence" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+        <Tabs defaultValue="power-mapping" className="w-full">
+          <TabsList className="grid w-full grid-cols-7">
+            <TabsTrigger value="power-mapping">
+              <LineChart className="w-4 h-4 mr-2" />
+              Power Map
+            </TabsTrigger>
             <TabsTrigger value="kl-divergence">
               <Brain className="w-4 h-4 mr-2" />
-              KL Divergence
+              KL Div
             </TabsTrigger>
             <TabsTrigger value="combinatorial">
               <Calculator className="w-4 h-4 mr-2" />
-              Combinatorial
+              Comb
             </TabsTrigger>
             <TabsTrigger value="probability">
               <TrendingUp className="w-4 h-4 mr-2" />
-              Probability
+              Prob
             </TabsTrigger>
             <TabsTrigger value="sum">
               <Sigma className="w-4 h-4 mr-2" />
@@ -301,6 +328,104 @@ export const AdvancedFormulasPredictions = () => {
               Delta
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="power-mapping" className="space-y-3">
+            <div className="p-3 rounded-lg bg-muted/30 border-l-4 border-primary">
+              <div className="flex items-start gap-2">
+                <Lightbulb className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-muted-foreground">
+                  <strong>Power Mapping Method A(x) = (x + 5) mod 10:</strong> Enforces a mathematical relationship 
+                  between the first and last digits. Each first digit maps to a specific last digit: 0→5, 1→6, 2→7, 
+                  3→8, 4→9, 5→0, 6→1, 7→2, 8→3, 9→4. All predictions are validated and corrected to follow this constraint.
+                </div>
+              </div>
+            </div>
+
+            {/* Power Mapping Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="p-4 rounded-lg bg-muted/50 border">
+                <div className="flex items-center gap-2 mb-3">
+                  <LineChart className="w-5 h-5 text-primary" />
+                  <span className="text-sm font-semibold">Power Mapping Table</span>
+                </div>
+                <div className="grid grid-cols-5 gap-2 text-xs">
+                  {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(digit => {
+                    const mapped = (digit + 5) % 10;
+                    return (
+                      <div key={digit} className="p-2 rounded bg-background text-center border">
+                        <div className="font-bold text-primary">{digit}</div>
+                        <div className="text-muted-foreground">→</div>
+                        <div className="font-bold text-foreground">{mapped}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="p-4 rounded-lg bg-muted/50 border">
+                <div className="flex items-center gap-2 mb-3">
+                  <TrendingUp className="w-5 h-5 text-green-500" />
+                  <span className="text-sm font-semibold">Historical Compliance</span>
+                </div>
+                {powerMappingCompliance && (
+                  <div className="space-y-2">
+                    <div>
+                      <div className="text-2xl font-bold text-primary">
+                        {powerMappingCompliance.complianceRate.toFixed(1)}%
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {powerMappingCompliance.compliantResults} of {powerMappingCompliance.totalResults} results follow the pattern
+                      </div>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-3">
+                      <strong>Note:</strong> This is a mathematical constraint applied to predictions. 
+                      Historical compliance shows how often winning numbers naturally followed this pattern.
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {powerMappingPreds.map((pred, idx) => {
+                const validation = applyPowerMappingCorrection(pred.number);
+                return (
+                  <div key={idx} className="group relative p-4 rounded-lg border-2 border-border hover:border-primary/50 bg-card transition-all hover:shadow-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <Badge variant="default" className="bg-primary">
+                        Power Mapped
+                      </Badge>
+                      <button
+                        onClick={() => copyToClipboard(pred.number, `power-${idx}`)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-accent rounded"
+                        title="Copy to clipboard"
+                      >
+                        {copiedIndex === `power-${idx}` ? (
+                          <Check className="w-4 h-4 text-green-500" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
+                    <div className="font-mono text-2xl font-bold text-center py-2 tracking-wider text-primary">
+                      {pred.number}
+                    </div>
+                    <div className="text-xs text-center space-y-1">
+                      <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                        <span className="font-bold text-foreground">{validation.firstDigit}</span>
+                        <span>→</span>
+                        <span className="font-bold text-primary">{validation.expectedLastDigit}</span>
+                        <Check className="w-3 h-3 text-green-500" />
+                      </div>
+                      <div className="text-muted-foreground">
+                        Sum: <span className="font-medium text-foreground">{pred.sum}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </TabsContent>
 
           <TabsContent value="kl-divergence" className="space-y-3">
             <div className="p-3 rounded-lg bg-muted/30 border-l-4 border-primary">
