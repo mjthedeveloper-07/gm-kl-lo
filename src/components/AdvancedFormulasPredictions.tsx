@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LineChart, TrendingUp, Copy, Check, RefreshCw, Target, Sigma, Link2, Brain, Calculator, Lightbulb } from "lucide-react";
+import { LineChart, TrendingUp, Copy, Check, RefreshCw, Target, Sigma, Link2, Brain, Calculator, Lightbulb, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import {
   generateDeltaPredictions,
@@ -29,6 +29,8 @@ import {
   type PowerMappingResult,
   type PowerMappingCompliance
 } from "@/utils/lotteryAnalysis";
+import { ComplexPlaneAnalysis } from "@/components/ComplexPlaneAnalysis";
+import { ComplexFormulaValidator } from "@/components/ComplexFormulaValidator";
 
 interface Prediction {
   number: string;
@@ -297,8 +299,12 @@ export const AdvancedFormulasPredictions = () => {
       </CardHeader>
 
       <CardContent>
-        <Tabs defaultValue="power-mapping" className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
+        <Tabs defaultValue="complex-analysis" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+            <TabsTrigger value="complex-analysis">
+              <Sparkles className="w-4 h-4 mr-2" />
+              Complex
+            </TabsTrigger>
             <TabsTrigger value="power-mapping">
               <LineChart className="w-4 h-4 mr-2" />
               Power Map
@@ -328,6 +334,23 @@ export const AdvancedFormulasPredictions = () => {
               Delta
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="complex-analysis" className="space-y-3">
+            <div className="p-3 rounded-lg bg-muted/30 border-l-4 border-primary">
+              <div className="flex items-start gap-2">
+                <Sparkles className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-muted-foreground">
+                  <strong>Complex Number Analysis:</strong> Treats each lottery number as a complex number 
+                  (first 3 digits = real part, last 3 digits = imaginary part). This advanced mathematical 
+                  approach analyzes magnitude, phase, ratios, and jump distances in the complex plane. It also 
+                  validates various complex formulas against historical data to explore mathematical patterns.
+                </div>
+              </div>
+            </div>
+
+            <ComplexPlaneAnalysis />
+            <ComplexFormulaValidator />
+          </TabsContent>
 
           <TabsContent value="power-mapping" className="space-y-3">
             <div className="p-3 rounded-lg bg-muted/30 border-l-4 border-primary">
