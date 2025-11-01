@@ -32,7 +32,7 @@ export default function MirrorNumberPredictions() {
   const [mcNumber, setMcNumber] = useState('');
   const [lotteryType, setLotteryType] = useState('KL');
   const [month, setMonth] = useState(new Date().toISOString().slice(5, 7));
-  const [drawTime, setDrawTime] = useState<string>('');
+  const [drawTime, setDrawTime] = useState<string>('auto');
   const [predictions, setPredictions] = useState<MirrorPrediction[]>([]);
 
   // Validator tab state
@@ -60,11 +60,12 @@ export default function MirrorNumberPredictions() {
       });
       return;
     }
-    const generated = generateMirrorPredictions(mcNumber, lotteryType, month, 6, drawTime || undefined);
+    const timeParam = drawTime === 'auto' ? undefined : drawTime;
+    const generated = generateMirrorPredictions(mcNumber, lotteryType, month, 6, timeParam);
     setPredictions(generated);
     toast({
       title: "Predictions Generated",
-      description: `Generated ${generated.length} ${drawTime ? drawTime + ' ' : ''}mirror-based predictions`
+      description: `Generated ${generated.length} ${timeParam ? timeParam + ' ' : ''}mirror-based predictions`
     });
   };
 
@@ -161,7 +162,7 @@ export default function MirrorNumberPredictions() {
                     <SelectValue placeholder="Auto (General)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Auto (General)</SelectItem>
+                    <SelectItem value="auto">Auto (General)</SelectItem>
                     <SelectItem value="1PM">1PM Draw</SelectItem>
                     <SelectItem value="3PM">3PM Draw</SelectItem>
                     <SelectItem value="6PM">6PM Draw</SelectItem>
