@@ -33,6 +33,7 @@ import {
 } from "@/utils/lotteryAnalysis";
 import { ComplexPlaneAnalysis } from "@/components/ComplexPlaneAnalysis";
 import { ComplexFormulaValidator } from "@/components/ComplexFormulaValidator";
+import MirrorNumberPredictions from "@/components/MirrorNumberPredictions";
 
 interface Prediction {
   number: string;
@@ -305,10 +306,14 @@ export const AdvancedFormulasPredictions = () => {
 
       <CardContent>
         <Tabs defaultValue="complex-analysis" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9">
             <TabsTrigger value="complex-analysis">
               <Sparkles className="w-4 h-4 mr-2" />
               Complex
+            </TabsTrigger>
+            <TabsTrigger value="mirror-number">
+              <Trophy className="w-4 h-4 mr-2" />
+              Mirror
             </TabsTrigger>
             <TabsTrigger value="power-mapping">
               <LineChart className="w-4 h-4 mr-2" />
@@ -355,6 +360,21 @@ export const AdvancedFormulasPredictions = () => {
 
             <ComplexPlaneAnalysis />
             <ComplexFormulaValidator />
+          </TabsContent>
+
+          <TabsContent value="mirror-number" className="space-y-3">
+            <div className="p-3 rounded-lg bg-muted/30 border-l-4 border-primary">
+              <div className="flex items-start gap-2">
+                <Trophy className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-muted-foreground">
+                  <strong>Mirror Number Formula:</strong> Position-perfected mirror mapping system based on 600+ historical results. 
+                  Uses MC (Machine Number/Draw) to predict lottery results through sophisticated digit transformation rules 
+                  that vary by position, lottery type, and month. Achieves high accuracy through multi-strategy prediction approach.
+                </div>
+              </div>
+            </div>
+
+            <MirrorNumberPredictions />
           </TabsContent>
 
           <TabsContent value="power-mapping" className="space-y-3">
