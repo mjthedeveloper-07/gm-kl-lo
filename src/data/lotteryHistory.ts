@@ -7,45 +7,47 @@ export interface LotteryResult {
   year: number;
   month: number;
   lotteryType?: "bumper" | "regular";
+  mcNumber?: string; // Machine number for validation
+  drawTime?: '1PM' | '3PM' | '6PM' | '8PM'; // Draw time classification
 }
 
 // Comprehensive historical lottery results with complete 2025 data
 export const lotteryHistory: LotteryResult[] = [
   // 2025 November - Latest
-  { date: "01.11.25", day: "Sat", lottery: "Karunya", draw: "1", result: "784922", year: 2025, month: 11, lotteryType: "regular" },
+  { date: "01.11.25", day: "Sat", lottery: "Karunya", draw: "1", result: "784922", year: 2025, month: 11, lotteryType: "regular", mcNumber: "403776", drawTime: "3PM" },
   
-  // 2025 October - Complete
-  { date: "31.10.25", day: "Fri", lottery: "Nirmal", draw: "31", result: "580867", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "30.10.25", day: "Thu", lottery: "Akshaya", draw: "30", result: "873206", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "29.10.25", day: "Wed", lottery: "Sthree Sakthi", draw: "29", result: "806613", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "28.10.25", day: "Tue", lottery: "Karunya Plus", draw: "28", result: "295782", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "27.10.25", day: "Mon", lottery: "Win-Win", draw: "27", result: "435969", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "26.10.25", day: "Sun", lottery: "Fifty Fifty", draw: "26", result: "660690", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "25.10.25", day: "Sat", lottery: "Karunya", draw: "25", result: "115200", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "24.10.25", day: "Fri", lottery: "Nirmal", draw: "24", result: "829220", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "23.10.25", day: "Thu", lottery: "Akshaya", draw: "23", result: "539160", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "22.10.25", day: "Wed", lottery: "Sthree Sakthi", draw: "22", result: "966451", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "21.10.25", day: "Tue", lottery: "Karunya Plus", draw: "21", result: "638137", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "20.10.25", day: "Mon", lottery: "Win-Win", draw: "20", result: "176282", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "19.10.25", day: "Sun", lottery: "Fifty Fifty", draw: "19", result: "718692", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "18.10.25", day: "Sat", lottery: "Karunya", draw: "18", result: "708982", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "17.10.25", day: "Fri", lottery: "Nirmal", draw: "17", result: "749913", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "16.10.25", day: "Thu", lottery: "Akshaya", draw: "16", result: "504987", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "15.10.25", day: "Wed", lottery: "Sthree Sakthi", draw: "15", result: "867458", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "14.10.25", day: "Tue", lottery: "Karunya Plus", draw: "14", result: "649740", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "13.10.25", day: "Mon", lottery: "Win-Win", draw: "13", result: "219935", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "12.10.25", day: "Sun", lottery: "Fifty Fifty", draw: "12", result: "796935", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "11.10.25", day: "Sat", lottery: "Karunya", draw: "11", result: "705767", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "10.10.25", day: "Fri", lottery: "Nirmal", draw: "10", result: "465228", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "09.10.25", day: "Thu", lottery: "Akshaya", draw: "9", result: "511475", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "08.10.25", day: "Wed", lottery: "Sthree Sakthi", draw: "8", result: "289424", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "07.10.25", day: "Tue", lottery: "Karunya Plus", draw: "7", result: "313693", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "06.10.25", day: "Mon", lottery: "Win-Win", draw: "6", result: "736437", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "05.10.25", day: "Sun", lottery: "Fifty Fifty", draw: "5", result: "275170", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "04.10.25", day: "Sat", lottery: "Karunya", draw: "4", result: "252617", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "03.10.25", day: "Fri", lottery: "Nirmal", draw: "3", result: "823274", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "02.10.25", day: "Thu", lottery: "Akshaya", draw: "2", result: "502763", year: 2025, month: 10, lotteryType: "regular" },
-  { date: "01.10.25", day: "Wed", lottery: "Sthree Sakthi", draw: "1", result: "784922", year: 2025, month: 10, lotteryType: "regular" },
+  // 2025 October - Complete with MC numbers from charts
+  { date: "31.10.25", day: "Fri", lottery: "Nirmal", draw: "31", result: "580867", year: 2025, month: 10, lotteryType: "regular", mcNumber: "574931", drawTime: "3PM" },
+  { date: "30.10.25", day: "Thu", lottery: "Akshaya", draw: "30", result: "873206", year: 2025, month: 10, lotteryType: "regular", mcNumber: "246542", drawTime: "3PM" },
+  { date: "29.10.25", day: "Wed", lottery: "Sthree Sakthi", draw: "29", result: "806613", year: 2025, month: 10, lotteryType: "regular", mcNumber: "290136", drawTime: "3PM" },
+  { date: "28.10.25", day: "Tue", lottery: "Karunya Plus", draw: "28", result: "295782", year: 2025, month: 10, lotteryType: "regular", mcNumber: "102548", drawTime: "3PM" },
+  { date: "27.10.25", day: "Mon", lottery: "Win-Win", draw: "27", result: "435969", year: 2025, month: 10, lotteryType: "regular", mcNumber: "161033", drawTime: "3PM" },
+  { date: "26.10.25", day: "Sun", lottery: "Fifty Fifty", draw: "26", result: "660690", year: 2025, month: 10, lotteryType: "regular", mcNumber: "425438", drawTime: "3PM" },
+  { date: "25.10.25", day: "Sat", lottery: "Karunya", draw: "25", result: "115200", year: 2025, month: 10, lotteryType: "regular", mcNumber: "637549", drawTime: "3PM" },
+  { date: "24.10.25", day: "Fri", lottery: "Nirmal", draw: "24", result: "829220", year: 2025, month: 10, lotteryType: "regular", mcNumber: "695523", drawTime: "3PM" },
+  { date: "23.10.25", day: "Thu", lottery: "Akshaya", draw: "23", result: "539160", year: 2025, month: 10, lotteryType: "regular", mcNumber: "692650", drawTime: "3PM" },
+  { date: "22.10.25", day: "Wed", lottery: "Sthree Sakthi", draw: "22", result: "966451", year: 2025, month: 10, lotteryType: "regular", mcNumber: "258147", drawTime: "3PM" },
+  { date: "21.10.25", day: "Tue", lottery: "Karunya Plus", draw: "21", result: "638137", year: 2025, month: 10, lotteryType: "regular", mcNumber: "335481", drawTime: "3PM" },
+  { date: "20.10.25", day: "Mon", lottery: "Win-Win", draw: "20", result: "176282", year: 2025, month: 10, lotteryType: "regular", mcNumber: "641927", drawTime: "3PM" },
+  { date: "19.10.25", day: "Sun", lottery: "Fifty Fifty", draw: "19", result: "718692", year: 2025, month: 10, lotteryType: "regular", mcNumber: "452177", drawTime: "3PM" },
+  { date: "18.10.25", day: "Sat", lottery: "Karunya", draw: "18", result: "708982", year: 2025, month: 10, lotteryType: "regular", mcNumber: "366401", drawTime: "3PM" },
+  { date: "17.10.25", day: "Fri", lottery: "Nirmal", draw: "17", result: "749913", year: 2025, month: 10, lotteryType: "regular", mcNumber: "142590", drawTime: "3PM" },
+  { date: "16.10.25", day: "Thu", lottery: "Akshaya", draw: "16", result: "504987", year: 2025, month: 10, lotteryType: "regular", mcNumber: "182571", drawTime: "3PM" },
+  { date: "15.10.25", day: "Wed", lottery: "Sthree Sakthi", draw: "15", result: "867458", year: 2025, month: 10, lotteryType: "regular", mcNumber: "637008", drawTime: "3PM" },
+  { date: "14.10.25", day: "Tue", lottery: "Karunya Plus", draw: "14", result: "649740", year: 2025, month: 10, lotteryType: "regular", mcNumber: "144510", drawTime: "3PM" },
+  { date: "13.10.25", day: "Mon", lottery: "Win-Win", draw: "13", result: "219935", year: 2025, month: 10, lotteryType: "regular", mcNumber: "954416", drawTime: "3PM" },
+  { date: "12.10.25", day: "Sun", lottery: "Fifty Fifty", draw: "12", result: "796935", year: 2025, month: 10, lotteryType: "regular", mcNumber: "426601", drawTime: "3PM" },
+  { date: "11.10.25", day: "Sat", lottery: "Karunya", draw: "11", result: "705767", year: 2025, month: 10, lotteryType: "regular", mcNumber: "390635", drawTime: "3PM" },
+  { date: "10.10.25", day: "Fri", lottery: "Nirmal", draw: "10", result: "465228", year: 2025, month: 10, lotteryType: "regular", mcNumber: "941553", drawTime: "3PM" },
+  { date: "09.10.25", day: "Thu", lottery: "Akshaya", draw: "9", result: "511475", year: 2025, month: 10, lotteryType: "regular", mcNumber: "782084", drawTime: "3PM" },
+  { date: "08.10.25", day: "Wed", lottery: "Sthree Sakthi", draw: "8", result: "289424", year: 2025, month: 10, lotteryType: "regular", mcNumber: "245736", drawTime: "3PM" },
+  { date: "07.10.25", day: "Tue", lottery: "Karunya Plus", draw: "7", result: "313693", year: 2025, month: 10, lotteryType: "regular", mcNumber: "246533", drawTime: "3PM" },
+  { date: "06.10.25", day: "Mon", lottery: "Win-Win", draw: "6", result: "736437", year: 2025, month: 10, lotteryType: "regular", mcNumber: "219640", drawTime: "3PM" },
+  { date: "05.10.25", day: "Sun", lottery: "Fifty Fifty", draw: "5", result: "275170", year: 2025, month: 10, lotteryType: "regular", mcNumber: "694723", drawTime: "8PM" },
+  { date: "04.10.25", day: "Sat", lottery: "Karunya", draw: "4", result: "252617", year: 2025, month: 10, lotteryType: "regular", mcNumber: "238947", drawTime: "3PM" },
+  { date: "03.10.25", day: "Fri", lottery: "Nirmal", draw: "3", result: "823274", year: 2025, month: 10, lotteryType: "regular", mcNumber: "200361", drawTime: "8PM" },
+  { date: "02.10.25", day: "Thu", lottery: "Akshaya", draw: "2", result: "502763", year: 2025, month: 10, lotteryType: "regular", mcNumber: "251499", drawTime: "8PM" },
+  { date: "01.10.25", day: "Wed", lottery: "Sthree Sakthi", draw: "1", result: "784922", year: 2025, month: 10, lotteryType: "regular", mcNumber: "477852", drawTime: "3PM" },
   
   // 2025 September - Complete
   { date: "30.09.25", day: "Tue", lottery: "Karunya Plus", draw: "30", result: "500622", year: 2025, month: 9, lotteryType: "regular" },

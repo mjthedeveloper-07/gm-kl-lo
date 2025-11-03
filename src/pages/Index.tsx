@@ -14,6 +14,7 @@ import { PredictionSetsView } from "@/components/PredictionSetsView";
 import { NovaChatbot } from "@/components/NovaChatbot";
 import { HotNumberPredictions } from "@/components/HotNumberPredictions";
 import { AdvancedFormulasPredictions } from "@/components/AdvancedFormulasPredictions";
+import { EnhancedValidationView } from "@/components/EnhancedValidationView";
 import { getHotAndColdNumbers } from "@/utils/lotteryAnalysis";
 import { lotteryHistory } from "@/data/lotteryHistory";
 
@@ -640,7 +641,7 @@ const Index = () => {
 
           {/* Validation Tab */}
           <TabsContent value="validation">
-            <PredictionValidator predictions={predictionResults} />
+            <EnhancedValidationView />
           </TabsContent>
 
           {/* Statistical Analysis Tab */}
