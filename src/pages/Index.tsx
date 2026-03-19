@@ -15,6 +15,7 @@ import { NovaChatbot } from "@/components/NovaChatbot";
 import { HotNumberPredictions } from "@/components/HotNumberPredictions";
 import { AdvancedFormulasPredictions } from "@/components/AdvancedFormulasPredictions";
 import { EnhancedValidationView } from "@/components/EnhancedValidationView";
+import { Last2DigitsPredictions } from "@/components/Last2DigitsPredictions";
 import { getHotAndColdNumbers } from "@/utils/lotteryAnalysis";
 import { lotteryHistory } from "@/data/lotteryHistory";
 
