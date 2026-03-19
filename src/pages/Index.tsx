@@ -536,6 +536,11 @@ const Index = () => {
             </TabsTrigger>
           </TabsList>
 
+          {/* Last 2 Digits Tab */}
+          <TabsContent value="last2">
+            <Last2DigitsPredictions />
+          </TabsContent>
+
           {/* Hot Numbers Tab */}
           <TabsContent value="hot-numbers">
             <HotNumberPredictions />
