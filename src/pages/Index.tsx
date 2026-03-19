@@ -506,28 +506,32 @@ const Index = () => {
 
         {/* Results & Analysis Tabs */}
         <Tabs defaultValue="hot-numbers" className="mt-8">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="hot-numbers">
-              <Sparkles className="h-4 w-4 mr-2" />
-              Hot Numbers
+              <Sparkles className="h-4 w-4 mr-1" />
+              Hot
+            </TabsTrigger>
+            <TabsTrigger value="last2">
+              <Hash className="h-4 w-4 mr-1" />
+              Last 2
             </TabsTrigger>
             <TabsTrigger value="ai-predictions">
-              <Zap className="h-4 w-4 mr-2" />
-              AI Predictions
+              <Zap className="h-4 w-4 mr-1" />
+              AI
             </TabsTrigger>
             <TabsTrigger value="advanced-formulas">
-              <Calculator className="h-4 w-4 mr-2" />
+              <Calculator className="h-4 w-4 mr-1" />
               Advanced
             </TabsTrigger>
             <TabsTrigger value="predictions">Formulas</TabsTrigger>
             <TabsTrigger value="validation">Validation</TabsTrigger>
             <TabsTrigger value="analysis">
-              <BarChart3 className="h-4 w-4 mr-2" />
+              <BarChart3 className="h-4 w-4 mr-1" />
               Analysis
             </TabsTrigger>
             <TabsTrigger value="patterns">Patterns</TabsTrigger>
             <TabsTrigger value="history">
-              <Database className="h-4 w-4 mr-2" />
+              <Database className="h-4 w-4 mr-1" />
               History
             </TabsTrigger>
           </TabsList>
