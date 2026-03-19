@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap } from "lucide-react";
+import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap, Hash } from "lucide-react";
 import { toast } from "sonner";
 import { HistoricalDataTable } from "@/components/HistoricalDataTable";
 import { PatternAnalysis } from "@/components/PatternAnalysis";
@@ -15,6 +15,7 @@ import { NovaChatbot } from "@/components/NovaChatbot";
 import { HotNumberPredictions } from "@/components/HotNumberPredictions";
 import { AdvancedFormulasPredictions } from "@/components/AdvancedFormulasPredictions";
 import { EnhancedValidationView } from "@/components/EnhancedValidationView";
+import { Last2DigitsPredictions } from "@/components/Last2DigitsPredictions";
 import { getHotAndColdNumbers } from "@/utils/lotteryAnalysis";
 import { lotteryHistory } from "@/data/lotteryHistory";
 
@@ -505,31 +506,40 @@ const Index = () => {
 
         {/* Results & Analysis Tabs */}
         <Tabs defaultValue="hot-numbers" className="mt-8">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="hot-numbers">
-              <Sparkles className="h-4 w-4 mr-2" />
-              Hot Numbers
+              <Sparkles className="h-4 w-4 mr-1" />
+              Hot
+            </TabsTrigger>
+            <TabsTrigger value="last2">
+              <Hash className="h-4 w-4 mr-1" />
+              Last 2
             </TabsTrigger>
             <TabsTrigger value="ai-predictions">
-              <Zap className="h-4 w-4 mr-2" />
-              AI Predictions
+              <Zap className="h-4 w-4 mr-1" />
+              AI
             </TabsTrigger>
             <TabsTrigger value="advanced-formulas">
-              <Calculator className="h-4 w-4 mr-2" />
+              <Calculator className="h-4 w-4 mr-1" />
               Advanced
             </TabsTrigger>
             <TabsTrigger value="predictions">Formulas</TabsTrigger>
             <TabsTrigger value="validation">Validation</TabsTrigger>
             <TabsTrigger value="analysis">
-              <BarChart3 className="h-4 w-4 mr-2" />
+              <BarChart3 className="h-4 w-4 mr-1" />
               Analysis
             </TabsTrigger>
             <TabsTrigger value="patterns">Patterns</TabsTrigger>
             <TabsTrigger value="history">
-              <Database className="h-4 w-4 mr-2" />
+              <Database className="h-4 w-4 mr-1" />
               History
             </TabsTrigger>
           </TabsList>
+
+          {/* Last 2 Digits Tab */}
+          <TabsContent value="last2">
+            <Last2DigitsPredictions />
+          </TabsContent>
 
           {/* Hot Numbers Tab */}
           <TabsContent value="hot-numbers">
