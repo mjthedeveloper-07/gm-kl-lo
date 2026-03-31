@@ -36,15 +36,9 @@ export interface StatisticalAnalysis {
   temporalPatterns: TemporalPattern[];
 }
 
-// Get the latest result for trigger-based predictions
-export const getLatestResult = () => {
-  return lotteryHistory[0];
-};
-
-// Perform comprehensive statistical analysis with emphasis on latest result
+// Perform comprehensive statistical analysis
 export const analyzeHistoricalData = (): StatisticalAnalysis => {
   const allNumbers = lotteryHistory.map(r => r.result);
-  const latestResult = getLatestResult();
   
   // Overall digit frequency
   const digitCounts: { [key: string]: number } = {};
@@ -151,25 +145,17 @@ export const analyzeHistoricalData = (): StatisticalAnalysis => {
   };
 };
 
-// Method 1: Frequency-Based Predictions (with latest result influence)
+// Method 1: Frequency-Based Predictions
 export const generateFrequencyBasedPredictions = (analysis: StatisticalAnalysis): string[] => {
   const predictions: string[] = [];
-  const latestResult = getLatestResult();
-  const latestDigits = latestResult.result.split("");
   
-  // Use top 3 from each position, influenced by latest result
+  // Use top 3 from each position
   for (let variant = 0; variant < 5; variant++) {
     let number = "";
     for (let pos = 0; pos < 6; pos++) {
       const posData = analysis.positionalAnalysis[pos];
-      
-      // 30% chance to use digit from same position in latest result
-      if (variant > 0 && Math.random() < 0.3) {
-        number += latestDigits[pos];
-      } else {
-        const digitIndex = variant % 3;
-        number += posData[digitIndex].digit;
-      }
+      const digitIndex = variant % 3;
+      number += posData[digitIndex].digit;
     }
     predictions.push(number);
   }
@@ -518,36 +504,7 @@ export const generateExponentiationPredictions = (analysis: StatisticalAnalysis)
   return predictions;
 };
 
-// Method 11: Ultra High Frequency Based (Top 5 Numbers from Pure Frequency Analysis)
-export const generateUltraHighFrequencyPredictions = (analysis: StatisticalAnalysis): string[] => {
-  const predictions: string[] = [];
-  
-  // Get top 3 most frequent digits for each position
-  const topDigitsPerPosition = analysis.positionalAnalysis.map(posData => 
-    posData.slice(0, 3).map(d => d.digit)
-  );
-  
-  // Generate 5 ultra-high-frequency numbers using top 3 from each position
-  for (let i = 0; i < 5; i++) {
-    let number = "";
-    for (let pos = 0; pos < 6; pos++) {
-      // For first prediction use #1 from each position
-      // For second prediction use mix of #1 and #2
-      // For third prediction use #2 from each position
-      // For fourth prediction use mix of #2 and #3
-      // For fifth prediction use #3 from each position
-      const digitIndex = Math.floor(i / 2); // 0, 0, 1, 1, 2
-      const altIndex = (digitIndex + (i % 2)) % 3; // Alternate between indices
-      
-      number += topDigitsPerPosition[pos][altIndex];
-    }
-    predictions.push(number);
-  }
-  
-  return predictions;
-};
-
-// Method 12: Real and Imaginary Decomposition (Re(z) = (z+z̄)/2, Im(z) = (z-z̄)/2i)
+// Method 11: Real and Imaginary Decomposition (Re(z) = (z+z̄)/2, Im(z) = (z-z̄)/2i)
 export const generateRealImaginaryDecompositionPredictions = (analysis: StatisticalAnalysis): string[] => {
   const predictions: string[] = [];
   const allNumbers = lotteryHistory.map(r => r.result);
@@ -588,371 +545,11 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
   return predictions;
 };
 
-// Method 13: Control Number ABC Board (3-Step Sequence Combination)
-export const generateControlNumberABCBoardPredictions = (analysis: StatisticalAnalysis): string[] => {
-  const predictions: string[] = [];
-  
-  // Saturday sequences from the images (STEP 1, STEP 2, STEP 3)
-  const saturdaySequences = {
-    step1: {
-      box1: [4, 2, 0, 7, 6, 8, 9, 3, 5], // RED
-      box2: [4, 3, 9, 7, 5, 8, 2, 1, 0], // BLUE
-      box3: [4, 3, 7, 2, 9, 5, 8, 6, 1]  // PURPLE
-    },
-    step2: {
-      box1: [9, 0, 5, 3, 4, 2, 1, 6, 7], // RED
-      box2: [3, 7, 2, 8, 1, 9, 6, 5, 4], // BLUE
-      box3: [8, 4, 9, 5, 1, 7, 0, 6, 2]  // PURPLE
-    },
-    step3: {
-      box1: [4, 7, 6, 0, 3, 2, 5, 9, 8], // RED
-      box2: [2, 0, 1, 4, 3, 5, 7, 9, 8], // BLUE
-      box3: [2, 5, 1, 0, 9, 3, 8, 7, 4]  // PURPLE
-    }
-  };
-  
-  // Generate predictions by trying different box combinations
-  const boxCombinations = [
-    { name: 'Red-Red-Red', step1: 'box1', step2: 'box1', step3: 'box1' },
-    { name: 'Red-Blue-Purple', step1: 'box1', step2: 'box2', step3: 'box3' },
-    { name: 'Blue-Red-Blue', step1: 'box2', step2: 'box1', step3: 'box2' },
-    { name: 'Purple-Blue-Red', step1: 'box3', step2: 'box2', step3: 'box1' },
-    { name: 'Blue-Purple-Blue', step1: 'box2', step2: 'box3', step3: 'box2' }
-  ];
-  
-  boxCombinations.forEach(combination => {
-    // Get sequences from selected boxes
-    const step1Seq = saturdaySequences.step1[combination.step1 as keyof typeof saturdaySequences.step1];
-    const step2Seq = saturdaySequences.step2[combination.step2 as keyof typeof saturdaySequences.step2];
-    const step3Seq = saturdaySequences.step3[combination.step3 as keyof typeof saturdaySequences.step3];
-    
-    // Combine all digits from the three sequences
-    const combined = [...step1Seq, ...step2Seq, ...step3Seq];
-    
-    // Remove duplicates and sort to get control number
-    const unique = Array.from(new Set(combined)).sort((a, b) => a - b);
-    
-    // Create control number (should contain all digits 0-9 or close to it)
-    let controlNumber = unique.join('');
-    
-    // If we have all 10 digits, this is a perfect control number
-    // If we have 9 digits, one digit is missing from all three sequences
-    predictions.push(controlNumber);
-  });
-  
-  return predictions;
-};
-
-// Method 14: Last 4 Digits High-Probability Analysis
-export const generateLast4DigitsHighProbabilityPredictions = (analysis: StatisticalAnalysis): string[] => {
-  const predictions: string[] = [];
-  
-  // Analyze last 4 digits (positions 2-5, or positions 3-6 in 1-indexed)
-  const last4Patterns: { [pattern: string]: number } = {};
-  const allNumbers = lotteryHistory.map(r => r.result);
-  
-  // Extract all last 4 digit patterns
-  allNumbers.forEach(num => {
-    if (num.length >= 4) {
-      const last4 = num.slice(-4); // Get last 4 digits
-      last4Patterns[last4] = (last4Patterns[last4] || 0) + 1;
-    }
-  });
-  
-  // Sort patterns by frequency
-  const sortedPatterns = Object.entries(last4Patterns)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 20); // Top 20 most frequent last-4 patterns
-  
-  // Get top frequent digits for positions 3-6 (last 4 positions)
-  const last4PositionFrequencies = analysis.positionalAnalysis.slice(2, 6); // positions 2-5 (0-indexed)
-  
-  // Generate first 2 digits based on overall frequency
-  const first2PositionFrequencies = analysis.positionalAnalysis.slice(0, 2);
-  
-  // Generate 5 predictions
-  for (let i = 0; i < 5; i++) {
-    let number = "";
-    
-    // Strategy 1-3: Use top frequent patterns directly with varied first 2 digits
-    if (i < 3 && sortedPatterns[i]) {
-      // Generate first 2 digits from high frequency
-      const pos0 = first2PositionFrequencies[0][i % 3].digit;
-      const pos1 = first2PositionFrequencies[1][(i + 1) % 3].digit;
-      number = pos0 + pos1 + sortedPatterns[i][0];
-    } 
-    // Strategy 4-5: Build from individual position frequencies
-    else {
-      // First 2 digits
-      const pos0Index = (i * 2) % Math.min(5, first2PositionFrequencies[0].length);
-      const pos1Index = (i * 2 + 1) % Math.min(5, first2PositionFrequencies[1].length);
-      number += first2PositionFrequencies[0][pos0Index].digit;
-      number += first2PositionFrequencies[1][pos1Index].digit;
-      
-      // Last 4 digits - use top frequencies with variation
-      for (let pos = 0; pos < 4; pos++) {
-        const posData = last4PositionFrequencies[pos];
-        const digitIndex = (i + pos) % Math.min(3, posData.length);
-        number += posData[digitIndex].digit;
-      }
-    }
-    
-    predictions.push(number);
-  }
-  
-  return predictions;
-};
-
-// Method 14: Sum 45 Formula (10-digit permutation with all digits 0-9)
-export const generateSum45Predictions = (analysis: StatisticalAnalysis): string[] => {
-  const predictions: string[] = [];
-  
-  // Helper function to shuffle array based on frequency weights
-  const weightedShuffle = (digits: number[], weights: number[]): number[] => {
-    const result: number[] = [];
-    const available = [...digits];
-    const availableWeights = [...weights];
-    
-    while (available.length > 0) {
-      // Calculate total weight
-      const totalWeight = availableWeights.reduce((sum, w) => sum + w, 0);
-      
-      // Pick random index based on weights
-      let random = Math.random() * totalWeight;
-      let selectedIndex = 0;
-      
-      for (let i = 0; i < availableWeights.length; i++) {
-        random -= availableWeights[i];
-        if (random <= 0) {
-          selectedIndex = i;
-          break;
-        }
-      }
-      
-      result.push(available[selectedIndex]);
-      available.splice(selectedIndex, 1);
-      availableWeights.splice(selectedIndex, 1);
-    }
-    
-    return result;
-  };
-  
-  // Get overall digit frequencies
-  const digitFrequencies: { [key: string]: number } = {};
-  for (let i = 0; i <= 9; i++) {
-    const digit = i.toString();
-    const freq = analysis.topFrequentDigits.find(d => d.digit === digit);
-    digitFrequencies[digit] = freq ? freq.count : 1;
-  }
-  
-  // Generate 5 Sum 45 predictions
-  for (let i = 0; i < 5; i++) {
-    const allDigits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-    const weights = allDigits.map(d => digitFrequencies[d.toString()] + (Math.random() * 10 * (i + 1)));
-    
-    const shuffled = weightedShuffle(allDigits, weights);
-    const number = shuffled.join('');
-    
-    // Verify Sum 45
-    const sum = shuffled.reduce((acc, n) => acc + n, 0);
-    if (sum === 45) {
-      predictions.push(number);
-    }
-  }
-  
-  return predictions;
-};
-
-// Method 14: Day of Week AB-BC-AC Pattern Analysis
-export const generateDayOfWeekABCPredictions = (analysis: StatisticalAnalysis): string[] => {
-  const predictions: string[] = [];
-  
-  // Day-of-week AB, BC, AC values based on user's chart
-  const dayPatterns = {
-    0: { AB: 0, BC: 1, AC: 7 }, // Sunday (using SAT pattern as fallback)
-    1: { AB: 5, BC: 4, AC: 2 }, // Monday
-    2: { AB: 6, BC: 0, AC: 6 }, // Tuesday
-    3: { AB: 7, BC: 1, AC: 8 }, // Wednesday
-    4: { AB: 0, BC: 4, AC: 5 }, // Thursday
-    5: { AB: 3, BC: 2, AC: 7 }, // Friday
-    6: { AB: 0, BC: 1, AC: 7 }, // Saturday
-  };
-  
-  // Get top frequent digits for each position
-  const topDigitsPerPosition = analysis.positionalAnalysis.map(posData => 
-    posData.slice(0, 5).map(d => d.digit)
-  );
-  
-  // Generate predictions for next 5 days
-  const today = new Date();
-  for (let dayOffset = 0; dayOffset < 5; dayOffset++) {
-    const targetDate = new Date(today);
-    targetDate.setDate(today.getDate() + dayOffset);
-    const dayOfWeek = targetDate.getDay();
-    const pattern = dayPatterns[dayOfWeek as keyof typeof dayPatterns];
-    
-    let number = "";
-    
-    // Position 0: Use AB value as index into top digits
-    const pos0Index = pattern.AB % topDigitsPerPosition[0].length;
-    number += topDigitsPerPosition[0][pos0Index];
-    
-    // Position 1: Use BC value as index
-    const pos1Index = pattern.BC % topDigitsPerPosition[1].length;
-    number += topDigitsPerPosition[1][pos1Index];
-    
-    // Position 2: Use AC value as index
-    const pos2Index = pattern.AC % topDigitsPerPosition[2].length;
-    number += topDigitsPerPosition[2][pos2Index];
-    
-    // Position 3: Use (AB + BC) as index
-    const pos3Index = (pattern.AB + pattern.BC) % topDigitsPerPosition[3].length;
-    number += topDigitsPerPosition[3][pos3Index];
-    
-    // Position 4: Use (BC + AC) as index
-    const pos4Index = (pattern.BC + pattern.AC) % topDigitsPerPosition[4].length;
-    number += topDigitsPerPosition[4][pos4Index];
-    
-    // Position 5: Use (AB + AC) as index
-    const pos5Index = (pattern.AB + pattern.AC) % topDigitsPerPosition[5].length;
-    number += topDigitsPerPosition[5][pos5Index];
-    
-    predictions.push(number);
-  }
-  
-  return predictions;
-};
-
-// Lookup table helper: Returns (row + column) mod 10
-const getLookupValue = (row: number, column: number): number => {
-  return (row + column) % 10;
-};
-
-// Method 15: Formula 1 - Lookup Table (Columns A-J) - 6 Digits
-export const generateFormula1Predictions = (analysis: StatisticalAnalysis): string[] => {
-  const predictions: string[] = [];
-  const latestResult = getLatestResult().result;
-  
-  // Extract digits from the latest result
-  const D1 = parseInt(latestResult[0]); // 1st digit
-  const D2 = parseInt(latestResult[1]); // 2nd digit
-  const D5 = parseInt(latestResult[4]); // 5th digit
-  
-  // Column mappings for Formula 1 - Optimized for 6 digits (2+2+2)
-  // Selected columns based on historical frequency analysis
-  const step1Columns = [4, 5]; // E, F (most frequent in historical data)
-  const step2Columns = [8, 9]; // I, J (high success rate)
-  const step3Columns = [1, 2]; // B, C (common patterns)
-  
-  // Generate base prediction (6 digits)
-  const step1 = step1Columns.map(col => getLookupValue(D5, col)).join('');
-  const step2 = step2Columns.map(col => getLookupValue(D2, col)).join('');
-  const step3 = step3Columns.map(col => getLookupValue(D1, col)).join('');
-  
-  const basePrediction = step1 + step2 + step3;
-  predictions.push(basePrediction);
-  
-  // Generate variations by slightly modifying the digits
-  for (let i = 1; i < 5; i++) {
-    const modifiedD1 = (D1 + i) % 10;
-    const modifiedD2 = (D2 + i) % 10;
-    const modifiedD5 = (D5 + i) % 10;
-    
-    const varStep1 = step1Columns.map(col => getLookupValue(modifiedD5, col)).join('');
-    const varStep2 = step2Columns.map(col => getLookupValue(modifiedD2, col)).join('');
-    const varStep3 = step3Columns.map(col => getLookupValue(modifiedD1, col)).join('');
-    
-    predictions.push(varStep1 + varStep2 + varStep3);
-  }
-  
-  return predictions;
-};
-
-// Method 16: Formula 2 - Lookup Table (Columns K-T) - 6 Digits
-export const generateFormula2Predictions = (analysis: StatisticalAnalysis): string[] => {
-  const predictions: string[] = [];
-  const latestResult = getLatestResult().result;
-  
-  // Extract digits from the latest result
-  const D5 = parseInt(latestResult[4]); // 5th digit
-  const D6 = parseInt(latestResult[5]); // 6th digit
-  
-  // Column mappings for Formula 2 - Optimized for 6 digits (2+2+2)
-  // Selected columns based on historical frequency analysis
-  const step1Columns = [2, 3]; // M, N (historically frequent)
-  const step2Columns = [5, 6]; // P, Q (strong patterns)
-  const step3Columns = [5, 9]; // P, T (high match rate)
-  
-  // Generate base prediction (6 digits)
-  const step1 = step1Columns.map(col => getLookupValue(D5, col)).join('');
-  const step2 = step2Columns.map(col => getLookupValue(D6, col)).join('');
-  const step3 = step3Columns.map(col => getLookupValue(D6, col)).join('');
-  
-  const basePrediction = step1 + step2 + step3;
-  predictions.push(basePrediction);
-  
-  // Generate variations by slightly modifying the digits
-  for (let i = 1; i < 5; i++) {
-    const modifiedD5 = (D5 + i) % 10;
-    const modifiedD6 = (D6 + i) % 10;
-    
-    const varStep1 = step1Columns.map(col => getLookupValue(modifiedD5, col)).join('');
-    const varStep2 = step2Columns.map(col => getLookupValue(modifiedD6, col)).join('');
-    const varStep3 = step3Columns.map(col => getLookupValue(modifiedD6, col)).join('');
-    
-    predictions.push(varStep1 + varStep2 + varStep3);
-  }
-  
-  return predictions;
-};
-
 // Generate all prediction sets
 export const generateAllPredictions = (): PredictionSet[] => {
   const analysis = analyzeHistoricalData();
   
   return [
-    {
-      method: "🎲 Control Number ABC Board",
-      description: "3-STEP FORMULA: Combines sequences from STEP 1, STEP 2, STEP 3 (BOX 1/2/3), removes duplicates, sorts for 10-digit control number",
-      numbers: generateControlNumberABCBoardPredictions(analysis),
-      confidence: "high"
-    },
-    {
-      method: "📊 Formula 1 (A-J Lookup Table)",
-      description: "6-DIGIT LOOKUP: Uses latest result digits (D1, D2, D5) with optimized columns. Step 1: D5→E,F | Step 2: D2→I,J | Step 3: D1→B,C. Formula: (row + column) mod 10. Selected columns based on historical frequency",
-      numbers: generateFormula1Predictions(analysis),
-      confidence: "high"
-    },
-    {
-      method: "📈 Formula 2 (K-T Lookup Table)",
-      description: "6-DIGIT LOOKUP: Uses latest result digits (D5, D6) with optimized columns. Step 1: D5→M,N | Step 2: D6→P,Q | Step 3: D6→P,T. Formula: (row + column) mod 10. Selected columns based on historical frequency",
-      numbers: generateFormula2Predictions(analysis),
-      confidence: "high"
-    },
-    {
-      method: "🎯 Last 4 Digits HIGH-PROBABILITY",
-      description: "KERALA LOTTERY FOCUSED: Statistical analysis of most frequent last 4 digit patterns from historical data",
-      numbers: generateLast4DigitsHighProbabilityPredictions(analysis),
-      confidence: "high"
-    },
-    {
-      method: "✨ Sum 45 Formula",
-      description: "10-DIGIT KERALA LOTTERY: All digits 0-9 used exactly once (sum = 45), frequency-weighted permutations",
-      numbers: generateSum45Predictions(analysis),
-      confidence: "high"
-    },
-    {
-      method: "📅 Day-of-Week AB-BC-AC",
-      description: "NEXT 5 DAYS: Uses day-specific AB, BC, AC patterns (MON: 5-4-2, TUE: 6-0-6, WED: 7-1-8, THU: 0-4-5, FRI: 3-2-7, SAT: 0-1-7)",
-      numbers: generateDayOfWeekABCPredictions(analysis),
-      confidence: "high"
-    },
-    {
-      method: "🔥 Ultra High Frequency",
-      description: "TOP 5 NUMBERS: Pure frequency analysis using the most frequently occurring digits from each position",
-      numbers: generateUltraHighFrequencyPredictions(analysis),
-      confidence: "high"
-    },
     {
       method: "High-Frequency Based",
       description: "Uses most frequent digits from each position",
