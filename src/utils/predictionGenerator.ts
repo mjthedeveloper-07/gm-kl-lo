@@ -36,12 +36,9 @@ export interface StatisticalAnalysis {
   temporalPatterns: TemporalPattern[];
 }
 
-// Perform comprehensive statistical analysis with optional year filter
-export const analyzeHistoricalData = (yearFilter?: number[]): StatisticalAnalysis => {
-  const filteredHistory = yearFilter 
-    ? lotteryHistory.filter(r => yearFilter.includes(r.year))
-    : lotteryHistory;
-  const allNumbers = filteredHistory.map(r => r.result);
+// Perform comprehensive statistical analysis
+export const analyzeHistoricalData = (): StatisticalAnalysis => {
+  const allNumbers = lotteryHistory.map(r => r.result);
   
   // Overall digit frequency
   const digitCounts: { [key: string]: number } = {};
@@ -115,7 +112,7 @@ export const analyzeHistoricalData = (yearFilter?: number[]): StatisticalAnalysi
   
   // Temporal patterns (by month)
   const monthPatterns: { [month: number]: { [digit: string]: number } } = {};
-  filteredHistory.forEach(result => {
+  lotteryHistory.forEach(result => {
     if (!monthPatterns[result.month]) {
       monthPatterns[result.month] = {};
     }
@@ -549,45 +546,6 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
 };
 
 // Generate all prediction sets
-// Generate predictions based only on 2026 data
-export const generate2026HighFrequencyPredictions = (): PredictionSet[] => {
-  const years2019to2026 = [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
-  const analysisRecent = analyzeHistoricalData(years2019to2026);
-  
-  return [
-    {
-      method: "🔥 2019–2026 High-Frequency Picks",
-      description: "Top positional digits from 2019–2026 results — highest confidence based on recent 8-year data",
-      numbers: generateFrequencyBasedPredictions(analysisRecent),
-      confidence: "high"
-    },
-    {
-      method: "🎯 2019–2026 Probability-Weighted",
-      description: "Weighted random picks using 2019–2026 frequency distribution",
-      numbers: generateProbabilityWeightedPredictions(analysisRecent),
-      confidence: "high"
-    },
-    {
-      method: "📈 2019–2026 Trend-Based",
-      description: "Monthly trends and hot digit pairs from 2019–2026 data",
-      numbers: generateTrendBasedPredictions(analysisRecent),
-      confidence: "medium"
-    },
-    {
-      method: "⚡ 2019–2026 Complex Analysis",
-      description: "Complex number operations applied to 2019–2026 results",
-      numbers: generateComplexNumberPredictions(analysisRecent),
-      confidence: "high"
-    },
-    {
-      method: "🧬 2019–2026 Pattern Matching",
-      description: "Most common adjacent digit pairs from 2019–2026 draws",
-      numbers: generatePatternMatchingPredictions(analysisRecent),
-      confidence: "medium"
-    }
-  ];
-};
-
 export const generateAllPredictions = (): PredictionSet[] => {
   const analysis = analyzeHistoricalData();
   
