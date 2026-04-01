@@ -8,7 +8,9 @@ import { toast } from "sonner";
 
 export const PredictionSetsView = () => {
   const [predictionSets, setPredictionSets] = useState<PredictionSet[]>([]);
+  const [predictions2026, setPredictions2026] = useState<PredictionSet[]>([]);
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"2026" | "all">("2026");
 
   useEffect(() => {
     regeneratePredictions();
@@ -16,7 +18,9 @@ export const PredictionSetsView = () => {
 
   const regeneratePredictions = () => {
     const predictions = generateAllPredictions();
+    const preds2026 = generate2026HighFrequencyPredictions();
     setPredictionSets(predictions);
+    setPredictions2026(preds2026);
     toast.success("Generated new predictions based on statistical analysis");
   };
 
