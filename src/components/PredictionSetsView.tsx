@@ -67,6 +67,24 @@ export const PredictionSetsView = () => {
         </CardHeader>
       </Card>
 
+      {/* Tab Toggle */}
+      <div className="flex gap-2">
+        <Button
+          variant={activeTab === "2026" ? "default" : "outline"}
+          onClick={() => setActiveTab("2026")}
+          className="gap-2"
+        >
+          🔥 2026 Only
+        </Button>
+        <Button
+          variant={activeTab === "all" ? "default" : "outline"}
+          onClick={() => setActiveTab("all")}
+          className="gap-2"
+        >
+          📊 All Methods
+        </Button>
+      </div>
+
       {/* Disclaimer */}
       <Card className="border-yellow-500/50 bg-yellow-500/5">
         <CardContent className="pt-6">
@@ -79,7 +97,7 @@ export const PredictionSetsView = () => {
       </Card>
 
       {/* Prediction Sets */}
-      {predictionSets.map((set, setIndex) => (
+      {(activeTab === "2026" ? predictions2026 : predictionSets).map((set, setIndex) => (
         <Card key={setIndex} className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <div className="flex items-start justify-between">
