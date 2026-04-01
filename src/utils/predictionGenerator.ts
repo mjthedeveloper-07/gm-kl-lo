@@ -115,7 +115,7 @@ export const analyzeHistoricalData = (yearFilter?: number[]): StatisticalAnalysi
   
   // Temporal patterns (by month)
   const monthPatterns: { [month: number]: { [digit: string]: number } } = {};
-  lotteryHistory.forEach(result => {
+  filteredHistory.forEach(result => {
     if (!monthPatterns[result.month]) {
       monthPatterns[result.month] = {};
     }
