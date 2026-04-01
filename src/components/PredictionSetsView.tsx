@@ -2,13 +2,15 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { generateAllPredictions, type PredictionSet } from "@/utils/predictionGenerator";
+import { generateAllPredictions, generate2026HighFrequencyPredictions, type PredictionSet } from "@/utils/predictionGenerator";
 import { Sparkles, RefreshCw, Copy, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const PredictionSetsView = () => {
   const [predictionSets, setPredictionSets] = useState<PredictionSet[]>([]);
+  const [predictions2026, setPredictions2026] = useState<PredictionSet[]>([]);
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"2026" | "all">("2026");
 
   useEffect(() => {
     regeneratePredictions();
@@ -16,7 +18,9 @@ export const PredictionSetsView = () => {
 
   const regeneratePredictions = () => {
     const predictions = generateAllPredictions();
+    const preds2026 = generate2026HighFrequencyPredictions();
     setPredictionSets(predictions);
+    setPredictions2026(preds2026);
     toast.success("Generated new predictions based on statistical analysis");
   };
 
@@ -63,6 +67,24 @@ export const PredictionSetsView = () => {
         </CardHeader>
       </Card>
 
+      {/* Tab Toggle */}
+      <div className="flex gap-2">
+        <Button
+          variant={activeTab === "2026" ? "default" : "outline"}
+          onClick={() => setActiveTab("2026")}
+          className="gap-2"
+        >
+          🔥 2026 Only
+        </Button>
+        <Button
+          variant={activeTab === "all" ? "default" : "outline"}
+          onClick={() => setActiveTab("all")}
+          className="gap-2"
+        >
+          📊 All Methods
+        </Button>
+      </div>
+
       {/* Disclaimer */}
       <Card className="border-yellow-500/50 bg-yellow-500/5">
         <CardContent className="pt-6">
@@ -75,7 +97,7 @@ export const PredictionSetsView = () => {
       </Card>
 
       {/* Prediction Sets */}
-      {predictionSets.map((set, setIndex) => (
+      {(activeTab === "2026" ? predictions2026 : predictionSets).map((set, setIndex) => (
         <Card key={setIndex} className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <div className="flex items-start justify-between">
