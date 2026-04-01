@@ -551,37 +551,38 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
 // Generate all prediction sets
 // Generate predictions based only on 2026 data
 export const generate2026HighFrequencyPredictions = (): PredictionSet[] => {
-  const analysis2026 = analyzeHistoricalData([2026]);
+  const years2019to2026 = [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
+  const analysisRecent = analyzeHistoricalData(years2019to2026);
   
   return [
     {
-      method: "🔥 2026 High-Frequency Picks",
-      description: "Top positional digits from 2026 results only — highest confidence based on latest data",
-      numbers: generateFrequencyBasedPredictions(analysis2026),
+      method: "🔥 2019–2026 High-Frequency Picks",
+      description: "Top positional digits from 2019–2026 results — highest confidence based on recent 8-year data",
+      numbers: generateFrequencyBasedPredictions(analysisRecent),
       confidence: "high"
     },
     {
-      method: "🎯 2026 Probability-Weighted",
-      description: "Weighted random picks using only 2026 frequency distribution",
-      numbers: generateProbabilityWeightedPredictions(analysis2026),
+      method: "🎯 2019–2026 Probability-Weighted",
+      description: "Weighted random picks using 2019–2026 frequency distribution",
+      numbers: generateProbabilityWeightedPredictions(analysisRecent),
       confidence: "high"
     },
     {
-      method: "📈 2026 Trend-Based",
-      description: "Monthly trends and hot digit pairs from 2026 data",
-      numbers: generateTrendBasedPredictions(analysis2026),
+      method: "📈 2019–2026 Trend-Based",
+      description: "Monthly trends and hot digit pairs from 2019–2026 data",
+      numbers: generateTrendBasedPredictions(analysisRecent),
       confidence: "medium"
     },
     {
-      method: "⚡ 2026 Complex Analysis",
-      description: "Complex number operations applied to 2026 results only",
-      numbers: generateComplexNumberPredictions(analysis2026),
+      method: "⚡ 2019–2026 Complex Analysis",
+      description: "Complex number operations applied to 2019–2026 results",
+      numbers: generateComplexNumberPredictions(analysisRecent),
       confidence: "high"
     },
     {
-      method: "🧬 2026 Pattern Matching",
-      description: "Most common adjacent digit pairs from 2026 draws",
-      numbers: generatePatternMatchingPredictions(analysis2026),
+      method: "🧬 2019–2026 Pattern Matching",
+      description: "Most common adjacent digit pairs from 2019–2026 draws",
+      numbers: generatePatternMatchingPredictions(analysisRecent),
       confidence: "medium"
     }
   ];

@@ -74,7 +74,7 @@ export const PredictionSetsView = () => {
           onClick={() => setActiveTab("2026")}
           className="gap-2"
         >
-          🔥 2026 Only
+          🔥 2019–2026
         </Button>
         <Button
           variant={activeTab === "all" ? "default" : "outline"}
