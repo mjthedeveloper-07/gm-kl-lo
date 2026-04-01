@@ -549,6 +549,44 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
 };
 
 // Generate all prediction sets
+// Generate predictions based only on 2026 data
+export const generate2026HighFrequencyPredictions = (): PredictionSet[] => {
+  const analysis2026 = analyzeHistoricalData([2026]);
+  
+  return [
+    {
+      method: "🔥 2026 High-Frequency Picks",
+      description: "Top positional digits from 2026 results only — highest confidence based on latest data",
+      numbers: generateFrequencyBasedPredictions(analysis2026),
+      confidence: "high"
+    },
+    {
+      method: "🎯 2026 Probability-Weighted",
+      description: "Weighted random picks using only 2026 frequency distribution",
+      numbers: generateProbabilityWeightedPredictions(analysis2026),
+      confidence: "high"
+    },
+    {
+      method: "📈 2026 Trend-Based",
+      description: "Monthly trends and hot digit pairs from 2026 data",
+      numbers: generateTrendBasedPredictions(analysis2026),
+      confidence: "medium"
+    },
+    {
+      method: "⚡ 2026 Complex Analysis",
+      description: "Complex number operations applied to 2026 results only",
+      numbers: generateComplexNumberPredictions(analysis2026),
+      confidence: "high"
+    },
+    {
+      method: "🧬 2026 Pattern Matching",
+      description: "Most common adjacent digit pairs from 2026 draws",
+      numbers: generatePatternMatchingPredictions(analysis2026),
+      confidence: "medium"
+    }
+  ];
+};
+
 export const generateAllPredictions = (): PredictionSet[] => {
   const analysis = analyzeHistoricalData();
   
