@@ -36,9 +36,12 @@ export interface StatisticalAnalysis {
   temporalPatterns: TemporalPattern[];
 }
 
-// Perform comprehensive statistical analysis
-export const analyzeHistoricalData = (): StatisticalAnalysis => {
-  const allNumbers = lotteryHistory.map(r => r.result);
+// Perform comprehensive statistical analysis with optional year filter
+export const analyzeHistoricalData = (yearFilter?: number[]): StatisticalAnalysis => {
+  const filteredHistory = yearFilter 
+    ? lotteryHistory.filter(r => yearFilter.includes(r.year))
+    : lotteryHistory;
+  const allNumbers = filteredHistory.map(r => r.result);
   
   // Overall digit frequency
   const digitCounts: { [key: string]: number } = {};
