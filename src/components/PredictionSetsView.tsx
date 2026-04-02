@@ -86,8 +86,12 @@ export const PredictionSetsView = () => {
       </Card>
 
       {/* Prediction Sets */}
-      {predictionSets.map((set, setIndex) => (
-        <Card key={setIndex} className="hover:shadow-lg transition-shadow">
+      {predictionSets.map((set, setIndex) => {
+        const filteredNumbers = searchTerm
+          ? set.numbers.filter(n => n.includes(searchTerm))
+          : set.numbers;
+        if (searchTerm && filteredNumbers.length === 0) return null;
+        return (
           <CardHeader>
             <div className="flex items-start justify-between">
               <div className="space-y-2">
