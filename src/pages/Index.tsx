@@ -442,6 +442,11 @@ const Index = () => {
             <PredictionSetsView />
           </TabsContent>
 
+          {/* Last 2 Digits Tab */}
+          <TabsContent value="last2">
+            <Last2DigitsPredictions />
+          </TabsContent>
+
           {/* Predictions Tab */}
           <TabsContent value="predictions">
             <Card className="shadow-card border-2 border-accent/20">
