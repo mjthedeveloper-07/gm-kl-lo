@@ -2320,7 +2320,7 @@ export const lotteryHistory: LotteryResult[] = ([
   { date: "22.01.09", day: "Thu", lottery: "Christmas-New Year Bumper", draw: "BR-15", result: "748563", year: 2009, month: 1, lotteryType: "bumper" },
 
 
-];
+] as LotteryResult[]);
 
 // Helper functions
 export const getResultsByYear = (year: number): LotteryResult[] => {
