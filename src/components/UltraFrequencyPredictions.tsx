@@ -1,9 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { lotteryHistory } from "@/data/lotteryHistory";
-import { Flame, TrendingUp, BarChart3, Target, Award, Activity, Calendar, Star, ShieldCheck, Repeat, Sparkles } from "lucide-react";
+import { Flame, TrendingUp, Zap, BarChart3, Target, Award, Activity } from "lucide-react";
 import { useMemo } from "react";
-import { runBacktest, discoverPatterns } from "@/utils/ultraFreqBacktest";
 
 interface DigitFreq {
   digit: string;
@@ -18,7 +17,6 @@ interface PairFreq {
 
 interface UltraPrediction {
   number: string;
-  l4: string;
   confidence: number;
   method: string;
   breakdown: string;
@@ -27,42 +25,28 @@ interface UltraPrediction {
 
 export const UltraFrequencyPredictions = () => {
   const analysis = useMemo(() => {
-    const allEntries = lotteryHistory.filter(r => r.lotteryType !== "bumper");
-    const results = allEntries.map(r => r.result).filter(r => r.length === 6 && /^\d{6}$/.test(r));
+    const results = lotteryHistory
+      .filter(r => r.lotteryType !== "bumper")
+      .map(r => r.result)
+      .filter(r => r.length === 6 && /^\d{6}$/.test(r));
     const totalResults = results.length;
 
-    // === L4 (Last 4 digits) FREQUENCY - PRIMARY FOCUS ===
-    const l4s = results.map(r => r.slice(-4));
-    const l4Freq: Record<string, number> = {};
-    l4s.forEach(l => { l4Freq[l] = (l4Freq[l] || 0) + 1; });
-    const topL4: PairFreq[] = Object.entries(l4Freq).sort((a, b) => b[1] - a[1]).slice(0, 25).map(([pair, count]) => ({ pair, count }));
-
-    // === L4 POSITIONAL FREQUENCY (positions 3-6, i.e. last 4 digit positions) ===
-    const l4PosFreq: Record<number, Record<string, number>> = {};
-    for (let p = 0; p < 4; p++) {
-      l4PosFreq[p] = {};
-      for (let d = 0; d <= 9; d++) l4PosFreq[p][d.toString()] = 0;
-    }
-    l4s.forEach(l => {
-      for (let p = 0; p < 4; p++) l4PosFreq[p][l[p]] = (l4PosFreq[p][l[p]] || 0) + 1;
-    });
-    const topL4PerPos = Array.from({ length: 4 }, (_, p) =>
-      Object.entries(l4PosFreq[p]).sort((a, b) => b[1] - a[1]).map(([digit, count]) => ({
-        digit, count, percentage: +((count / totalResults) * 100).toFixed(1)
-      }))
-    );
-
-    // === FULL POSITIONAL FREQUENCY ===
+    // === POSITIONAL FREQUENCY ===
     const posFreq: Record<number, Record<string, number>> = {};
     for (let p = 0; p < 6; p++) {
       posFreq[p] = {};
       for (let d = 0; d <= 9; d++) posFreq[p][d.toString()] = 0;
     }
-    results.forEach(r => { for (let p = 0; p < 6; p++) posFreq[p][r[p]] = (posFreq[p][r[p]] || 0) + 1; });
+    results.forEach(r => {
+      for (let p = 0; p < 6; p++) {
+        posFreq[p][r[p]] = (posFreq[p][r[p]] || 0) + 1;
+      }
+    });
+
     const topPerPosition = Array.from({ length: 6 }, (_, p) =>
-      Object.entries(posFreq[p]).sort((a, b) => b[1] - a[1]).map(([digit, count]) => ({
-        digit, count, percentage: +((count / totalResults) * 100).toFixed(1)
-      }))
+      Object.entries(posFreq[p])
+        .sort((a, b) => b[1] - a[1])
+        .map(([digit, count]) => ({ digit, count, percentage: +((count / totalResults) * 100).toFixed(1) }))
     );
 
     // === OVERALL DIGIT FREQUENCY ===
@@ -74,7 +58,7 @@ export const UltraFrequencyPredictions = () => {
       .sort((a, b) => b[1] - a[1])
       .map(([digit, count]) => ({ digit, count, percentage: +((count / totalDigits) * 100).toFixed(1) }));
 
-    // === LAST 2 & LAST 3 ===
+    // === LAST 2 & LAST 3 FREQUENCY ===
     const last2Freq: Record<string, number> = {};
     const last3Freq: Record<string, number> = {};
     results.forEach(r => {
@@ -84,23 +68,16 @@ export const UltraFrequencyPredictions = () => {
     const topLast2: PairFreq[] = Object.entries(last2Freq).sort((a, b) => b[1] - a[1]).slice(0, 20).map(([pair, count]) => ({ pair, count }));
     const topLast3: PairFreq[] = Object.entries(last3Freq).sort((a, b) => b[1] - a[1]).slice(0, 15).map(([pair, count]) => ({ pair, count }));
 
-    // === ADJACENT PAIRS IN L4 ===
-    const adjL4Freq: Record<string, number> = {};
-    l4s.forEach(l => { for (let i = 0; i < 3; i++) { const p = l[i]+l[i+1]; adjL4Freq[p] = (adjL4Freq[p] || 0) + 1; } });
-    const topAdjL4: PairFreq[] = Object.entries(adjL4Freq).sort((a, b) => b[1] - a[1]).slice(0, 20).map(([pair, count]) => ({ pair, count }));
+    // === ADJACENT PAIR FREQUENCY ===
+    const adjPairFreq: Record<string, number> = {};
+    results.forEach(r => { for (let i = 0; i < 5; i++) { const p = r[i]+r[i+1]; adjPairFreq[p] = (adjPairFreq[p] || 0) + 1; } });
+    const topAdjPairs: PairFreq[] = Object.entries(adjPairFreq).sort((a, b) => b[1] - a[1]).slice(0, 20).map(([pair, count]) => ({ pair, count }));
 
     // === RECENT PERIODS ===
     const recent30 = results.slice(0, 30);
     const recent90 = results.slice(0, 90);
     const recent180 = results.slice(0, 180);
     const older = results.slice(180, 360);
-
-    const calcL4PosFreq = (data: string[]) => {
-      const pf: Record<number, Record<string, number>> = {};
-      for (let p = 0; p < 4; p++) { pf[p] = {}; for (let d = 0; d <= 9; d++) pf[p][d.toString()] = 0; }
-      data.forEach(r => { const l = r.slice(-4); for (let p = 0; p < 4; p++) pf[p][l[p]] = (pf[p][l[p]] || 0) + 1; });
-      return Array.from({ length: 4 }, (_, p) => Object.entries(pf[p]).sort((a, b) => b[1] - a[1]));
-    };
 
     const calcPosFreq = (data: string[]) => {
       const pf: Record<number, Record<string, number>> = {};
@@ -109,175 +86,163 @@ export const UltraFrequencyPredictions = () => {
       return Array.from({ length: 6 }, (_, p) => Object.entries(pf[p]).sort((a, b) => b[1] - a[1]));
     };
 
-    const r30L4 = calcL4PosFreq(recent30);
-    const r90L4 = calcL4PosFreq(recent90);
-    const r180L4 = calcL4PosFreq(recent180);
-    const r30Full = calcPosFreq(recent30);
-    const r90Full = calcPosFreq(recent90);
+    const recent30Pos = calcPosFreq(recent30);
+    const recent90Pos = calcPosFreq(recent90);
+    const recent180Pos = calcPosFreq(recent180);
+    const olderPos = calcPosFreq(older);
 
-    // === MIRROR MAP ===
-    const mirrorMap: Record<string, string[]> = {
-      '0':['0','6','3','7','8'], '1':['1','7','4','3','0'], '2':['2','1','8','7','3'],
-      '3':['7','8','2','0','4'], '4':['8','3','4','1','0'], '5':['7','0','5','8','3'],
-      '6':['6','8','4','7','2'], '7':['7','2','3','0','9'], '8':['8','3','7','1','4'],
-      '9':['9','8','5','4','1']
-    };
-
-    // Helper: build full 6-digit from first 2 + L4
-    const buildFull = (l4: string): string => {
-      // Use top positional freq for positions 1-2
-      const p1 = topPerPosition[0][0].digit;
-      const p2 = topPerPosition[1][0].digit;
-      return p1 + p2 + l4;
-    };
-
-    // === GENERATE L4-FOCUSED PREDICTIONS ===
+    // === GENERATE PREDICTIONS ===
     const predictions: UltraPrediction[] = [];
     const hotDigits = overallRanked.slice(0, 5).map(d => d.digit);
     const coldDigits = overallRanked.slice(-3).map(d => d.digit);
 
-    // 1. L4 All-time positional #1
-    const l4_1 = topL4PerPos.map(pos => pos[0].digit).join('');
-    predictions.push({ number: buildFull(l4_1), l4: l4_1, confidence: 96, method: "L4 All-Time Top", category: "elite",
-      breakdown: `Most frequent digit at each L4 position across ${totalResults} draws` });
+    // 1. All-time positional #1
+    predictions.push({
+      number: topPerPosition.map(pos => pos[0].digit).join(''),
+      confidence: 96, method: "All-Time Positional #1", category: "elite",
+      breakdown: `Most frequent digit at each position across ${totalResults} draws`
+    });
 
-    // 2. L4 Recent 30 positional
-    const l4_2 = r30L4.map(pos => pos[0][0]).join('');
-    predictions.push({ number: buildFull(l4_2), l4: l4_2, confidence: 94, method: "L4 Hot Streak (30)", category: "elite",
-      breakdown: "Most frequent L4 digit at each position in last 30 draws" });
+    // 2. Recent 30 positional #1
+    predictions.push({
+      number: recent30Pos.map(pos => pos[0][0]).join(''),
+      confidence: 94, method: "Hot Streak (30 draws)", category: "elite",
+      breakdown: "Most frequent at each position in the last 30 draws"
+    });
 
-    // 3. L4 Recent 90 positional
-    const l4_3 = r90L4.map(pos => pos[0][0]).join('');
-    predictions.push({ number: buildFull(l4_3), l4: l4_3, confidence: 93, method: "L4 Trend (90)", category: "elite",
-      breakdown: "Most frequent L4 digit at each position in last 90 draws" });
+    // 3. Recent 90 positional #1
+    predictions.push({
+      number: recent90Pos.map(pos => pos[0][0]).join(''),
+      confidence: 93, method: "Recent Trend (90 draws)", category: "elite",
+      breakdown: "Most frequent at each position in the last 90 draws"
+    });
 
-    // 4. L4 Triple consensus (30 ∩ 90 ∩ all-time)
-    const l4_4 = Array.from({ length: 4 }, (_, p) => {
-      const a = topL4PerPos[p].slice(0, 4).map(t => t.digit);
-      const b = r90L4[p].slice(0, 4).map(([d]) => d);
-      const c = r30L4[p].slice(0, 4).map(([d]) => d);
-      const common = a.find(d => b.includes(d) && c.includes(d));
-      return common || a.find(d => b.includes(d)) || a[0];
-    }).join('');
-    predictions.push({ number: buildFull(l4_4), l4: l4_4, confidence: 97, method: "L4 Triple Consensus", category: "elite",
-      breakdown: "L4 digits in top-4 across 30, 90, and all-time periods" });
-
-    // 5. L4 Dual consensus
-    const l4_5 = Array.from({ length: 4 }, (_, p) => {
-      const allTop3 = topL4PerPos[p].slice(0, 3).map(t => t.digit);
-      const recTop3 = r90L4[p].slice(0, 3).map(([d]) => d);
+    // 4. Dual-period consensus (all-time ∩ recent-90)
+    const m4 = Array.from({ length: 6 }, (_, p) => {
+      const allTop3 = topPerPosition[p].slice(0, 3).map(t => t.digit);
+      const recTop3 = recent90Pos[p].slice(0, 3).map(([d]) => d);
       const common = allTop3.find(d => recTop3.includes(d));
       return common || allTop3[0];
     }).join('');
-    predictions.push({ number: buildFull(l4_5), l4: l4_5, confidence: 95, method: "L4 Dual Consensus", category: "elite",
-      breakdown: "L4 digits in top-3 for both all-time and recent 90" });
+    predictions.push({ number: m4, confidence: 95, method: "Dual-Period Consensus", category: "elite",
+      breakdown: "Digits appearing in top-3 for both all-time and recent 90 draws" });
 
-    // 6. L4 Hot-positional blend
-    const l4_6 = topL4PerPos.map(pos => {
+    // 5. Triple consensus (30 ∩ 90 ∩ all-time)
+    const m5 = Array.from({ length: 6 }, (_, p) => {
+      const a = topPerPosition[p].slice(0, 4).map(t => t.digit);
+      const b = recent90Pos[p].slice(0, 4).map(([d]) => d);
+      const c = recent30Pos[p].slice(0, 4).map(([d]) => d);
+      const common = a.find(d => b.includes(d) && c.includes(d));
+      return common || a.find(d => b.includes(d)) || a[0];
+    }).join('');
+    predictions.push({ number: m5, confidence: 97, method: "Triple Consensus", category: "elite",
+      breakdown: "Digits appearing in top-4 across 30-draw, 90-draw, and all-time periods" });
+
+    // 6. Hot-positional blend
+    const m6 = topPerPosition.map(pos => {
       const topPos = pos.slice(0, 3).map(p => p.digit);
       return topPos.find(d => hotDigits.includes(d)) || topPos[0];
     }).join('');
-    predictions.push({ number: buildFull(l4_6), l4: l4_6, confidence: 91, method: "L4 Hot Blend", category: "strong",
-      breakdown: `L4 combined with overall hot digits (${hotDigits.join(',')})` });
+    predictions.push({ number: m6, confidence: 91, method: "Hot-Positional Blend", category: "strong",
+      breakdown: `Combines overall hot digits (${hotDigits.join(',')}) with positional frequency` });
 
-    // 7. L4 Momentum rising
-    const l4_7 = Array.from({ length: 4 }, (_, p) => {
+    // 7. Momentum rising (recent vs older)
+    const m7 = Array.from({ length: 6 }, (_, p) => {
       let bestM = -Infinity, bestD = '0';
       for (let d = 0; d <= 9; d++) {
         const ds = d.toString();
-        const rc = recent90.map(r => r.slice(-4)).filter(l => l[p] === ds).length;
-        const oc = (older.map(r => r.slice(-4)).filter(l => l[p] === ds).length) || 1;
-        if (rc / oc > bestM) { bestM = rc / oc; bestD = ds; }
+        const rc = recent90.filter(r => r[p] === ds).length;
+        const oc = (older.filter(r => r[p] === ds).length) || 1;
+        const m = rc / oc;
+        if (m > bestM) { bestM = m; bestD = ds; }
       }
       return bestD;
     }).join('');
-    predictions.push({ number: buildFull(l4_7), l4: l4_7, confidence: 88, method: "L4 Momentum", category: "strong",
-      breakdown: "L4 digits with strongest upward trend" });
+    predictions.push({ number: m7, confidence: 88, method: "Momentum Rising", category: "strong",
+      breakdown: "Digits with strongest upward trend (recent 90 vs older 180)" });
 
-    // 8. L4 Pair-chain
-    const l4_8d = [topL4PerPos[0][0].digit];
-    for (let i = 1; i < 4; i++) {
-      const prev = l4_8d[i-1];
-      const best = Object.entries(adjL4Freq).filter(([p]) => p[0]===prev).sort((a,b)=>b[1]-a[1]);
-      l4_8d.push(best.length > 0 ? best[0][0][1] : topL4PerPos[i][0].digit);
+    // 8. Pair-chain
+    const m8d = [topPerPosition[0][0].digit];
+    for (let i = 1; i < 6; i++) {
+      const prev = m8d[i-1];
+      const best = Object.entries(adjPairFreq).filter(([p]) => p[0]===prev).sort((a,b)=>b[1]-a[1]);
+      m8d.push(best.length > 0 ? best[0][0][1] : topPerPosition[i][0].digit);
     }
-    predictions.push({ number: buildFull(l4_8d.join('')), l4: l4_8d.join(''), confidence: 85, method: "L4 Pair-Chain", category: "strong",
-      breakdown: "Each L4 digit predicted from most common adjacent L4 pair" });
+    predictions.push({ number: m8d.join(''), confidence: 85, method: "Pair-Chain", category: "strong",
+      breakdown: "Each digit follows from the most common adjacent pair" });
 
-    // 9. L4 Top pattern boosted
-    const l4_9 = topL4[0].pair;
-    predictions.push({ number: buildFull(l4_9), l4: l4_9, confidence: 87, method: "L4 Top Pattern", category: "strong",
-      breakdown: `Most frequently occurring L4 pattern: ${l4_9} (${topL4[0].count}×)` });
+    // 9. Last-2 boosted
+    const bestL2 = topLast2[0].pair;
+    const m9 = topPerPosition.slice(0, 4).map(pos => pos[0].digit).join('') + bestL2;
+    predictions.push({ number: m9, confidence: 87, method: "Last-2 Boosted", category: "strong",
+      breakdown: `Top positional (pos 1-4) + most frequent last-2: ${bestL2}` });
 
-    // 10. L4 Anti-cold
-    const l4_10 = topL4PerPos.map(pos => {
+    // 10. Anti-cold filter
+    const m10 = topPerPosition.map(pos => {
       const nc = pos.find(p => !coldDigits.includes(p.digit));
       return nc ? nc.digit : pos[0].digit;
     }).join('');
-    predictions.push({ number: buildFull(l4_10), l4: l4_10, confidence: 86, method: "L4 Anti-Cold", category: "standard",
-      breakdown: `L4 avoiding coldest digits (${coldDigits.join(',')})` });
+    predictions.push({ number: m10, confidence: 86, method: "Anti-Cold Filter", category: "standard",
+      breakdown: `Avoids coldest digits (${coldDigits.join(',')})` });
 
-    // 11. L4 Mirror-frequency hybrid
-    const l4_11 = topL4PerPos.map(pos => {
-      const topD = pos[0].digit;
-      const mirrors = mirrorMap[topD] || [topD];
-      const best = mirrors.reduce((b, d) => {
-        const freq = pos.find(p => p.digit === d);
-        return freq && freq.count > (b.count || 0) ? { digit: d, count: freq.count } : b;
-      }, { digit: mirrors[0], count: 0 });
-      return best.digit;
-    }).join('');
-    predictions.push({ number: buildFull(l4_11), l4: l4_11, confidence: 90, method: "L4 Mirror Hybrid", category: "strong",
-      breakdown: "Power mirror mapping on top L4 positional digits" });
-
-    // 12. L4 Half-year trend
-    const l4_12 = r180L4.map(pos => pos[0][0]).join('');
-    predictions.push({ number: buildFull(l4_12), l4: l4_12, confidence: 89, method: "L4 Half-Year (180)", category: "strong",
-      breakdown: "Most frequent L4 at each position in last 180 draws" });
-
-    // 13. L4 Weighted positional
-    const l4_13 = topL4PerPos.map(pos => {
+    // 11. Weighted positional
+    const m11 = topPerPosition.map(pos => {
       const w = pos.slice(0, 3);
       const total = w.reduce((s, x) => s + x.count, 0);
       let pick = Math.floor(total * 0.35);
       for (const x of w) { pick -= x.count; if (pick <= 0) return x.digit; }
       return w[0].digit;
     }).join('');
-    predictions.push({ number: buildFull(l4_13), l4: l4_13, confidence: 84, method: "L4 Weighted", category: "standard",
-      breakdown: "Weighted selection from top-3 L4 at each position" });
+    predictions.push({ number: m11, confidence: 84, method: "Weighted Positional", category: "standard",
+      breakdown: "Weighted selection from top-3 at each position" });
 
-    // 14. L4 Alternating
-    const l4_14 = topL4PerPos.map((pos, i) => i % 2 === 0 ? pos[0].digit : pos[1].digit).join('');
-    predictions.push({ number: buildFull(l4_14), l4: l4_14, confidence: 83, method: "L4 Alternating", category: "standard",
-      breakdown: "Alternates 1st/2nd most frequent per L4 position" });
+    // 12. Alternating top-2
+    const m12 = topPerPosition.map((pos, i) => i % 2 === 0 ? pos[0].digit : pos[1].digit).join('');
+    predictions.push({ number: m12, confidence: 83, method: "Alternating Top-2", category: "standard",
+      breakdown: "Alternates between 1st and 2nd most frequent per position" });
 
-    // 15. L4 Delta system (from consecutive differences)
-    const l4_15 = Array.from({ length: 4 }, (_, p) => {
-      const deltas: Record<string, number> = {};
-      for (let i = 0; i < Math.min(100, results.length - 1); i++) {
-        const cur = parseInt(results[i].slice(-4)[p]);
-        const prev = parseInt(results[i+1].slice(-4)[p]);
-        const delta = ((cur - prev + 10) % 10).toString();
-        deltas[delta] = (deltas[delta] || 0) + 1;
-      }
-      const topDelta = Object.entries(deltas).sort((a, b) => b[1] - a[1])[0][0];
-      const lastDigit = parseInt(results[0].slice(-4)[p]);
-      return ((lastDigit + parseInt(topDelta)) % 10).toString();
+    // 13. Recent 180 weighted
+    const m13 = recent180Pos.map(pos => pos[0][0]).join('');
+    predictions.push({ number: m13, confidence: 89, method: "Half-Year Trend (180)", category: "strong",
+      breakdown: "Most frequent at each position in the last 180 draws" });
+
+    // 14. Sum-pattern prediction
+    const m14 = Array.from({ length: 6 }, (_, p) => {
+      const digitSums: Record<number, number> = {};
+      results.slice(0, 200).forEach(r => {
+        const d = parseInt(r[p]);
+        const sum = r.split('').reduce((s, c) => s + parseInt(c), 0);
+        const sumMod = sum % 10;
+        digitSums[d] = (digitSums[d] || 0) + (d === sumMod ? 2 : 1);
+      });
+      return Object.entries(digitSums).sort((a, b) => b[1] - a[1])[0][0];
     }).join('');
-    predictions.push({ number: buildFull(l4_15), l4: l4_15, confidence: 82, method: "L4 Delta Predict", category: "standard",
-      breakdown: "Next L4 based on most common positional deltas from recent results" });
+    predictions.push({ number: m14, confidence: 82, method: "Sum-Pattern", category: "standard",
+      breakdown: "Digits correlated with winning number digit sums" });
+
+    // 15. Mirror frequency
+    const mirrorMap: Record<string, string[]> = {
+      '0':['0','6','3','7','8'], '1':['1','7','4','3','0'], '2':['2','1','8','7','3'],
+      '3':['7','8','2','0','4'], '4':['8','3','4','1','0'], '5':['7','0','5','8','3'],
+      '6':['6','8','4','7','2'], '7':['7','2','3','0','9'], '8':['8','3','7','1','4'],
+      '9':['9','8','5','4','1']
+    };
+    const m15 = topPerPosition.map(pos => {
+      const topD = pos[0].digit;
+      const mirrors = mirrorMap[topD] || [topD];
+      // Find which mirror digit has best positional frequency
+      const best = mirrors.reduce((b, d) => {
+        const freq = pos.find(p => p.digit === d);
+        return freq && freq.count > (b.count || 0) ? { digit: d, count: freq.count } : b;
+      }, { digit: mirrors[0], count: 0 });
+      return best.digit;
+    }).join('');
+    predictions.push({ number: m15, confidence: 90, method: "Mirror-Frequency Hybrid", category: "strong",
+      breakdown: "Power mirror mapping applied to top positional digits" });
 
     predictions.sort((a, b) => b.confidence - a.confidence);
 
-    // Next day info
-    const latestResult = allEntries[0];
-    const nextDay = { date: "05 April 2026", day: "Sunday", lottery: "Akshaya" };
-
-    return {
-      totalResults, overallRanked, topPerPosition, topLast2, topLast3,
-      topL4, topL4PerPos, topAdjL4, predictions, r30L4, r90L4,
-      latestResult, nextDay, r30Full, r90Full
-    };
+    return { totalResults, overallRanked, topPerPosition, topLast2, topLast3, topAdjPairs, predictions, recent30Pos, recent90Pos };
   }, []);
 
   const getCategoryStyle = (cat: string) => {
@@ -292,263 +257,43 @@ export const UltraFrequencyPredictions = () => {
     return "bg-blue-500/20 text-blue-400 border-blue-500/30";
   };
 
-  // Backtesting & Pattern Discovery (cached)
-  const backtestResults = useMemo(() => runBacktest(400), []);
-  const patternInsights = useMemo(() => discoverPatterns(), []);
-
-  const getAccuracyColor = (pct: number) => {
-    if (pct >= 15) return "text-green-400";
-    if (pct >= 10) return "text-yellow-400";
-    return "text-muted-foreground";
-  };
-
   return (
     <div className="space-y-6">
-      {/* === ACCURACY DASHBOARD === */}
-      <Card className="border-green-500/30 bg-gradient-to-br from-green-500/5 to-transparent">
+      {/* Header */}
+      <Card className="bg-gradient-to-br from-primary/10 via-accent/5 to-primary/5 border-primary/20">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <ShieldCheck className="h-6 w-6 text-green-500" />
-            Accuracy Dashboard — Backtest on {backtestResults[0]?.totalTested || 0} Draws
-          </CardTitle>
-          <CardDescription>Each method tested against actual results using sliding-window validation</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-2 px-2">Method</th>
-                  <th className="text-center py-2 px-1">4/4 Match</th>
-                  <th className="text-center py-2 px-1">3+ Digits</th>
-                  <th className="text-center py-2 px-1">2+ Digits</th>
-                  <th className="text-center py-2 px-1">Avg Pos %</th>
-                  <th className="text-center py-2 px-1">P3</th>
-                  <th className="text-center py-2 px-1">P4</th>
-                  <th className="text-center py-2 px-1">P5</th>
-                  <th className="text-center py-2 px-1">P6</th>
-                </tr>
-              </thead>
-              <tbody>
-                {backtestResults.map((m, idx) => (
-                  <tr key={m.method} className={`border-b border-border/50 ${idx === 0 ? 'bg-green-500/10' : ''}`}>
-                    <td className="py-2 px-2 font-medium text-xs">
-                      {idx === 0 && <Sparkles className="h-3 w-3 inline mr-1 text-green-400" />}
-                      {m.method}
-                    </td>
-                    <td className={`text-center py-2 px-1 font-mono font-bold ${getAccuracyColor(m.exactL4 * 10)}`}>{m.exactL4}%</td>
-                    <td className={`text-center py-2 px-1 font-mono ${getAccuracyColor(m.match3)}`}>{m.match3}%</td>
-                    <td className={`text-center py-2 px-1 font-mono ${getAccuracyColor(m.match2)}`}>{m.match2}%</td>
-                    <td className="text-center py-2 px-1 font-mono font-bold text-primary">{m.avgPosAccuracy}%</td>
-                    {m.posHitRate.map((hr, i) => (
-                      <td key={i} className={`text-center py-2 px-1 font-mono text-xs ${getAccuracyColor(hr)}`}>{hr}%</td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {backtestResults.length > 0 && (
-            <div className="mt-4 grid grid-cols-3 gap-3">
-              <div className="p-3 rounded-lg bg-card border text-center">
-                <p className="text-xs text-muted-foreground">Best Method</p>
-                <p className="font-bold text-sm text-green-400">{backtestResults[0].method}</p>
-                <p className="text-xs text-muted-foreground">2+ digit: {backtestResults[0].match2}%</p>
-              </div>
-              <div className="p-3 rounded-lg bg-card border text-center">
-                <p className="text-xs text-muted-foreground">Avg Position Accuracy</p>
-                <p className="font-bold text-lg text-primary">
-                  {(backtestResults.reduce((s, m) => s + m.avgPosAccuracy, 0) / backtestResults.length).toFixed(1)}%
-                </p>
-              </div>
-              <div className="p-3 rounded-lg bg-card border text-center">
-                <p className="text-xs text-muted-foreground">Best Exact L4</p>
-                <p className="font-bold text-sm text-yellow-400">{Math.max(...backtestResults.map(m => m.exactL4))}%</p>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* === PATTERN INSIGHTS === */}
-      <Card className="border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-transparent">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Repeat className="h-6 w-6 text-purple-500" />
-            Pattern Discovery — {analysis.totalResults} Results Analyzed
-          </CardTitle>
-          <CardDescription>Recurring patterns, streaks, and cycles found in historical data</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Repeating L4 */}
-          <div>
-            <h4 className="text-sm font-semibold mb-2 text-purple-400">Repeating L4 Patterns</h4>
-            <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
-              {patternInsights.repeatingL4.slice(0, 10).map((p, i) => (
-                <div key={i} className={`p-2 rounded-lg border bg-card text-center ${i < 3 ? 'border-purple-500/40' : ''}`}>
-                  <div className="font-mono font-bold text-lg">{p.pattern}</div>
-                  <div className="text-xs text-muted-foreground">{p.count}× seen</div>
-                  <div className="text-[10px] text-muted-foreground">~{p.avgInterval} draws apart</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Repeating L3 */}
-          <div>
-            <h4 className="text-sm font-semibold mb-2 text-purple-400">Repeating L3 Patterns</h4>
-            <div className="grid grid-cols-5 gap-2">
-              {patternInsights.repeatingL3.slice(0, 10).map((p, i) => (
-                <div key={i} className="p-2 rounded border bg-card text-center">
-                  <div className="font-mono font-bold">{p.pattern}</div>
-                  <div className="text-xs text-muted-foreground">{p.count}×</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Positional Streaks */}
-          <div>
-            <h4 className="text-sm font-semibold mb-2 text-purple-400">Longest Positional Streaks</h4>
-            <div className="grid grid-cols-4 gap-3">
-              {patternInsights.longestStreaks.map((s, i) => (
-                <div key={i} className="p-3 rounded-lg border bg-card text-center">
-                  <div className="text-xs text-muted-foreground">Position {s.position + 1}</div>
-                  <div className="font-mono text-2xl font-bold text-primary">{s.digit}</div>
-                  <div className="text-xs text-muted-foreground">{s.streakLength} consecutive</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Day-of-week */}
-          <div>
-            <h4 className="text-sm font-semibold mb-2 text-purple-400">Day-of-Week L4 Digit Bias</h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              {patternInsights.dayPatterns.slice(0, 8).map((dp, i) => (
-                <div key={i} className="p-2 rounded border bg-card">
-                  <div className="text-xs font-semibold text-center mb-1">{dp.day}</div>
-                  <div className="flex justify-center gap-1">
-                    {dp.topDigits.slice(0, 3).map((d, j) => (
-                      <Badge key={j} variant={j === 0 ? "default" : "outline"} className="font-mono text-xs">
-                        {d.digit} ({d.pct}%)
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Follow-on patterns */}
-          <div>
-            <h4 className="text-sm font-semibold mb-2 text-purple-400">Follow-On Patterns (Last 2 → Next L4)</h4>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-              {patternInsights.followOns.slice(0, 10).map((fo, i) => (
-                <div key={i} className="p-2 rounded border bg-card">
-                  <div className="text-center text-xs text-muted-foreground">After …{fo.ending}</div>
-                  {fo.nextL4.slice(0, 2).map((n, j) => (
-                    <div key={j} className="text-center font-mono text-sm">
-                      {n.l4} <span className="text-[10px] text-muted-foreground">({n.count}×)</span>
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Cycle intervals */}
-          <div>
-            <h4 className="text-sm font-semibold mb-2 text-purple-400">L4 Cycle Intervals</h4>
-            <div className="grid grid-cols-4 gap-2">
-              {patternInsights.cycleIntervals.slice(0, 8).map((c, i) => (
-                <div key={i} className="p-2 rounded border bg-card text-center">
-                  <div className="font-mono font-bold">{c.pattern}</div>
-                  <div className="text-xs text-muted-foreground">avg {c.avgCycle} draws</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      {/* Next Day Prediction Header */}
-      <Card className="bg-gradient-to-br from-yellow-500/10 via-primary/10 to-accent/5 border-yellow-500/30">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-6 w-6 text-yellow-500" />
-            Next Day Prediction — {analysis.nextDay.date}
+            <Flame className="h-6 w-6 text-orange-500" />
+            Ultra Frequency Prediction Engine v2
           </CardTitle>
           <CardDescription>
-            {analysis.nextDay.day} • <strong>{analysis.nextDay.lottery}</strong> Draw • L4-Focused Analysis
+            Powered by <strong>{analysis.totalResults}</strong> historical results (2019-2026) • 15 frequency-based methods
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="p-3 rounded-lg bg-card border text-center">
-              <p className="text-xs text-muted-foreground">Latest Result</p>
-              <p className="text-2xl font-mono font-bold text-primary">{analysis.latestResult?.result}</p>
-              <p className="text-xs text-muted-foreground">{analysis.latestResult?.date}</p>
-            </div>
-            <div className="p-3 rounded-lg bg-card border text-center">
-              <p className="text-xs text-muted-foreground">Latest L4</p>
-              <p className="text-2xl font-mono font-bold text-accent">{analysis.latestResult?.result.slice(-4)}</p>
-            </div>
-            <div className="p-3 rounded-lg bg-card border text-center">
-              <p className="text-xs text-muted-foreground">Dataset</p>
               <p className="text-2xl font-bold text-primary">{analysis.totalResults}</p>
-              <p className="text-xs text-muted-foreground">results</p>
+              <p className="text-xs text-muted-foreground">Total Results</p>
             </div>
             <div className="p-3 rounded-lg bg-card border text-center">
-              <p className="text-xs text-muted-foreground">Hottest Digit</p>
+              <p className="text-2xl font-bold text-accent">{analysis.predictions.length}</p>
+              <p className="text-xs text-muted-foreground">Predictions</p>
+            </div>
+            <div className="p-3 rounded-lg bg-card border text-center">
               <p className="text-2xl font-bold text-secondary">{analysis.overallRanked[0]?.digit}</p>
+              <p className="text-xs text-muted-foreground">Hottest Digit</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Top 5 Elite Predictions - Highlighted */}
-      <Card className="border-yellow-500/30">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Star className="h-5 w-5 text-yellow-500" />
-            Top 5 Elite L4 Predictions for {analysis.nextDay.date}
-          </CardTitle>
-          <CardDescription>Highest confidence predictions focused on Last 4 digits</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {analysis.predictions.slice(0, 5).map((pred, idx) => (
-            <div key={idx} className="p-5 rounded-xl border-2 border-yellow-500/20 bg-gradient-to-r from-yellow-500/5 via-transparent to-primary/5 hover:border-yellow-500/40 transition-colors">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-500 font-bold">
-                    #{idx + 1}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-mono text-lg text-muted-foreground">{pred.number.slice(0, 2)}</span>
-                      <span className="font-mono text-4xl font-black tracking-wider bg-gradient-to-r from-yellow-500 via-primary to-accent bg-clip-text text-transparent">
-                        {pred.l4}
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">{pred.method}</p>
-                  </div>
-                </div>
-                <Badge className={`${getConfBadge(pred.confidence)} border text-lg px-3 py-1`}>
-                  {pred.confidence}%
-                </Badge>
-              </div>
-              <p className="text-xs text-muted-foreground mt-3 pl-14">{pred.breakdown}</p>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
-      {/* All 15 Predictions */}
+      {/* Top Predictions */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Award className="h-5 w-5" />
-            All L4 Predictions (15 Methods)
+            <Award className="h-5 w-5 text-yellow-500" />
+            Ultra Predictions (Top 15)
           </CardTitle>
           <CardDescription>
             <span className="inline-flex gap-3 mt-1">
@@ -558,100 +303,37 @@ export const UltraFrequencyPredictions = () => {
             </span>
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-3">
           {analysis.predictions.map((pred, idx) => (
-            <div key={idx} className={`p-3 rounded-lg border ${getCategoryStyle(pred.category)} hover:bg-accent/5 transition-colors`}>
-              <div className="flex items-center justify-between gap-3">
+            <div key={idx} className={`p-4 rounded-lg border ${getCategoryStyle(pred.category)} hover:bg-accent/5 transition-colors`}>
+              <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <Badge variant="outline" className="text-xs font-bold w-7 justify-center">#{idx + 1}</Badge>
-                  <span className="font-mono text-sm text-muted-foreground">{pred.number.slice(0, 2)}</span>
-                  <span className="font-mono text-2xl font-bold tracking-wider bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                    {pred.l4}
-                  </span>
+                  <Badge variant="outline" className="text-xs font-bold w-7 justify-center">
+                    #{idx + 1}
+                  </Badge>
+                  <div className="font-mono text-3xl font-bold tracking-wider bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                    {pred.number}
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <Badge className={`${getConfBadge(pred.confidence)} border`}>{pred.confidence}%</Badge>
-                  <Badge variant="outline" className="text-xs max-w-[120px] truncate">{pred.method}</Badge>
+                  <Badge className={`${getConfBadge(pred.confidence)} border`}>
+                    {pred.confidence}%
+                  </Badge>
+                  <Badge variant="outline" className="text-xs max-w-[140px] truncate">
+                    {pred.method}
+                  </Badge>
                 </div>
               </div>
-              <p className="text-[10px] text-muted-foreground mt-1 pl-10">{pred.breakdown}</p>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
-      {/* L4 Positional Frequency */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
-            L4 Positional Frequency (Last 4 Digit Positions)
-          </CardTitle>
-          <CardDescription>Frequency of each digit at L4 positions (3rd to 6th)</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {analysis.topL4PerPos.map((posData, p) => (
-              <div key={p} className="space-y-1">
-                <div className="text-center font-semibold text-primary text-sm">L4 Pos {p + 1} (P{p + 3})</div>
-                {posData.slice(0, 6).map((item, i) => (
-                  <div key={i} className="flex items-center justify-between text-sm p-1.5 rounded bg-muted/50">
-                    <Badge variant={i === 0 ? "default" : "outline"} className="font-mono text-xs">{item.digit}</Badge>
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 h-2 rounded-full bg-muted overflow-hidden">
-                        <div className={`h-full ${i === 0 ? 'bg-primary' : 'bg-muted-foreground/30'}`} style={{ width: `${item.percentage}%` }} />
-                      </div>
-                      <span className="text-xs text-muted-foreground w-12 text-right">{item.percentage}%</span>
-                    </div>
-                  </div>
+              <p className="text-xs text-muted-foreground mt-2">{pred.breakdown}</p>
+              <div className="flex gap-1 mt-2">
+                {pred.number.split('').map((d, i) => (
+                  <span key={i} className="text-[10px] text-muted-foreground">
+                    P{i+1}:{d}
+                  </span>
                 ))}
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Recent vs All-time L4 comparison */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-purple-500" />
-            L4 Recent vs All-Time Comparison
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-4 gap-6">
-            {Array.from({ length: 4 }, (_, p) => (
-              <div key={p} className="space-y-2 text-center">
-                <div className="font-semibold text-sm text-primary">L4P{p + 1}</div>
-                <div><div className="text-xs text-muted-foreground">30d</div><Badge variant="default" className="font-mono text-lg">{analysis.r30L4[p][0][0]}</Badge></div>
-                <div><div className="text-xs text-muted-foreground">90d</div><Badge variant="outline" className="font-mono text-lg">{analysis.r90L4[p][0][0]}</Badge></div>
-                <div><div className="text-xs text-muted-foreground">All</div><Badge variant="secondary" className="font-mono text-lg">{analysis.topL4PerPos[p][0].digit}</Badge></div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Top L4 Patterns */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Target className="h-5 w-5" />
-            Top Historical L4 Patterns
-          </CardTitle>
-          <CardDescription>Most frequently occurring last 4 digit combinations</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-5 gap-2">
-            {analysis.topL4.map((item, idx) => (
-              <div key={idx} className={`p-3 rounded-lg border bg-card text-center ${idx < 3 ? 'border-primary/40 bg-primary/5' : ''}`}>
-                <div className="font-mono font-bold text-xl">{item.pair}</div>
-                <div className="text-xs text-muted-foreground">{item.count}×</div>
-                {idx < 3 && <Flame className="h-3 w-3 text-orange-500 mx-auto mt-1" />}
-              </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </CardContent>
       </Card>
 
@@ -690,54 +372,119 @@ export const UltraFrequencyPredictions = () => {
         </CardContent>
       </Card>
 
-      {/* Top Last-2, Last-3, L4 Adjacent */}
-      <div className="grid md:grid-cols-3 gap-4">
+      {/* Positional Frequency Grid */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            Positional Frequency (Top 5 per Position)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {analysis.topPerPosition.map((posData, p) => (
+              <div key={p} className="space-y-1">
+                <div className="text-center font-semibold text-primary text-sm">Pos {p + 1}</div>
+                {posData.slice(0, 5).map((item, i) => (
+                  <div key={i} className="flex items-center justify-between text-sm p-1.5 rounded bg-muted/50">
+                    <Badge variant={i === 0 ? "default" : "outline"} className="font-mono text-xs">
+                      {item.digit}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">{item.percentage}%</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recent vs All-time comparison */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-5 w-5 text-purple-500" />
+            Recent vs All-Time Top Digits
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-6 gap-4">
+            {Array.from({ length: 6 }, (_, p) => (
+              <div key={p} className="space-y-2">
+                <div className="text-center font-semibold text-sm text-primary">P{p + 1}</div>
+                <div className="text-center">
+                  <div className="text-xs text-muted-foreground">30d</div>
+                  <Badge variant="default" className="font-mono">{analysis.recent30Pos[p][0][0]}</Badge>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-muted-foreground">90d</div>
+                  <Badge variant="outline" className="font-mono">{analysis.recent90Pos[p][0][0]}</Badge>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-muted-foreground">All</div>
+                  <Badge variant="secondary" className="font-mono">{analysis.topPerPosition[p][0].digit}</Badge>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Top Last-2 and Last-3 */}
+      <div className="grid md:grid-cols-2 gap-6">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Top Last-2</CardTitle>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Target className="h-4 w-4" /> Top Last-2 Patterns
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-4 gap-1">
-              {analysis.topLast2.slice(0, 12).map((item, idx) => (
-                <div key={idx} className="p-1.5 rounded border bg-card text-center">
-                  <div className="font-mono font-bold text-sm">{item.pair}</div>
-                  <div className="text-[10px] text-muted-foreground">{item.count}×</div>
+            <div className="grid grid-cols-4 gap-2">
+              {analysis.topLast2.map((item, idx) => (
+                <div key={idx} className={`p-2 rounded border bg-card text-center ${idx < 3 ? 'border-primary/30' : ''}`}>
+                  <div className="font-mono font-bold text-lg">{item.pair}</div>
+                  <div className="text-xs text-muted-foreground">{item.count}×</div>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Top Last-3</CardTitle>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Target className="h-4 w-4" /> Top Last-3 Patterns
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-3 gap-1">
-              {analysis.topLast3.slice(0, 9).map((item, idx) => (
-                <div key={idx} className="p-1.5 rounded border bg-card text-center">
-                  <div className="font-mono font-bold text-sm">{item.pair}</div>
-                  <div className="text-[10px] text-muted-foreground">{item.count}×</div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Top L4 Adjacent Pairs</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-4 gap-1">
-              {analysis.topAdjL4.slice(0, 12).map((item, idx) => (
-                <div key={idx} className="p-1.5 rounded border bg-card text-center">
-                  <div className="font-mono font-bold text-sm">{item.pair}</div>
-                  <div className="text-[10px] text-muted-foreground">{item.count}×</div>
+            <div className="grid grid-cols-3 gap-2">
+              {analysis.topLast3.map((item, idx) => (
+                <div key={idx} className={`p-2 rounded border bg-card text-center ${idx < 3 ? 'border-primary/30' : ''}`}>
+                  <div className="font-mono font-bold text-lg">{item.pair}</div>
+                  <div className="text-xs text-muted-foreground">{item.count}×</div>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Top Adjacent Pairs */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Top Adjacent Digit Pairs</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
+            {analysis.topAdjPairs.map((item, idx) => (
+              <div key={idx} className="p-2 rounded border bg-card text-center">
+                <div className="font-mono font-bold">{item.pair}</div>
+                <div className="text-xs text-muted-foreground">{item.count}×</div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
