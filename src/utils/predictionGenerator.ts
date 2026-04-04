@@ -612,6 +612,7 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
 
 // Generate all prediction sets
 export const generateAllPredictions = (): PredictionSet[] => {
+  initSeed(); // Seed from today's date + latest result — changes daily or when data updates
   const analysis = analyzeHistoricalData();
 
   return [
