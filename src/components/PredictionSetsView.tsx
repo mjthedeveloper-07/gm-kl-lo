@@ -18,6 +18,7 @@ export const PredictionSetsView = () => {
   const regeneratePredictions = () => {
     const predictions = generateAllPredictions();
     setPredictionSets(predictions);
+    setGeneratedAt(new Date().toLocaleTimeString());
     toast.success("Generated new predictions based on statistical analysis");
   };
 
