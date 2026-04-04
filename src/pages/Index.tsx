@@ -415,20 +415,24 @@ const Index = () => {
 
         {/* Results & Analysis Tabs */}
         <Tabs defaultValue="ai-predictions" className="mt-8">
-          <TabsList className="grid w-full grid-cols-6">
+           <TabsList className="grid w-full grid-cols-7">
+            <TabsTrigger value="ultra-freq">
+              <Flame className="h-4 w-4 mr-1" />
+              Ultra Freq
+            </TabsTrigger>
             <TabsTrigger value="ai-predictions">
-              <Zap className="h-4 w-4 mr-2" />
-              AI Predictions
+              <Zap className="h-4 w-4 mr-1" />
+              AI
             </TabsTrigger>
             <TabsTrigger value="predictions">Formulas</TabsTrigger>
-            <TabsTrigger value="validation">Validation</TabsTrigger>
+            <TabsTrigger value="validation">Validate</TabsTrigger>
             <TabsTrigger value="analysis">
-              <BarChart3 className="h-4 w-4 mr-2" />
+              <BarChart3 className="h-4 w-4 mr-1" />
               Analysis
             </TabsTrigger>
             <TabsTrigger value="patterns">Patterns</TabsTrigger>
             <TabsTrigger value="history">
-              <Database className="h-4 w-4 mr-2" />
+              <Database className="h-4 w-4 mr-1" />
               History
             </TabsTrigger>
           </TabsList>
