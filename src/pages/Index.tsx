@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap } from "lucide-react";
+import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap, Flame } from "lucide-react";
 import { toast } from "sonner";
 import { HistoricalDataTable } from "@/components/HistoricalDataTable";
 import { PatternAnalysis } from "@/components/PatternAnalysis";
@@ -12,6 +12,7 @@ import { PredictionValidator } from "@/components/PredictionValidator";
 import { StatisticalAnalysisView } from "@/components/StatisticalAnalysisView";
 import { PredictionSetsView } from "@/components/PredictionSetsView";
 import { NovaChatbot } from "@/components/NovaChatbot";
+import { UltraFrequencyPredictions } from "@/components/UltraFrequencyPredictions";
 
 type MathFunction = "COS" | "SIN" | "TAN" | "√";
 type DigitExtraction = ".3 NOS" | "L3 NOS" | ".2 NOS";
@@ -414,25 +415,34 @@ const Index = () => {
 
         {/* Results & Analysis Tabs */}
         <Tabs defaultValue="ai-predictions" className="mt-8">
-          <TabsList className="grid w-full grid-cols-6">
+           <TabsList className="grid w-full grid-cols-7">
+            <TabsTrigger value="ultra-freq">
+              <Flame className="h-4 w-4 mr-1" />
+              Ultra Freq
+            </TabsTrigger>
             <TabsTrigger value="ai-predictions">
-              <Zap className="h-4 w-4 mr-2" />
-              AI Predictions
+              <Zap className="h-4 w-4 mr-1" />
+              AI
             </TabsTrigger>
             <TabsTrigger value="predictions">Formulas</TabsTrigger>
-            <TabsTrigger value="validation">Validation</TabsTrigger>
+            <TabsTrigger value="validation">Validate</TabsTrigger>
             <TabsTrigger value="analysis">
-              <BarChart3 className="h-4 w-4 mr-2" />
+              <BarChart3 className="h-4 w-4 mr-1" />
               Analysis
             </TabsTrigger>
             <TabsTrigger value="patterns">Patterns</TabsTrigger>
             <TabsTrigger value="history">
-              <Database className="h-4 w-4 mr-2" />
+              <Database className="h-4 w-4 mr-1" />
               History
             </TabsTrigger>
           </TabsList>
 
           {/* AI Predictions Tab */}
+          {/* Ultra Frequency Tab */}
+          <TabsContent value="ultra-freq">
+            <UltraFrequencyPredictions />
+          </TabsContent>
+
           <TabsContent value="ai-predictions">
             <PredictionSetsView />
           </TabsContent>
