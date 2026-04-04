@@ -438,6 +438,11 @@ const Index = () => {
           </TabsList>
 
           {/* AI Predictions Tab */}
+          {/* Ultra Frequency Tab */}
+          <TabsContent value="ultra-freq">
+            <UltraFrequencyPredictions />
+          </TabsContent>
+
           <TabsContent value="ai-predictions">
             <PredictionSetsView />
           </TabsContent>
