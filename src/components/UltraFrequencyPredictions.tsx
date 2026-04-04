@@ -1,8 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { lotteryHistory } from "@/data/lotteryHistory";
-import { Flame, TrendingUp, BarChart3, Target, Award, Activity, Calendar, Star } from "lucide-react";
-import { useMemo } from "react";
+import { Flame, TrendingUp, BarChart3, Target, Award, Activity, Calendar, Star, CheckCircle, Zap, Clock, ArrowRight } from "lucide-react";
+import { useMemo, useState } from "react";
+import { runBacktest, discoverPatterns, type MethodAccuracy, type PatternInsights } from "@/utils/ultraFreqBacktest";
 
 interface DigitFreq {
   digit: string;
