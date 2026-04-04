@@ -3,24 +3,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { generateAllPredictions, type PredictionSet } from "@/utils/predictionGenerator";
-import { Sparkles, RefreshCw, Copy, CheckCircle2, Clock } from "lucide-react";
+import { Sparkles, Copy, CheckCircle2, Calendar } from "lucide-react";
 import { toast } from "sonner";
 
 export const PredictionSetsView = () => {
   const [predictionSets, setPredictionSets] = useState<PredictionSet[]>([]);
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
-  const [generatedAt, setGeneratedAt] = useState<string>("");
 
   useEffect(() => {
-    regeneratePredictions();
-  }, []);
-
-  const regeneratePredictions = () => {
     const predictions = generateAllPredictions();
     setPredictionSets(predictions);
-    setGeneratedAt(new Date().toLocaleTimeString());
-    toast.success("Generated new predictions based on statistical analysis");
-  };
+  }, []);
 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -42,30 +35,29 @@ export const PredictionSetsView = () => {
     }
   };
 
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-6 w-6" />
-                AI-Generated Predictions
-              </CardTitle>
-              <CardDescription className="mt-2">
-                Statistical analysis-based predictions using 11 different methods
-                {generatedAt && (
-                  <span className="ml-2 inline-flex items-center gap-1 text-xs text-muted-foreground">
-                    <Clock className="h-3 w-3" /> Generated at {generatedAt}
-                  </span>
-                )}
-              </CardDescription>
-            </div>
-            <Button onClick={regeneratePredictions} variant="outline" className="gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Regenerate
-            </Button>
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-6 w-6" />
+              AI-Generated Predictions
+            </CardTitle>
+            <CardDescription className="mt-2">
+              Statistical analysis-based predictions using 11 different methods
+              <span className="ml-2 inline-flex items-center gap-1 text-xs text-muted-foreground">
+                <Calendar className="h-3 w-3" /> {today}
+              </span>
+            </CardDescription>
           </div>
         </CardHeader>
       </Card>
@@ -77,6 +69,9 @@ export const PredictionSetsView = () => {
             <strong className="text-foreground">⚠️ Disclaimer:</strong> These predictions are generated using statistical analysis of historical data. 
             Lottery outcomes are random and unpredictable. These numbers should be used for entertainment purposes only. 
             Past frequency does not guarantee future results. Please gamble responsibly.
+          </p>
+          <p className="text-xs text-muted-foreground mt-2">
+            Predictions update automatically when new draw results are added.
           </p>
         </CardContent>
       </Card>

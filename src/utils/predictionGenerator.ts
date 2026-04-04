@@ -1,5 +1,30 @@
 import { lotteryHistory } from "@/data/lotteryHistory";
 
+// === Seeded PRNG (mulberry32) — deterministic per seed ===
+let _seed = 0;
+const seededRandom = (): number => {
+  _seed |= 0;
+  _seed = (_seed + 0x6D2B79F5) | 0;
+  let t = Math.imul(_seed ^ (_seed >>> 15), 1 | _seed);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
+
+const initSeed = () => {
+  // Seed from today's date + latest result number
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const latestResult = lotteryHistory.length > 0 ? lotteryHistory[lotteryHistory.length - 1].result : '0';
+  const seedStr = dateStr + latestResult;
+  let hash = 0;
+  for (let i = 0; i < seedStr.length; i++) {
+    const ch = seedStr.charCodeAt(i);
+    hash = ((hash << 5) - hash) + ch;
+    hash |= 0;
+  }
+  _seed = hash;
+};
+
 export interface PositionalFrequency {
   position: number;
   digit: string;
@@ -36,7 +61,7 @@ export interface StatisticalAnalysis {
   temporalPatterns: TemporalPattern[];
 }
 
-// === Utility: Weighted random sampling without replacement ===
+// === Utility: Weighted random sampling without replacement (seeded) ===
 const weightedRandomPick = <T>(items: T[], weights: number[], count: number): T[] => {
   const result: T[] = [];
   const availableItems = [...items];
@@ -44,7 +69,7 @@ const weightedRandomPick = <T>(items: T[], weights: number[], count: number): T[
 
   for (let i = 0; i < count && availableItems.length > 0; i++) {
     const totalWeight = availableWeights.reduce((sum, w) => sum + w, 0);
-    let random = Math.random() * totalWeight;
+    let random = seededRandom() * totalWeight;
 
     for (let j = 0; j < availableItems.length; j++) {
       random -= availableWeights[j];
@@ -215,7 +240,7 @@ export const generateProbabilityWeightedPredictions = (analysis: StatisticalAnal
     for (let pos = 0; pos < 6; pos++) {
       const posData = analysis.positionalAnalysis[pos];
       const totalFreq = posData.reduce((sum, d) => sum + d.frequency, 0);
-      let random = Math.random() * totalFreq;
+      let random = seededRandom() * totalFreq;
 
       for (const digitData of posData) {
         random -= digitData.frequency;
@@ -288,10 +313,10 @@ export const generateBalancedPredictions = (analysis: StatisticalAnalysis): stri
   for (let i = 0; i < 5; i++) {
     let number = "";
     // Random mix ratio: 60-80% hot
-    const hotRatio = 0.6 + Math.random() * 0.2;
+    const hotRatio = 0.6 + seededRandom() * 0.2;
 
     for (let pos = 0; pos < 6; pos++) {
-      if (Math.random() < hotRatio) {
+      if (seededRandom() < hotRatio) {
         const pick = weightedRandomPick(
           hot.map(d => d.digit),
           hot.map(d => d.count),
@@ -377,8 +402,8 @@ const complexDivide = (z1: ComplexNumber, z2: ComplexNumber): ComplexNumber => {
 };
 
 // Random perturbation helpers for complex methods
-const perturbAngle = (angle: number): number => angle + (Math.random() - 0.5) * 0.3;
-const perturbMagnitude = (mag: number): number => mag * (0.9 + Math.random() * 0.2);
+const perturbAngle = (angle: number): number => angle + (seededRandom() - 0.5) * 0.3;
+const perturbMagnitude = (mag: number): number => mag * (0.9 + seededRandom() * 0.2);
 
 // Method 6: Complex Number Analysis (with perturbations)
 export const generateComplexNumberPredictions = (analysis: StatisticalAnalysis): string[] => {
@@ -401,20 +426,20 @@ export const generateComplexNumberPredictions = (analysis: StatisticalAnalysis):
 
     if (i === 0) {
       const conj = complexConjugate(avgComplex);
-      resultComplex = createComplex(conj.real + (Math.random() - 0.5) * 50, conj.imaginary + (Math.random() - 0.5) * 50);
+      resultComplex = createComplex(conj.real + (seededRandom() - 0.5) * 50, conj.imaginary + (seededRandom() - 0.5) * 50);
     } else if (i === 1) {
       const mag = perturbMagnitude(complexMagnitude(avgComplex));
       const angle = perturbAngle(complexAngle(avgComplex) + Math.PI / 4);
       resultComplex = createComplex(mag * Math.cos(angle), mag * Math.sin(angle));
     } else if (i === 2) {
-      const factor = createComplex(0.7 + Math.random() * 0.2, 0.5 + Math.random() * 0.2);
+      const factor = createComplex(0.7 + seededRandom() * 0.2, 0.5 + seededRandom() * 0.2);
       resultComplex = complexMultiply(avgComplex, factor);
     } else if (i === 3) {
       const recent = complexNumbers[complexNumbers.length - 1];
-      const w = 0.2 + Math.random() * 0.2;
+      const w = 0.2 + seededRandom() * 0.2;
       resultComplex = complexAdd(avgComplex, complexMultiply(recent, createComplex(w, w)));
     } else {
-      const divisor = createComplex(1.3 + Math.random() * 0.4, 1.0 + Math.random() * 0.4);
+      const divisor = createComplex(1.3 + seededRandom() * 0.4, 1.0 + seededRandom() * 0.4);
       resultComplex = complexDivide(avgComplex, divisor);
     }
 
@@ -536,7 +561,7 @@ export const generateExponentiationPredictions = (analysis: StatisticalAnalysis)
     const magnitude = perturbMagnitude(complexMagnitude(baseComplex));
     const angle = perturbAngle(complexAngle(baseComplex));
 
-    const n = 1.5 + (i * 0.2) + (Math.random() - 0.5) * 0.1;
+    const n = 1.5 + (i * 0.2) + (seededRandom() - 0.5) * 0.1;
     const newMagnitude = Math.pow(magnitude, n) / 100;
     const newAngle = n * angle;
 
@@ -567,14 +592,14 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
   const conjugate = complexConjugate(avgComplex);
 
   for (let i = 0; i < 5; i++) {
-    const weight = 0.7 + (i * 0.15) + (Math.random() - 0.5) * 0.1;
+    const weight = 0.7 + (i * 0.15) + (seededRandom() - 0.5) * 0.1;
 
     const realPart = Math.abs(Math.round((avgComplex.real + conjugate.real) / 2 * weight)) % 1000;
     const imagPart = Math.abs(Math.round((avgComplex.imaginary - conjugate.imaginary) / 2 * weight)) % 1000;
 
     const recentIdx = Math.min(i, complexNumbers.length - 1);
     const recent = complexNumbers[complexNumbers.length - 1 - recentIdx];
-    const mixWeight = 0.2 + Math.random() * 0.2;
+    const mixWeight = 0.2 + seededRandom() * 0.2;
     const mixedReal = Math.round((realPart + recent.real * mixWeight)) % 1000;
     const mixedImag = Math.round((imagPart + recent.imaginary * mixWeight)) % 1000;
 
@@ -587,6 +612,7 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
 
 // Generate all prediction sets
 export const generateAllPredictions = (): PredictionSet[] => {
+  initSeed(); // Seed from today's date + latest result — changes daily or when data updates
   const analysis = analyzeHistoricalData();
 
   return [
