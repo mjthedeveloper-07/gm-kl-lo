@@ -292,8 +292,185 @@ export const UltraFrequencyPredictions = () => {
     return "bg-blue-500/20 text-blue-400 border-blue-500/30";
   };
 
+  // Backtesting & Pattern Discovery (cached)
+  const backtestResults = useMemo(() => runBacktest(400), []);
+  const patternInsights = useMemo(() => discoverPatterns(), []);
+
+  const getAccuracyColor = (pct: number) => {
+    if (pct >= 15) return "text-green-400";
+    if (pct >= 10) return "text-yellow-400";
+    return "text-muted-foreground";
+  };
+
   return (
     <div className="space-y-6">
+      {/* === ACCURACY DASHBOARD === */}
+      <Card className="border-green-500/30 bg-gradient-to-br from-green-500/5 to-transparent">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldCheck className="h-6 w-6 text-green-500" />
+            Accuracy Dashboard — Backtest on {backtestResults[0]?.totalTested || 0} Draws
+          </CardTitle>
+          <CardDescription>Each method tested against actual results using sliding-window validation</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left py-2 px-2">Method</th>
+                  <th className="text-center py-2 px-1">4/4 Match</th>
+                  <th className="text-center py-2 px-1">3+ Digits</th>
+                  <th className="text-center py-2 px-1">2+ Digits</th>
+                  <th className="text-center py-2 px-1">Avg Pos %</th>
+                  <th className="text-center py-2 px-1">P3</th>
+                  <th className="text-center py-2 px-1">P4</th>
+                  <th className="text-center py-2 px-1">P5</th>
+                  <th className="text-center py-2 px-1">P6</th>
+                </tr>
+              </thead>
+              <tbody>
+                {backtestResults.map((m, idx) => (
+                  <tr key={m.method} className={`border-b border-border/50 ${idx === 0 ? 'bg-green-500/10' : ''}`}>
+                    <td className="py-2 px-2 font-medium text-xs">
+                      {idx === 0 && <Sparkles className="h-3 w-3 inline mr-1 text-green-400" />}
+                      {m.method}
+                    </td>
+                    <td className={`text-center py-2 px-1 font-mono font-bold ${getAccuracyColor(m.exactL4 * 10)}`}>{m.exactL4}%</td>
+                    <td className={`text-center py-2 px-1 font-mono ${getAccuracyColor(m.match3)}`}>{m.match3}%</td>
+                    <td className={`text-center py-2 px-1 font-mono ${getAccuracyColor(m.match2)}`}>{m.match2}%</td>
+                    <td className="text-center py-2 px-1 font-mono font-bold text-primary">{m.avgPosAccuracy}%</td>
+                    {m.posHitRate.map((hr, i) => (
+                      <td key={i} className={`text-center py-2 px-1 font-mono text-xs ${getAccuracyColor(hr)}`}>{hr}%</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {backtestResults.length > 0 && (
+            <div className="mt-4 grid grid-cols-3 gap-3">
+              <div className="p-3 rounded-lg bg-card border text-center">
+                <p className="text-xs text-muted-foreground">Best Method</p>
+                <p className="font-bold text-sm text-green-400">{backtestResults[0].method}</p>
+                <p className="text-xs text-muted-foreground">2+ digit: {backtestResults[0].match2}%</p>
+              </div>
+              <div className="p-3 rounded-lg bg-card border text-center">
+                <p className="text-xs text-muted-foreground">Avg Position Accuracy</p>
+                <p className="font-bold text-lg text-primary">
+                  {(backtestResults.reduce((s, m) => s + m.avgPosAccuracy, 0) / backtestResults.length).toFixed(1)}%
+                </p>
+              </div>
+              <div className="p-3 rounded-lg bg-card border text-center">
+                <p className="text-xs text-muted-foreground">Best Exact L4</p>
+                <p className="font-bold text-sm text-yellow-400">{Math.max(...backtestResults.map(m => m.exactL4))}%</p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* === PATTERN INSIGHTS === */}
+      <Card className="border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-transparent">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Repeat className="h-6 w-6 text-purple-500" />
+            Pattern Discovery — {analysis.totalResults} Results Analyzed
+          </CardTitle>
+          <CardDescription>Recurring patterns, streaks, and cycles found in historical data</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Repeating L4 */}
+          <div>
+            <h4 className="text-sm font-semibold mb-2 text-purple-400">Repeating L4 Patterns</h4>
+            <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+              {patternInsights.repeatingL4.slice(0, 10).map((p, i) => (
+                <div key={i} className={`p-2 rounded-lg border bg-card text-center ${i < 3 ? 'border-purple-500/40' : ''}`}>
+                  <div className="font-mono font-bold text-lg">{p.pattern}</div>
+                  <div className="text-xs text-muted-foreground">{p.count}× seen</div>
+                  <div className="text-[10px] text-muted-foreground">~{p.avgInterval} draws apart</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Repeating L3 */}
+          <div>
+            <h4 className="text-sm font-semibold mb-2 text-purple-400">Repeating L3 Patterns</h4>
+            <div className="grid grid-cols-5 gap-2">
+              {patternInsights.repeatingL3.slice(0, 10).map((p, i) => (
+                <div key={i} className="p-2 rounded border bg-card text-center">
+                  <div className="font-mono font-bold">{p.pattern}</div>
+                  <div className="text-xs text-muted-foreground">{p.count}×</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Positional Streaks */}
+          <div>
+            <h4 className="text-sm font-semibold mb-2 text-purple-400">Longest Positional Streaks</h4>
+            <div className="grid grid-cols-4 gap-3">
+              {patternInsights.longestStreaks.map((s, i) => (
+                <div key={i} className="p-3 rounded-lg border bg-card text-center">
+                  <div className="text-xs text-muted-foreground">Position {s.position + 1}</div>
+                  <div className="font-mono text-2xl font-bold text-primary">{s.digit}</div>
+                  <div className="text-xs text-muted-foreground">{s.streakLength} consecutive</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Day-of-week */}
+          <div>
+            <h4 className="text-sm font-semibold mb-2 text-purple-400">Day-of-Week L4 Digit Bias</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {patternInsights.dayPatterns.slice(0, 8).map((dp, i) => (
+                <div key={i} className="p-2 rounded border bg-card">
+                  <div className="text-xs font-semibold text-center mb-1">{dp.day}</div>
+                  <div className="flex justify-center gap-1">
+                    {dp.topDigits.slice(0, 3).map((d, j) => (
+                      <Badge key={j} variant={j === 0 ? "default" : "outline"} className="font-mono text-xs">
+                        {d.digit} ({d.pct}%)
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Follow-on patterns */}
+          <div>
+            <h4 className="text-sm font-semibold mb-2 text-purple-400">Follow-On Patterns (Last 2 → Next L4)</h4>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+              {patternInsights.followOns.slice(0, 10).map((fo, i) => (
+                <div key={i} className="p-2 rounded border bg-card">
+                  <div className="text-center text-xs text-muted-foreground">After …{fo.ending}</div>
+                  {fo.nextL4.slice(0, 2).map((n, j) => (
+                    <div key={j} className="text-center font-mono text-sm">
+                      {n.l4} <span className="text-[10px] text-muted-foreground">({n.count}×)</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Cycle intervals */}
+          <div>
+            <h4 className="text-sm font-semibold mb-2 text-purple-400">L4 Cycle Intervals</h4>
+            <div className="grid grid-cols-4 gap-2">
+              {patternInsights.cycleIntervals.slice(0, 8).map((c, i) => (
+                <div key={i} className="p-2 rounded border bg-card text-center">
+                  <div className="font-mono font-bold">{c.pattern}</div>
+                  <div className="text-xs text-muted-foreground">avg {c.avgCycle} draws</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
       {/* Next Day Prediction Header */}
       <Card className="bg-gradient-to-br from-yellow-500/10 via-primary/10 to-accent/5 border-yellow-500/30">
         <CardHeader>
