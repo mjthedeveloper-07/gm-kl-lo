@@ -9,6 +9,7 @@ import { toast } from "sonner";
 export const PredictionSetsView = () => {
   const [predictionSets, setPredictionSets] = useState<PredictionSet[]>([]);
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
+  const [generatedAt, setGeneratedAt] = useState<string>("");
 
   useEffect(() => {
     regeneratePredictions();
