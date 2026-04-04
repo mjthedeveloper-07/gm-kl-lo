@@ -10,7 +10,7 @@ export interface LotteryResult {
 }
 
 // Comprehensive historical lottery results from 2009-2026 (2300+ entries)
-export const lotteryHistory: LotteryResult[] = [
+export const lotteryHistory = [
   // === Daily Results 2019-2026 (2210 entries) ===
   { date: "03.04.26", day: "Fri", lottery: "Nirmal", draw: "001", result: "857805", year: 2026, month: 4, lotteryType: "regular" },
   { date: "02.04.26", day: "Thu", lottery: "Karunya Plus", draw: "001", result: "382980", year: 2026, month: 4, lotteryType: "regular" },
