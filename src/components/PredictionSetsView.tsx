@@ -3,12 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { generateAllPredictions, type PredictionSet } from "@/utils/predictionGenerator";
-import { Sparkles, RefreshCw, Copy, CheckCircle2 } from "lucide-react";
+import { Sparkles, RefreshCw, Copy, CheckCircle2, Clock } from "lucide-react";
 import { toast } from "sonner";
 
 export const PredictionSetsView = () => {
   const [predictionSets, setPredictionSets] = useState<PredictionSet[]>([]);
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
+  const [generatedAt, setGeneratedAt] = useState<string>("");
 
   useEffect(() => {
     regeneratePredictions();
@@ -17,6 +18,7 @@ export const PredictionSetsView = () => {
   const regeneratePredictions = () => {
     const predictions = generateAllPredictions();
     setPredictionSets(predictions);
+    setGeneratedAt(new Date().toLocaleTimeString());
     toast.success("Generated new predictions based on statistical analysis");
   };
 
@@ -52,7 +54,12 @@ export const PredictionSetsView = () => {
                 AI-Generated Predictions
               </CardTitle>
               <CardDescription className="mt-2">
-                Statistical analysis-based predictions using 5 different methods
+                Statistical analysis-based predictions using 11 different methods
+                {generatedAt && (
+                  <span className="ml-2 inline-flex items-center gap-1 text-xs text-muted-foreground">
+                    <Clock className="h-3 w-3" /> Generated at {generatedAt}
+                  </span>
+                )}
               </CardDescription>
             </div>
             <Button onClick={regeneratePredictions} variant="outline" className="gap-2">
