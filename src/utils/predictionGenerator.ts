@@ -61,7 +61,7 @@ export interface StatisticalAnalysis {
   temporalPatterns: TemporalPattern[];
 }
 
-// === Utility: Weighted random sampling without replacement ===
+// === Utility: Weighted random sampling without replacement (seeded) ===
 const weightedRandomPick = <T>(items: T[], weights: number[], count: number): T[] => {
   const result: T[] = [];
   const availableItems = [...items];
@@ -69,7 +69,7 @@ const weightedRandomPick = <T>(items: T[], weights: number[], count: number): T[
 
   for (let i = 0; i < count && availableItems.length > 0; i++) {
     const totalWeight = availableWeights.reduce((sum, w) => sum + w, 0);
-    let random = Math.random() * totalWeight;
+    let random = seededRandom() * totalWeight;
 
     for (let j = 0; j < availableItems.length; j++) {
       random -= availableWeights[j];
