@@ -12,6 +12,7 @@ import { PredictionValidator } from "@/components/PredictionValidator";
 import { StatisticalAnalysisView } from "@/components/StatisticalAnalysisView";
 import { PredictionSetsView } from "@/components/PredictionSetsView";
 import { NovaChatbot } from "@/components/NovaChatbot";
+import { UltraFrequencyPredictions } from "@/components/UltraFrequencyPredictions";
 
 type MathFunction = "COS" | "SIN" | "TAN" | "√";
 type DigitExtraction = ".3 NOS" | "L3 NOS" | ".2 NOS";
