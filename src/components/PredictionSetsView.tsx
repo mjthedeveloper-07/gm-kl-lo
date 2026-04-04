@@ -2,15 +2,13 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { generateAllPredictions, type PredictionSet } from "@/utils/predictionGenerator";
-import { Sparkles, RefreshCw, Copy, CheckCircle2, Search } from "lucide-react";
+import { Sparkles, RefreshCw, Copy, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const PredictionSetsView = () => {
   const [predictionSets, setPredictionSets] = useState<PredictionSet[]>([]);
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     regeneratePredictions();
@@ -62,15 +60,6 @@ export const PredictionSetsView = () => {
               Regenerate
             </Button>
           </div>
-          <div className="relative mt-4">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search predictions by number..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
-          </div>
         </CardHeader>
       </Card>
 
@@ -86,75 +75,69 @@ export const PredictionSetsView = () => {
       </Card>
 
       {/* Prediction Sets */}
-      {predictionSets.map((set, setIndex) => {
-        const filteredNumbers = searchTerm
-          ? set.numbers.filter(n => n.includes(searchTerm))
-          : set.numbers;
-        if (searchTerm && filteredNumbers.length === 0) return null;
-        return (
-          <Card key={setIndex} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="space-y-2">
-                  <CardTitle className="text-xl">
-                    {set.method}
-                  </CardTitle>
-                  <CardDescription>{set.description}</CardDescription>
-                </div>
-                {getConfidenceBadge(set.confidence)}
+      {predictionSets.map((set, setIndex) => (
+        <Card key={setIndex} className="hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <div className="flex items-start justify-between">
+              <div className="space-y-2">
+                <CardTitle className="text-xl">
+                  {set.method}
+                </CardTitle>
+                <CardDescription>{set.description}</CardDescription>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {filteredNumbers.map((number, numIndex) => (
-                  <div
-                    key={numIndex}
-                    className="group relative p-4 rounded-lg border-2 border-primary/20 bg-gradient-to-br from-card to-card/50 hover:border-primary/50 hover:shadow-md transition-all"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">
-                          #{numIndex + 1}
-                        </p>
-                        <p className="font-mono text-2xl font-bold text-foreground">
-                          {number}
-                        </p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => copyToClipboard(number, `${setIndex}-${numIndex}`)}
-                      >
-                        {copiedIndex === `${setIndex}-${numIndex}` ? (
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-4 flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const allNumbers = filteredNumbers.join(", ");
-                    copyToClipboard(allNumbers, `set-${setIndex}`);
-                  }}
-                  className="text-xs"
+              {getConfidenceBadge(set.confidence)}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {set.numbers.map((number, numIndex) => (
+                <div
+                  key={numIndex}
+                  className="group relative p-4 rounded-lg border-2 border-primary/20 bg-gradient-to-br from-card to-card/50 hover:border-primary/50 hover:shadow-md transition-all"
                 >
-                  <Copy className="h-3 w-3 mr-1" />
-                  Copy All
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">
+                        #{numIndex + 1}
+                      </p>
+                      <p className="font-mono text-2xl font-bold text-black dark:text-white">
+                        {number}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => copyToClipboard(number, `${setIndex}-${numIndex}`)}
+                    >
+                      {copiedIndex === `${setIndex}-${numIndex}` ? (
+                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const allNumbers = set.numbers.join(", ");
+                  copyToClipboard(allNumbers, `set-${setIndex}`);
+                }}
+                className="text-xs"
+              >
+                <Copy className="h-3 w-3 mr-1" />
+                Copy All
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 };
