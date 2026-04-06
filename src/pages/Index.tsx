@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap, Hash } from "lucide-react";
+import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { HistoricalDataTable } from "@/components/HistoricalDataTable";
 import { PatternAnalysis } from "@/components/PatternAnalysis";
@@ -12,7 +12,6 @@ import { PredictionValidator } from "@/components/PredictionValidator";
 import { StatisticalAnalysisView } from "@/components/StatisticalAnalysisView";
 import { PredictionSetsView } from "@/components/PredictionSetsView";
 import { NovaChatbot } from "@/components/NovaChatbot";
-import { Last2DigitsPredictions } from "@/components/Last2DigitsPredictions";
 
 type MathFunction = "COS" | "SIN" | "TAN" | "√";
 type DigitExtraction = ".3 NOS" | "L3 NOS" | ".2 NOS";
@@ -415,14 +414,10 @@ const Index = () => {
 
         {/* Results & Analysis Tabs */}
         <Tabs defaultValue="ai-predictions" className="mt-8">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="ai-predictions">
               <Zap className="h-4 w-4 mr-2" />
               AI Predictions
-            </TabsTrigger>
-            <TabsTrigger value="last2">
-              <Hash className="h-4 w-4 mr-2" />
-              Last 2
             </TabsTrigger>
             <TabsTrigger value="predictions">Formulas</TabsTrigger>
             <TabsTrigger value="validation">Validation</TabsTrigger>
@@ -440,11 +435,6 @@ const Index = () => {
           {/* AI Predictions Tab */}
           <TabsContent value="ai-predictions">
             <PredictionSetsView />
-          </TabsContent>
-
-          {/* Last 2 Digits Tab */}
-          <TabsContent value="last2">
-            <Last2DigitsPredictions />
           </TabsContent>
 
           {/* Predictions Tab */}
