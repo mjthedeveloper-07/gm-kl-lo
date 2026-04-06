@@ -12,6 +12,7 @@ export interface LotteryResult {
 // Comprehensive historical lottery results from 2009-2026
 export const lotteryHistory: LotteryResult[] = [
   // === 2026-2025 Daily Results (from uploaded data) ===
+  { date: "06.04.26", day: "Mon", lottery: "Bhagyathara", draw: "001", result: "543637", year: 2026, month: 4, lotteryType: "regular" },
   { date: "05.04.26", day: "Sun", lottery: "Samrudhi", draw: "001", result: "757518", year: 2026, month: 4, lotteryType: "regular" },
   { date: "04.04.26", day: "Sat", lottery: "Karunya", draw: "001", result: "265220", year: 2026, month: 4, lotteryType: "regular" },
   { date: "03.04.26", day: "Fri", lottery: "Suvarna Keralam", draw: "001", result: "857805", year: 2026, month: 4, lotteryType: "regular" },
