@@ -1,24 +1,42 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { generateAllPredictions, type PredictionSet } from "@/utils/predictionGenerator";
-import { Sparkles, RefreshCw, Copy, CheckCircle2 } from "lucide-react";
+import { generateAllPredictions, type PredictionSet, analyzeHistoricalData } from "@/utils/predictionGenerator";
+import { lotteryHistory } from "@/data/lotteryHistory";
+import { Sparkles, Copy, CheckCircle2, TrendingUp, Calendar, Flame, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 
 export const PredictionSetsView = () => {
-  const [predictionSets, setPredictionSets] = useState<PredictionSet[]>([]);
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
 
-  useEffect(() => {
-    regeneratePredictions();
+  const predictionSets = useMemo(() => generateAllPredictions(), []);
+
+  // Recent draws (last 10)
+  const recentDraws = useMemo(() => {
+    return lotteryHistory
+      .filter(r => r.lotteryType === "regular")
+      .slice(0, 10);
   }, []);
 
-  const regeneratePredictions = () => {
-    const predictions = generateAllPredictions();
-    setPredictionSets(predictions);
-    toast.success("Generated new predictions based on statistical analysis");
-  };
+  // Recent frequency stats (last 30 draws)
+  const recentStats = useMemo(() => {
+    const recent30 = lotteryHistory
+      .filter(r => r.lotteryType === "regular")
+      .slice(0, 30)
+      .map(r => r.result);
+
+    const digitCounts: Record<string, number> = {};
+    for (let i = 0; i <= 9; i++) digitCounts[i.toString()] = 0;
+    recent30.forEach(num => num.split("").forEach(d => { digitCounts[d]++; }));
+
+    const total = Object.values(digitCounts).reduce((a, b) => a + b, 0);
+    const sorted = Object.entries(digitCounts)
+      .map(([d, c]) => ({ digit: d, count: c, pct: Math.round((c / total) * 100) }))
+      .sort((a, b) => b.count - a.count);
+
+    return { hot: sorted.slice(0, 3), cold: sorted.slice(-3).reverse(), all: sorted };
+  }, []);
 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -30,11 +48,11 @@ export const PredictionSetsView = () => {
   const getConfidenceBadge = (confidence: string) => {
     switch (confidence) {
       case "high":
-        return <Badge variant="default" className="bg-green-500">High Confidence</Badge>;
+        return <Badge className="bg-green-600 text-white border-green-600">High</Badge>;
       case "medium":
-        return <Badge variant="secondary">Medium Confidence</Badge>;
+        return <Badge variant="secondary">Medium</Badge>;
       case "low":
-        return <Badge variant="outline">Low Confidence</Badge>;
+        return <Badge variant="outline">Low</Badge>;
       default:
         return <Badge variant="outline">{confidence}</Badge>;
     }
@@ -42,94 +60,156 @@ export const PredictionSetsView = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-6 w-6" />
-                AI-Generated Predictions
-              </CardTitle>
-              <CardDescription className="mt-2">
-                Statistical analysis-based predictions using 5 different methods
-              </CardDescription>
+      {/* Recent Draws Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-primary" />
+              Latest Result
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {recentDraws[0] && (
+              <div>
+                <p className="font-mono text-3xl font-bold tracking-wider text-primary">
+                  {recentDraws[0].result}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {recentDraws[0].date} • {recentDraws[0].lottery}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="border-orange-500/30 bg-gradient-to-br from-orange-500/5 to-orange-500/10">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Flame className="h-4 w-4 text-orange-500" />
+              Hot Digits (30 draws)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-3">
+              {recentStats.hot.map(h => (
+                <div key={h.digit} className="text-center">
+                  <span className="font-mono text-2xl font-bold text-orange-600">{h.digit}</span>
+                  <p className="text-xs text-muted-foreground">{h.pct}%</p>
+                </div>
+              ))}
             </div>
-            <Button onClick={regeneratePredictions} variant="outline" className="gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Regenerate
-            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-blue-500/10">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-blue-500" />
+              Cold Digits (30 draws)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-3">
+              {recentStats.cold.map(c => (
+                <div key={c.digit} className="text-center">
+                  <span className="font-mono text-2xl font-bold text-blue-500">{c.digit}</span>
+                  <p className="text-xs text-muted-foreground">{c.pct}%</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent 10 Draws Strip */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Last 10 Draws
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            {recentDraws.map((d, i) => (
+              <div key={i} className="text-center p-2 rounded-lg border border-border/50 bg-muted/30">
+                <p className="font-mono text-sm font-bold tracking-wider">{d.result}</p>
+                <p className="text-[10px] text-muted-foreground">{d.date}</p>
+              </div>
+            ))}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Header */}
+      <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            AI Predictions
+          </CardTitle>
+          <CardDescription>
+            11 methods weighted heavily on recent draws • {lotteryHistory.length} total results analyzed
+          </CardDescription>
         </CardHeader>
       </Card>
 
       {/* Disclaimer */}
       <Card className="border-yellow-500/50 bg-yellow-500/5">
-        <CardContent className="pt-6">
-          <p className="text-sm text-muted-foreground">
-            <strong className="text-foreground">⚠️ Disclaimer:</strong> These predictions are generated using statistical analysis of historical data. 
-            Lottery outcomes are random and unpredictable. These numbers should be used for entertainment purposes only. 
-            Past frequency does not guarantee future results. Please gamble responsibly.
+        <CardContent className="pt-4 pb-4">
+          <p className="text-xs text-muted-foreground">
+            <strong className="text-foreground">⚠️ Disclaimer:</strong> Predictions are for entertainment only. Lottery outcomes are random. Gamble responsibly.
           </p>
         </CardContent>
       </Card>
 
       {/* Prediction Sets */}
       {predictionSets.map((set, setIndex) => (
-        <Card key={setIndex} className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <div className="flex items-start justify-between">
-              <div className="space-y-2">
-                <CardTitle className="text-xl">
-                  {set.method}
-                </CardTitle>
-                <CardDescription>{set.description}</CardDescription>
+        <Card key={setIndex} className="hover:shadow-md transition-shadow">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <CardTitle className="text-base">{set.method}</CardTitle>
+                <CardDescription className="text-xs">{set.description}</CardDescription>
               </div>
               {getConfidenceBadge(set.confidence)}
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
               {set.numbers.map((number, numIndex) => (
                 <div
                   key={numIndex}
-                  className="group relative p-4 rounded-lg border-2 border-primary/20 bg-gradient-to-br from-card to-card/50 hover:border-primary/50 hover:shadow-md transition-all"
+                  className="group relative p-3 rounded-lg border border-primary/20 bg-gradient-to-br from-card to-muted/30 hover:border-primary/40 transition-all cursor-pointer"
+                  onClick={() => copyToClipboard(number, `${setIndex}-${numIndex}`)}
                 >
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center justify-between gap-1">
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1">
-                        #{numIndex + 1}
-                      </p>
-                      <p className="font-mono text-2xl font-bold text-black dark:text-white">
-                        {number}
-                      </p>
+                      <p className="text-[10px] text-muted-foreground">#{numIndex + 1}</p>
+                      <p className="font-mono text-lg font-bold tracking-wider">{number}</p>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => copyToClipboard(number, `${setIndex}-${numIndex}`)}
-                    >
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                       {copiedIndex === `${setIndex}-${numIndex}` ? (
-                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
                       ) : (
-                        <Copy className="h-4 w-4" />
+                        <Copy className="h-3.5 w-3.5 text-muted-foreground" />
                       )}
-                    </Button>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="mt-4 flex gap-2">
+            <div className="mt-3">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => {
                   const allNumbers = set.numbers.join(", ");
                   copyToClipboard(allNumbers, `set-${setIndex}`);
                 }}
-                className="text-xs"
+                className="text-xs h-7 px-2"
               >
                 <Copy className="h-3 w-3 mr-1" />
                 Copy All
