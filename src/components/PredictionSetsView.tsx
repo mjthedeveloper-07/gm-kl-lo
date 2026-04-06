@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { generateAllPredictions, type PredictionSet, analyzeHistoricalData } from "@/utils/predictionGenerator";
+import { generateAllPredictions } from "@/utils/predictionGenerator";
 import { lotteryHistory } from "@/data/lotteryHistory";
 import { Sparkles, Copy, CheckCircle2, TrendingUp, Calendar, Flame, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
