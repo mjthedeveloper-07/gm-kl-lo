@@ -640,14 +640,26 @@ export const generateAllPredictions = (): PredictionSet[] => {
   
   return [
     {
+      method: "🔥 Recent Hot Streak (Last 15 Draws)",
+      description: "Position-wise top digits from the most recent 15 draws — strongest recency signal",
+      numbers: generateRecentHotStreakPredictions(),
+      confidence: "high"
+    },
+    {
+      method: "🔁 Consecutive Patterns (Last 20 Draws)",
+      description: "Digits that repeated at the same position in consecutive recent draws",
+      numbers: generateConsecutivePatternPredictions(),
+      confidence: "high"
+    },
+    {
       method: "High-Frequency Based",
-      description: "Uses most frequent digits from each position",
+      description: "Recency-weighted (5×/3×/2×) positional digit frequency across 551 results",
       numbers: generateFrequencyBasedPredictions(analysis),
       confidence: "high"
     },
     {
       method: "Probability-Weighted",
-      description: "Random selection weighted by historical frequency",
+      description: "Random selection weighted by recency-boosted historical frequency",
       numbers: generateProbabilityWeightedPredictions(analysis),
       confidence: "medium"
     },
