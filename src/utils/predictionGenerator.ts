@@ -658,12 +658,6 @@ export const generateAllPredictions = (): PredictionSet[] => {
       confidence: "high"
     },
     {
-      method: "Probability-Weighted",
-      description: "Random selection weighted by recency-boosted historical frequency",
-      numbers: generateProbabilityWeightedPredictions(analysis),
-      confidence: "medium"
-    },
-    {
       method: "Trend-Based",
       description: "Based on temporal patterns and hot pairs",
       numbers: generateTrendBasedPredictions(analysis),

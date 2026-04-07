@@ -150,7 +150,7 @@ export const PredictionSetsView = () => {
             AI Predictions
           </CardTitle>
           <CardDescription>
-            13 methods weighted heavily on recent draws • {lotteryHistory.length} total results analyzed
+            12 methods weighted heavily on recent draws • {lotteryHistory.length} total results analyzed
           </CardDescription>
         </CardHeader>
       </Card>
