@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { generateAllPredictions, analyzeRecentDraws, type PredictionSet } from "@/utils/predictionGenerator";
-import { Sparkles, RefreshCw, Copy, CheckCircle2, TrendingUp, TrendingDown, Flame, Snowflake } from "lucide-react";
+import { Sparkles, RefreshCw, Copy, CheckCircle2, Flame, Snowflake } from "lucide-react";
 import { toast } from "sonner";
 
 export const PredictionSetsView = () => {
