@@ -634,13 +634,38 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
 // Generate all prediction sets
 export const generateAllPredictions = (): PredictionSet[] => {
   const analysis = analyzeHistoricalData();
+  const { analysis: recentAnalysis } = analyzeRecentDraws();
   
   return [
     {
-      method: "High-Frequency Based",
-      description: "Uses most frequent digits from each position",
-      numbers: generateFrequencyBasedPredictions(analysis),
+      method: "🔥 Recent Weighted (Last 50+ Draws)",
+      description: "Recency-weighted: 5x last 15 draws, 3x last 30, 2x last 60. Based on Feb-Apr 2026 data.",
+      numbers: generateRecentWeightedPredictions(),
       confidence: "high"
+    },
+    {
+      method: "⚡ Recent Hot Streak (Last 15 Draws)",
+      description: "Top digits from each position in the most recent 15 draws only.",
+      numbers: generateRecentHotStreakPredictions(),
+      confidence: "high"
+    },
+    {
+      method: "🔄 Consecutive Patterns (Last 20 Draws)",
+      description: "Detects repeating digits at each position across recent consecutive draws.",
+      numbers: generateConsecutivePatternPredictions(),
+      confidence: "high"
+    },
+    {
+      method: "📊 Recent 50+ Draws Frequency",
+      description: "High-frequency digits from positions using only Feb-Apr 2026 data (67 draws).",
+      numbers: generateFrequencyBasedPredictions(recentAnalysis),
+      confidence: "high"
+    },
+    {
+      method: "High-Frequency Based (All Data)",
+      description: "Uses most frequent digits from each position across all 552+ results.",
+      numbers: generateFrequencyBasedPredictions(analysis),
+      confidence: "medium"
     },
     {
       method: "Probability-Weighted",
@@ -668,7 +693,7 @@ export const generateAllPredictions = (): PredictionSet[] => {
     },
     {
       method: "Complex Number Analysis",
-      description: "Uses complex number operations (conjugate, magnitude, multiplication) on historical data",
+      description: "Uses complex number operations on historical data",
       numbers: generateComplexNumberPredictions(analysis),
       confidence: "high"
     },
@@ -686,19 +711,19 @@ export const generateAllPredictions = (): PredictionSet[] => {
     },
     {
       method: "Complex Roots (nth roots)",
-      description: "Applies nth root formula: ⁿ√|z|·e^(i(θ+2kπ)/n) for pattern extraction",
+      description: "Applies nth root formula for pattern extraction",
       numbers: generateComplexRootsPredictions(analysis),
       confidence: "medium"
     },
     {
       method: "Exponentiation (z^n)",
-      description: "Uses power formula: z^n = |z|^n·e^(inθ) with fractional exponents",
+      description: "Uses power formula with fractional exponents",
       numbers: generateExponentiationPredictions(analysis),
       confidence: "medium"
     },
     {
       method: "Real/Imaginary Decomposition",
-      description: "Applies Re(z)=(z+z̄)/2 and Im(z)=(z-z̄)/2i formulas for component analysis",
+      description: "Applies Re(z) and Im(z) formulas for component analysis",
       numbers: generateRealImaginaryDecompositionPredictions(analysis),
       confidence: "high"
     }
