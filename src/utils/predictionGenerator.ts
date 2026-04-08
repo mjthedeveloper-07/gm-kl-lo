@@ -36,9 +36,9 @@ export interface StatisticalAnalysis {
   temporalPatterns: TemporalPattern[];
 }
 
-// Perform comprehensive statistical analysis
-export const analyzeHistoricalData = (): StatisticalAnalysis => {
-  const allNumbers = lotteryHistory.map(r => r.result);
+// Perform comprehensive statistical analysis on a given dataset
+const analyzeNumbers = (data: typeof lotteryHistory): StatisticalAnalysis => {
+  const allNumbers = data.map(r => r.result);
   
   // Overall digit frequency
   const digitCounts: { [key: string]: number } = {};
@@ -112,7 +112,7 @@ export const analyzeHistoricalData = (): StatisticalAnalysis => {
   
   // Temporal patterns (by month)
   const monthPatterns: { [month: number]: { [digit: string]: number } } = {};
-  lotteryHistory.forEach(result => {
+  data.forEach(result => {
     if (!monthPatterns[result.month]) {
       monthPatterns[result.month] = {};
     }
@@ -143,6 +143,92 @@ export const analyzeHistoricalData = (): StatisticalAnalysis => {
     digitPairs,
     temporalPatterns
   };
+};
+
+// Full dataset analysis
+export const analyzeHistoricalData = (): StatisticalAnalysis => {
+  return analyzeNumbers(lotteryHistory);
+};
+
+// Recent 50+ draws analysis (Feb-Apr 2026)
+export const analyzeRecentDraws = (): { analysis: StatisticalAnalysis; drawCount: number; data: typeof lotteryHistory } => {
+  const recentData = lotteryHistory.slice(-67); // Last ~67 draws (Feb 1 - Apr 8, 2026)
+  return { analysis: analyzeNumbers(recentData), drawCount: recentData.length, data: recentData };
+};
+
+// Method 12: Recent Hot Streak (last 15 draws)
+export const generateRecentHotStreakPredictions = (): string[] => {
+  const recent = lotteryHistory.slice(-15).map(r => r.result);
+  const analysis = analyzeNumbers(lotteryHistory.slice(-15));
+  const predictions: string[] = [];
+  
+  for (let v = 0; v < 5; v++) {
+    let number = "";
+    for (let pos = 0; pos < 6; pos++) {
+      const posData = analysis.positionalAnalysis[pos];
+      number += posData[v % 3].digit;
+    }
+    predictions.push(number);
+  }
+  return predictions;
+};
+
+// Method 13: Consecutive Patterns (repeating digits in recent draws)
+export const generateConsecutivePatternPredictions = (): string[] => {
+  const recent = lotteryHistory.slice(-20).map(r => r.result);
+  const predictions: string[] = [];
+  
+  // Find digits that repeat at the same position across consecutive draws
+  for (let v = 0; v < 5; v++) {
+    let number = "";
+    for (let pos = 0; pos < 6; pos++) {
+      const digitCounts: { [d: string]: number } = {};
+      recent.forEach(num => {
+        const d = num[pos];
+        if (d) digitCounts[d] = (digitCounts[d] || 0) + 1;
+      });
+      const sorted = Object.entries(digitCounts).sort((a, b) => b[1] - a[1]);
+      number += sorted[v % sorted.length][0];
+    }
+    predictions.push(number);
+  }
+  return predictions;
+};
+
+// Method 14: Recent Weighted Frequency (5x last 15, 3x last 30, 2x last 60)
+export const generateRecentWeightedPredictions = (): string[] => {
+  const all = lotteryHistory.map(r => r.result);
+  const len = all.length;
+  const predictions: string[] = [];
+  
+  // Weighted positional frequency
+  const posWeights: { [pos: number]: { [digit: string]: number } } = {};
+  for (let pos = 0; pos < 6; pos++) {
+    posWeights[pos] = {};
+    for (let d = 0; d <= 9; d++) posWeights[pos][d.toString()] = 0;
+  }
+  
+  all.forEach((num, idx) => {
+    const recency = len - idx;
+    let weight = 1;
+    if (recency <= 15) weight = 5;
+    else if (recency <= 30) weight = 3;
+    else if (recency <= 60) weight = 2;
+    
+    for (let pos = 0; pos < 6; pos++) {
+      if (num[pos]) posWeights[pos][num[pos]] += weight;
+    }
+  });
+  
+  for (let v = 0; v < 5; v++) {
+    let number = "";
+    for (let pos = 0; pos < 6; pos++) {
+      const sorted = Object.entries(posWeights[pos]).sort((a, b) => b[1] - a[1]);
+      number += sorted[v % 3][0];
+    }
+    predictions.push(number);
+  }
+  return [...new Set(predictions)].slice(0, 5);
 };
 
 // Method 1: Frequency-Based Predictions
