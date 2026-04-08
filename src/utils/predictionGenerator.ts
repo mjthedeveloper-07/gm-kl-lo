@@ -36,9 +36,9 @@ export interface StatisticalAnalysis {
   temporalPatterns: TemporalPattern[];
 }
 
-// Perform comprehensive statistical analysis on a given dataset
-const analyzeNumbers = (data: typeof lotteryHistory): StatisticalAnalysis => {
-  const allNumbers = data.map(r => r.result);
+// Perform comprehensive statistical analysis
+export const analyzeHistoricalData = (): StatisticalAnalysis => {
+  const allNumbers = lotteryHistory.map(r => r.result);
   
   // Overall digit frequency
   const digitCounts: { [key: string]: number } = {};
@@ -112,7 +112,7 @@ const analyzeNumbers = (data: typeof lotteryHistory): StatisticalAnalysis => {
   
   // Temporal patterns (by month)
   const monthPatterns: { [month: number]: { [digit: string]: number } } = {};
-  data.forEach(result => {
+  lotteryHistory.forEach(result => {
     if (!monthPatterns[result.month]) {
       monthPatterns[result.month] = {};
     }
@@ -143,92 +143,6 @@ const analyzeNumbers = (data: typeof lotteryHistory): StatisticalAnalysis => {
     digitPairs,
     temporalPatterns
   };
-};
-
-// Full dataset analysis
-export const analyzeHistoricalData = (): StatisticalAnalysis => {
-  return analyzeNumbers(lotteryHistory);
-};
-
-// Recent 50+ draws analysis (Feb-Apr 2026)
-export const analyzeRecentDraws = (): { analysis: StatisticalAnalysis; drawCount: number; data: typeof lotteryHistory } => {
-  const recentData = lotteryHistory.slice(-67); // Last ~67 draws (Feb 1 - Apr 8, 2026)
-  return { analysis: analyzeNumbers(recentData), drawCount: recentData.length, data: recentData };
-};
-
-// Method 12: Recent Hot Streak (last 15 draws)
-export const generateRecentHotStreakPredictions = (): string[] => {
-  const recent = lotteryHistory.slice(-15).map(r => r.result);
-  const analysis = analyzeNumbers(lotteryHistory.slice(-15));
-  const predictions: string[] = [];
-  
-  for (let v = 0; v < 5; v++) {
-    let number = "";
-    for (let pos = 0; pos < 6; pos++) {
-      const posData = analysis.positionalAnalysis[pos];
-      number += posData[v % 3].digit;
-    }
-    predictions.push(number);
-  }
-  return predictions;
-};
-
-// Method 13: Consecutive Patterns (repeating digits in recent draws)
-export const generateConsecutivePatternPredictions = (): string[] => {
-  const recent = lotteryHistory.slice(-20).map(r => r.result);
-  const predictions: string[] = [];
-  
-  // Find digits that repeat at the same position across consecutive draws
-  for (let v = 0; v < 5; v++) {
-    let number = "";
-    for (let pos = 0; pos < 6; pos++) {
-      const digitCounts: { [d: string]: number } = {};
-      recent.forEach(num => {
-        const d = num[pos];
-        if (d) digitCounts[d] = (digitCounts[d] || 0) + 1;
-      });
-      const sorted = Object.entries(digitCounts).sort((a, b) => b[1] - a[1]);
-      number += sorted[v % sorted.length][0];
-    }
-    predictions.push(number);
-  }
-  return predictions;
-};
-
-// Method 14: Recent Weighted Frequency (5x last 15, 3x last 30, 2x last 60)
-export const generateRecentWeightedPredictions = (): string[] => {
-  const all = lotteryHistory.map(r => r.result);
-  const len = all.length;
-  const predictions: string[] = [];
-  
-  // Weighted positional frequency
-  const posWeights: { [pos: number]: { [digit: string]: number } } = {};
-  for (let pos = 0; pos < 6; pos++) {
-    posWeights[pos] = {};
-    for (let d = 0; d <= 9; d++) posWeights[pos][d.toString()] = 0;
-  }
-  
-  all.forEach((num, idx) => {
-    const recency = len - idx;
-    let weight = 1;
-    if (recency <= 15) weight = 5;
-    else if (recency <= 30) weight = 3;
-    else if (recency <= 60) weight = 2;
-    
-    for (let pos = 0; pos < 6; pos++) {
-      if (num[pos]) posWeights[pos][num[pos]] += weight;
-    }
-  });
-  
-  for (let v = 0; v < 5; v++) {
-    let number = "";
-    for (let pos = 0; pos < 6; pos++) {
-      const sorted = Object.entries(posWeights[pos]).sort((a, b) => b[1] - a[1]);
-      number += sorted[v % 3][0];
-    }
-    predictions.push(number);
-  }
-  return [...new Set(predictions)].slice(0, 5);
 };
 
 // Method 1: Frequency-Based Predictions
@@ -634,38 +548,13 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
 // Generate all prediction sets
 export const generateAllPredictions = (): PredictionSet[] => {
   const analysis = analyzeHistoricalData();
-  const { analysis: recentAnalysis } = analyzeRecentDraws();
   
   return [
     {
-      method: "🔥 Recent Weighted (Last 50+ Draws)",
-      description: "Recency-weighted: 5x last 15 draws, 3x last 30, 2x last 60. Based on Feb-Apr 2026 data.",
-      numbers: generateRecentWeightedPredictions(),
-      confidence: "high"
-    },
-    {
-      method: "⚡ Recent Hot Streak (Last 15 Draws)",
-      description: "Top digits from each position in the most recent 15 draws only.",
-      numbers: generateRecentHotStreakPredictions(),
-      confidence: "high"
-    },
-    {
-      method: "🔄 Consecutive Patterns (Last 20 Draws)",
-      description: "Detects repeating digits at each position across recent consecutive draws.",
-      numbers: generateConsecutivePatternPredictions(),
-      confidence: "high"
-    },
-    {
-      method: "📊 Recent 50+ Draws Frequency",
-      description: "High-frequency digits from positions using only Feb-Apr 2026 data (67 draws).",
-      numbers: generateFrequencyBasedPredictions(recentAnalysis),
-      confidence: "high"
-    },
-    {
-      method: "High-Frequency Based (All Data)",
-      description: "Uses most frequent digits from each position across all 552+ results.",
+      method: "High-Frequency Based",
+      description: "Uses most frequent digits from each position",
       numbers: generateFrequencyBasedPredictions(analysis),
-      confidence: "medium"
+      confidence: "high"
     },
     {
       method: "Probability-Weighted",
@@ -693,7 +582,7 @@ export const generateAllPredictions = (): PredictionSet[] => {
     },
     {
       method: "Complex Number Analysis",
-      description: "Uses complex number operations on historical data",
+      description: "Uses complex number operations (conjugate, magnitude, multiplication) on historical data",
       numbers: generateComplexNumberPredictions(analysis),
       confidence: "high"
     },
@@ -711,19 +600,19 @@ export const generateAllPredictions = (): PredictionSet[] => {
     },
     {
       method: "Complex Roots (nth roots)",
-      description: "Applies nth root formula for pattern extraction",
+      description: "Applies nth root formula: ⁿ√|z|·e^(i(θ+2kπ)/n) for pattern extraction",
       numbers: generateComplexRootsPredictions(analysis),
       confidence: "medium"
     },
     {
       method: "Exponentiation (z^n)",
-      description: "Uses power formula with fractional exponents",
+      description: "Uses power formula: z^n = |z|^n·e^(inθ) with fractional exponents",
       numbers: generateExponentiationPredictions(analysis),
       confidence: "medium"
     },
     {
       method: "Real/Imaginary Decomposition",
-      description: "Applies Re(z) and Im(z) formulas for component analysis",
+      description: "Applies Re(z)=(z+z̄)/2 and Im(z)=(z-z̄)/2i formulas for component analysis",
       numbers: generateRealImaginaryDecompositionPredictions(analysis),
       confidence: "high"
     }
