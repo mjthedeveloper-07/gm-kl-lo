@@ -36,27 +36,17 @@ export interface StatisticalAnalysis {
   temporalPatterns: TemporalPattern[];
 }
 
-// Perform comprehensive statistical analysis with heavy recency weighting
+// Perform comprehensive statistical analysis
 export const analyzeHistoricalData = (): StatisticalAnalysis => {
-  const regularResults = lotteryHistory.filter(r => r.lotteryType === "regular");
-  const allNumbers = regularResults.map(r => r.result);
+  const allNumbers = lotteryHistory.map(r => r.result);
   
-  // Recency weighting: last 15 draws = 5x, last 30 = 3x, last 60 = 2x, rest = 1x
-  const getWeight = (index: number): number => {
-    if (index < 15) return 5;
-    if (index < 30) return 3;
-    if (index < 60) return 2;
-    return 1;
-  };
-  
-  // Overall digit frequency with recency weighting
+  // Overall digit frequency
   const digitCounts: { [key: string]: number } = {};
   for (let i = 0; i <= 9; i++) digitCounts[i.toString()] = 0;
   
-  allNumbers.forEach((num, idx) => {
-    const weight = getWeight(idx);
+  allNumbers.forEach(num => {
     num.split("").forEach(digit => {
-      digitCounts[digit] = (digitCounts[digit] || 0) + weight;
+      digitCounts[digit] = (digitCounts[digit] || 0) + 1;
     });
   });
   
@@ -69,24 +59,22 @@ export const analyzeHistoricalData = (): StatisticalAnalysis => {
     }))
     .sort((a, b) => b.count - a.count);
   
-  // Positional analysis with recency weighting
+  // Positional analysis (0-5 for 6-digit numbers)
   const positionCounts: { [pos: number]: { [digit: string]: number } } = {};
   for (let pos = 0; pos < 6; pos++) {
     positionCounts[pos] = {};
     for (let d = 0; d <= 9; d++) positionCounts[pos][d.toString()] = 0;
   }
   
-  allNumbers.forEach((num, idx) => {
-    const weight = getWeight(idx);
+  allNumbers.forEach(num => {
     for (let pos = 0; pos < 6; pos++) {
       const digit = num[pos];
       if (digit) {
-        positionCounts[pos][digit] = (positionCounts[pos][digit] || 0) + weight;
+        positionCounts[pos][digit] = (positionCounts[pos][digit] || 0) + 1;
       }
     }
   });
   
-  const weightedTotal = allNumbers.reduce((sum, _, idx) => sum + getWeight(idx), 0);
   const positionalAnalysis: PositionalFrequency[][] = [];
   for (let pos = 0; pos < 6; pos++) {
     const posData = Object.entries(positionCounts[pos])
@@ -94,22 +82,21 @@ export const analyzeHistoricalData = (): StatisticalAnalysis => {
         position: pos + 1,
         digit,
         frequency,
-        percentage: Math.round((frequency / weightedTotal) * 100)
+        percentage: Math.round((frequency / allNumbers.length) * 100)
       }))
       .sort((a, b) => b.frequency - a.frequency);
     positionalAnalysis.push(posData);
   }
   
-  // Digit pairs analysis with recency weighting
+  // Digit pairs analysis
   const pairCounts: { [pair: string]: { count: number; positions: Set<string> } } = {};
-  allNumbers.forEach((num, idx) => {
-    const weight = getWeight(idx);
+  allNumbers.forEach(num => {
     for (let i = 0; i < 5; i++) {
       const pair = num[i] + num[i + 1];
       if (!pairCounts[pair]) {
         pairCounts[pair] = { count: 0, positions: new Set() };
       }
-      pairCounts[pair].count += weight;
+      pairCounts[pair].count++;
       pairCounts[pair].positions.add(`${i + 1}-${i + 2}`);
     }
   });
@@ -125,7 +112,7 @@ export const analyzeHistoricalData = (): StatisticalAnalysis => {
   
   // Temporal patterns (by month)
   const monthPatterns: { [month: number]: { [digit: string]: number } } = {};
-  regularResults.forEach(result => {
+  lotteryHistory.forEach(result => {
     if (!monthPatterns[result.month]) {
       monthPatterns[result.month] = {};
     }
@@ -156,82 +143,6 @@ export const analyzeHistoricalData = (): StatisticalAnalysis => {
     digitPairs,
     temporalPatterns
   };
-};
-
-// Generate Recent Hot Streak predictions (last 15 draws only)
-export const generateRecentHotStreakPredictions = (): string[] => {
-  const recent15 = lotteryHistory
-    .filter(r => r.lotteryType === "regular")
-    .slice(0, 15)
-    .map(r => r.result);
-
-  // Position-wise top 3 digits from last 15
-  const posCounts: Record<number, Record<string, number>> = {};
-  for (let p = 0; p < 6; p++) {
-    posCounts[p] = {};
-    for (let d = 0; d <= 9; d++) posCounts[p][d.toString()] = 0;
-  }
-  recent15.forEach(num => {
-    for (let p = 0; p < 6; p++) {
-      if (num[p]) posCounts[p][num[p]]++;
-    }
-  });
-
-  const topByPos = Array.from({ length: 6 }, (_, p) =>
-    Object.entries(posCounts[p]).sort((a, b) => b[1] - a[1]).map(e => e[0])
-  );
-
-  const predictions: string[] = [];
-  // Generate 5 predictions using top-ranked digits per position
-  for (let v = 0; v < 5; v++) {
-    let num = "";
-    for (let p = 0; p < 6; p++) {
-      num += topByPos[p][(v + p) % 3];
-    }
-    predictions.push(num);
-  }
-  return [...new Set(predictions)];
-};
-
-// Generate Consecutive Pattern predictions (streaks in last 20 draws)
-export const generateConsecutivePatternPredictions = (): string[] => {
-  const recent20 = lotteryHistory
-    .filter(r => r.lotteryType === "regular")
-    .slice(0, 20)
-    .map(r => r.result);
-
-  // Find digits that appeared in consecutive draws at same position
-  const streaks: Record<number, Record<string, number>> = {};
-  for (let p = 0; p < 6; p++) {
-    streaks[p] = {};
-    for (let i = 0; i < recent20.length - 1; i++) {
-      const d = recent20[i][p];
-      if (d === recent20[i + 1]?.[p]) {
-        streaks[p][d] = (streaks[p][d] || 0) + 2;
-      }
-    }
-  }
-
-  const topStreaks = Array.from({ length: 6 }, (_, p) => {
-    const sorted = Object.entries(streaks[p]).sort((a, b) => b[1] - a[1]);
-    // Fall back to most frequent if no streaks
-    if (sorted.length === 0) {
-      const counts: Record<string, number> = {};
-      recent20.forEach(n => { if (n[p]) counts[n[p]] = (counts[n[p]] || 0) + 1; });
-      return Object.entries(counts).sort((a, b) => b[1] - a[1]).map(e => e[0]);
-    }
-    return sorted.map(e => e[0]);
-  });
-
-  const predictions: string[] = [];
-  for (let v = 0; v < 5; v++) {
-    let num = "";
-    for (let p = 0; p < 6; p++) {
-      num += topStreaks[p][v % topStreaks[p].length] || "0";
-    }
-    predictions.push(num);
-  }
-  return [...new Set(predictions)];
 };
 
 // Method 1: Frequency-Based Predictions
@@ -640,22 +551,16 @@ export const generateAllPredictions = (): PredictionSet[] => {
   
   return [
     {
-      method: "🔥 Recent Hot Streak (Last 15 Draws)",
-      description: "Position-wise top digits from the most recent 15 draws — strongest recency signal",
-      numbers: generateRecentHotStreakPredictions(),
-      confidence: "high"
-    },
-    {
-      method: "🔁 Consecutive Patterns (Last 20 Draws)",
-      description: "Digits that repeated at the same position in consecutive recent draws",
-      numbers: generateConsecutivePatternPredictions(),
-      confidence: "high"
-    },
-    {
       method: "High-Frequency Based",
-      description: "Recency-weighted (5×/3×/2×) positional digit frequency across 551 results",
+      description: "Uses most frequent digits from each position",
       numbers: generateFrequencyBasedPredictions(analysis),
       confidence: "high"
+    },
+    {
+      method: "Probability-Weighted",
+      description: "Random selection weighted by historical frequency",
+      numbers: generateProbabilityWeightedPredictions(analysis),
+      confidence: "medium"
     },
     {
       method: "Trend-Based",
