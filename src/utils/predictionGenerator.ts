@@ -37,8 +37,11 @@ export interface StatisticalAnalysis {
 }
 
 // Perform comprehensive statistical analysis
-export const analyzeHistoricalData = (): StatisticalAnalysis => {
-  const allNumbers = lotteryHistory.map(r => r.result);
+export const analyzeHistoricalData = (recentCount?: number): StatisticalAnalysis => {
+  const sourceData = recentCount 
+    ? lotteryHistory.slice(-recentCount) 
+    : lotteryHistory;
+  const allNumbers = sourceData.map(r => r.result);
   
   // Overall digit frequency
   const digitCounts: { [key: string]: number } = {};
@@ -112,7 +115,7 @@ export const analyzeHistoricalData = (): StatisticalAnalysis => {
   
   // Temporal patterns (by month)
   const monthPatterns: { [month: number]: { [digit: string]: number } } = {};
-  lotteryHistory.forEach(result => {
+  sourceData.forEach(result => {
     if (!monthPatterns[result.month]) {
       monthPatterns[result.month] = {};
     }
@@ -546,8 +549,8 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
 };
 
 // Generate all prediction sets
-export const generateAllPredictions = (): PredictionSet[] => {
-  const analysis = analyzeHistoricalData();
+export const generateAllPredictions = (recentCount: number = 50): PredictionSet[] => {
+  const analysis = analyzeHistoricalData(recentCount);
   
   return [
     {
