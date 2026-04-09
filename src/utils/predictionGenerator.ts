@@ -377,6 +377,7 @@ export const generateComplexNumberPredictions = (analysis: StatisticalAnalysis):
 export const generatePhaseBasedPredictions = (analysis: StatisticalAnalysis): string[] => {
   const predictions: string[] = [];
   const allNumbers = getValidResults().map(r => r.result);
+  const recentNumbers = allNumbers.slice(-30);
   
   // Convert to complex numbers and analyze phase patterns
   const phases: number[] = [];
@@ -415,6 +416,7 @@ export const generatePhaseBasedPredictions = (analysis: StatisticalAnalysis): st
 export const generateExponentialFormPredictions = (analysis: StatisticalAnalysis): string[] => {
   const predictions: string[] = [];
   const allNumbers = getValidResults().map(r => r.result);
+  const recentNumbers = allNumbers.slice(-20);
   
   const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
     const digits = num.split("").map(Number);
@@ -447,6 +449,7 @@ export const generateExponentialFormPredictions = (analysis: StatisticalAnalysis
 export const generateComplexRootsPredictions = (analysis: StatisticalAnalysis): string[] => {
   const predictions: string[] = [];
   const allNumbers = getValidResults().map(r => r.result);
+  const recentNumbers = allNumbers.slice(-15);
   
   const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
     const digits = num.split("").map(Number);
@@ -479,6 +482,7 @@ export const generateComplexRootsPredictions = (analysis: StatisticalAnalysis): 
 export const generateExponentiationPredictions = (analysis: StatisticalAnalysis): string[] => {
   const predictions: string[] = [];
   const allNumbers = getValidResults().map(r => r.result);
+  const recentNumbers = allNumbers.slice(-10);
   
   const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
     const digits = num.split("").map(Number);
@@ -511,6 +515,7 @@ export const generateExponentiationPredictions = (analysis: StatisticalAnalysis)
 export const generateRealImaginaryDecompositionPredictions = (analysis: StatisticalAnalysis): string[] => {
   const predictions: string[] = [];
   const allNumbers = getValidResults().map(r => r.result);
+  const recentNumbers = allNumbers.slice(-25);
   
   const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
     const digits = num.split("").map(Number);
