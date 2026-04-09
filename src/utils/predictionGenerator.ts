@@ -555,14 +555,251 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
   return predictions;
 };
 
+// Method 12: Markov Chain Transition Predictions
+export const generateMarkovTransitionPredictions = (analysis: StatisticalAnalysis): string[] => {
+  const predictions: string[] = [];
+  const validData = getValidResults();
+  const recent = validData.slice(-50).map(r => r.result);
+  
+  // Build transition matrix: P(digit_j follows digit_i at each position)
+  const transitions: { [pos: number]: { [from: string]: { [to: string]: number } } } = {};
+  for (let pos = 0; pos < 6; pos++) {
+    transitions[pos] = {};
+    for (let d = 0; d <= 9; d++) transitions[pos][d.toString()] = {};
+  }
+  
+  for (let i = 1; i < recent.length; i++) {
+    for (let pos = 0; pos < 6; pos++) {
+      const prev = recent[i - 1][pos];
+      const curr = recent[i][pos];
+      if (prev && curr) {
+        transitions[pos][prev][curr] = (transitions[pos][prev][curr] || 0) + 1;
+      }
+    }
+  }
+  
+  // Use last result to predict next via most likely transitions
+  const lastResult = recent[recent.length - 1];
+  for (let variant = 0; variant < 5; variant++) {
+    let number = "";
+    for (let pos = 0; pos < 6; pos++) {
+      const fromDigit = lastResult[pos];
+      const trans = transitions[pos][fromDigit];
+      const sorted = Object.entries(trans).sort((a, b) => b[1] - a[1]);
+      const pick = sorted[variant % sorted.length];
+      number += pick ? pick[0] : analysis.positionalAnalysis[pos][0].digit;
+    }
+    predictions.push(number);
+  }
+  
+  return predictions;
+};
+
+// Method 13: Gap Analysis Predictions (digits overdue to appear)
+export const generateGapAnalysisPredictions = (analysis: StatisticalAnalysis): string[] => {
+  const predictions: string[] = [];
+  const validData = getValidResults();
+  const recent = validData.slice(-50).map(r => r.result);
+  
+  // For each position, find how many draws since each digit last appeared
+  const gaps: { [pos: number]: { digit: string; gap: number }[] } = {};
+  
+  for (let pos = 0; pos < 6; pos++) {
+    const digitGaps: { [d: string]: number } = {};
+    for (let d = 0; d <= 9; d++) digitGaps[d.toString()] = recent.length; // max gap
+    
+    for (let i = recent.length - 1; i >= 0; i--) {
+      const digit = recent[i][pos];
+      if (digit && digitGaps[digit] === recent.length) {
+        digitGaps[digit] = recent.length - 1 - i;
+      }
+    }
+    
+    gaps[pos] = Object.entries(digitGaps)
+      .map(([digit, gap]) => ({ digit, gap }))
+      .sort((a, b) => b.gap - a.gap); // Most overdue first
+  }
+  
+  // Generate predictions using overdue digits
+  for (let variant = 0; variant < 5; variant++) {
+    let number = "";
+    for (let pos = 0; pos < 6; pos++) {
+      number += gaps[pos][variant % gaps[pos].length].digit;
+    }
+    predictions.push(number);
+  }
+  
+  return predictions;
+};
+
+// Method 14: Weighted Recency with Decay
+export const generateWeightedRecencyPredictions = (analysis: StatisticalAnalysis): string[] => {
+  const predictions: string[] = [];
+  const validData = getValidResults();
+  const recent = validData.slice(-50).map(r => r.result);
+  
+  // Weighted positional frequency: more recent = higher weight
+  const weightedPos: { [pos: number]: { [digit: string]: number } } = {};
+  for (let pos = 0; pos < 6; pos++) {
+    weightedPos[pos] = {};
+    for (let d = 0; d <= 9; d++) weightedPos[pos][d.toString()] = 0;
+  }
+  
+  recent.forEach((num, idx) => {
+    // Exponential decay weight: most recent gets highest weight
+    const weight = Math.pow(1.08, idx); // newer draws weighted more
+    for (let pos = 0; pos < 6; pos++) {
+      const digit = num[pos];
+      if (digit) weightedPos[pos][digit] += weight;
+    }
+  });
+  
+  // Sort by weighted frequency per position
+  const sortedWeighted: { [pos: number]: { digit: string; weight: number }[] } = {};
+  for (let pos = 0; pos < 6; pos++) {
+    sortedWeighted[pos] = Object.entries(weightedPos[pos])
+      .map(([digit, weight]) => ({ digit, weight }))
+      .sort((a, b) => b.weight - a.weight);
+  }
+  
+  for (let variant = 0; variant < 5; variant++) {
+    let number = "";
+    for (let pos = 0; pos < 6; pos++) {
+      number += sortedWeighted[pos][variant % 3].digit;
+    }
+    predictions.push(number);
+  }
+  
+  return predictions;
+};
+
+// Method 15: Streak & Momentum Detection
+export const generateStreakPredictions = (analysis: StatisticalAnalysis): string[] => {
+  const predictions: string[] = [];
+  const validData = getValidResults();
+  const recent = validData.slice(-15).map(r => r.result);
+  
+  // Find digits appearing in consecutive draws (streaks)
+  const streaks: { [pos: number]: { digit: string; streak: number }[] } = {};
+  
+  for (let pos = 0; pos < 6; pos++) {
+    const digitStreaks: { [d: string]: number } = {};
+    for (let d = 0; d <= 9; d++) digitStreaks[d.toString()] = 0;
+    
+    // Count current streak from most recent
+    let currentDigit = recent[recent.length - 1]?.[pos];
+    let currentStreak = 1;
+    
+    for (let i = recent.length - 2; i >= 0; i--) {
+      if (recent[i][pos] === currentDigit) {
+        currentStreak++;
+      } else {
+        break;
+      }
+    }
+    if (currentDigit) digitStreaks[currentDigit] = currentStreak;
+    
+    // Also find hot digits (appeared most in last 15)
+    recent.forEach(num => {
+      const d = num[pos];
+      if (d) digitStreaks[d] = (digitStreaks[d] || 0) + 1;
+    });
+    
+    streaks[pos] = Object.entries(digitStreaks)
+      .map(([digit, streak]) => ({ digit, streak }))
+      .sort((a, b) => b.streak - a.streak);
+  }
+  
+  for (let variant = 0; variant < 5; variant++) {
+    let number = "";
+    for (let pos = 0; pos < 6; pos++) {
+      number += streaks[pos][variant % 3].digit;
+    }
+    predictions.push(number);
+  }
+  
+  return predictions;
+};
+
+// Method 16: Day-of-Week Pattern Analysis
+export const generateDayOfWeekPredictions = (analysis: StatisticalAnalysis): string[] => {
+  const predictions: string[] = [];
+  const validData = getValidResults();
+  
+  // Today is April 9, 2026 - Thursday
+  const today = new Date();
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const todayDay = dayNames[today.getDay()];
+  
+  // Filter results for same day of week
+  const sameDayResults = validData.filter(r => r.day === todayDay).slice(-30);
+  
+  if (sameDayResults.length < 5) return generateFrequencyBasedPredictions(analysis);
+  
+  // Positional frequency for this day only
+  const dayPos: { [pos: number]: { [digit: string]: number } } = {};
+  for (let pos = 0; pos < 6; pos++) {
+    dayPos[pos] = {};
+    for (let d = 0; d <= 9; d++) dayPos[pos][d.toString()] = 0;
+  }
+  
+  sameDayResults.forEach(r => {
+    for (let pos = 0; pos < 6; pos++) {
+      const digit = r.result[pos];
+      if (digit) dayPos[pos][digit]++;
+    }
+  });
+  
+  for (let variant = 0; variant < 5; variant++) {
+    let number = "";
+    for (let pos = 0; pos < 6; pos++) {
+      const sorted = Object.entries(dayPos[pos]).sort((a, b) => b[1] - a[1]);
+      number += sorted[variant % 3][0];
+    }
+    predictions.push(number);
+  }
+  
+  return predictions;
+};
+
 // Generate all prediction sets
 export const generateAllPredictions = (recentCount: number = 50): PredictionSet[] => {
   const analysis = analyzeHistoricalData(recentCount);
   
   return [
     {
+      method: "🔥 Weighted Recency (Decay)",
+      description: "Exponential decay weighting — most recent draws have highest influence on predictions",
+      numbers: generateWeightedRecencyPredictions(analysis),
+      confidence: "high"
+    },
+    {
+      method: "🔗 Markov Chain Transitions",
+      description: "Predicts next digits based on transition probabilities from the last result",
+      numbers: generateMarkovTransitionPredictions(analysis),
+      confidence: "high"
+    },
+    {
+      method: "⏳ Gap Analysis (Overdue Digits)",
+      description: "Identifies digits that haven't appeared recently and are statistically due",
+      numbers: generateGapAnalysisPredictions(analysis),
+      confidence: "high"
+    },
+    {
+      method: "📈 Streak & Momentum",
+      description: "Detects hot streaks and momentum patterns from the last 15 draws",
+      numbers: generateStreakPredictions(analysis),
+      confidence: "high"
+    },
+    {
+      method: "📅 Day-of-Week Patterns",
+      description: "Analyzes position frequencies specific to today's day of the week",
+      numbers: generateDayOfWeekPredictions(analysis),
+      confidence: "medium"
+    },
+    {
       method: "High-Frequency Based",
-      description: "Uses most frequent digits from each position",
+      description: "Uses most frequent digits from each position in recent 50 draws",
       numbers: generateFrequencyBasedPredictions(analysis),
       confidence: "high"
     },
@@ -592,7 +829,7 @@ export const generateAllPredictions = (recentCount: number = 50): PredictionSet[
     },
     {
       method: "Complex Number Analysis",
-      description: "Uses complex number operations (conjugate, magnitude, multiplication) on historical data",
+      description: "Uses complex number operations on historical data",
       numbers: generateComplexNumberPredictions(analysis),
       confidence: "high"
     },
@@ -610,19 +847,19 @@ export const generateAllPredictions = (recentCount: number = 50): PredictionSet[
     },
     {
       method: "Complex Roots (nth roots)",
-      description: "Applies nth root formula: ⁿ√|z|·e^(i(θ+2kπ)/n) for pattern extraction",
+      description: "Applies nth root formula for pattern extraction",
       numbers: generateComplexRootsPredictions(analysis),
       confidence: "medium"
     },
     {
       method: "Exponentiation (z^n)",
-      description: "Uses power formula: z^n = |z|^n·e^(inθ) with fractional exponents",
+      description: "Uses power formula with fractional exponents",
       numbers: generateExponentiationPredictions(analysis),
       confidence: "medium"
     },
     {
       method: "Real/Imaginary Decomposition",
-      description: "Applies Re(z)=(z+z̄)/2 and Im(z)=(z-z̄)/2i formulas for component analysis",
+      description: "Applies Re(z) and Im(z) formulas for component analysis",
       numbers: generateRealImaginaryDecompositionPredictions(analysis),
       confidence: "high"
     }
