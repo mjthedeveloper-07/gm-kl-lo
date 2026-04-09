@@ -36,11 +36,18 @@ export interface StatisticalAnalysis {
   temporalPatterns: TemporalPattern[];
 }
 
+// Filter valid results (exclude placeholders like "******")
+const getValidResults = (data?: typeof lotteryHistory) => {
+  const source = data || lotteryHistory;
+  return source.filter(r => !r.result.includes('*'));
+};
+
 // Perform comprehensive statistical analysis
 export const analyzeHistoricalData = (recentCount?: number): StatisticalAnalysis => {
+  const validResults = getValidResults();
   const sourceData = recentCount 
-    ? lotteryHistory.slice(-recentCount) 
-    : lotteryHistory;
+    ? validResults.slice(-recentCount) 
+    : validResults;
   const allNumbers = sourceData.map(r => r.result);
   
   // Overall digit frequency
