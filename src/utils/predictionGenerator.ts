@@ -322,10 +322,7 @@ const complexDivide = (z1: ComplexNumber, z2: ComplexNumber): ComplexNumber => {
 
 // Method 6: Complex Number Analysis
 export const generateComplexNumberPredictions = (analysis: StatisticalAnalysis): string[] => {
-  const predictions: string[] = [];
-  const allNumbers = lotteryHistory.map(r => r.result);
-  
-  // Convert recent lottery numbers to complex numbers
+  const allNumbers = getValidResults().map(r => r.result);
   const recentNumbers = allNumbers.slice(-50);
   const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
     const digits = num.split("").map(Number);
@@ -379,8 +376,7 @@ export const generateComplexNumberPredictions = (analysis: StatisticalAnalysis):
 // Method 7: Phase and Magnitude Analysis
 export const generatePhaseBasedPredictions = (analysis: StatisticalAnalysis): string[] => {
   const predictions: string[] = [];
-  const allNumbers = lotteryHistory.map(r => r.result);
-  const recentNumbers = allNumbers.slice(-30);
+  const allNumbers = getValidResults().map(r => r.result);
   
   // Convert to complex numbers and analyze phase patterns
   const phases: number[] = [];
@@ -418,8 +414,7 @@ export const generatePhaseBasedPredictions = (analysis: StatisticalAnalysis): st
 // Method 8: Exponential Form Analysis (z = |z|e^(iθ))
 export const generateExponentialFormPredictions = (analysis: StatisticalAnalysis): string[] => {
   const predictions: string[] = [];
-  const allNumbers = lotteryHistory.map(r => r.result);
-  const recentNumbers = allNumbers.slice(-20);
+  const allNumbers = getValidResults().map(r => r.result);
   
   const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
     const digits = num.split("").map(Number);
@@ -451,8 +446,7 @@ export const generateExponentialFormPredictions = (analysis: StatisticalAnalysis
 // Method 9: Complex Roots Analysis (nth roots)
 export const generateComplexRootsPredictions = (analysis: StatisticalAnalysis): string[] => {
   const predictions: string[] = [];
-  const allNumbers = lotteryHistory.map(r => r.result);
-  const recentNumbers = allNumbers.slice(-15);
+  const allNumbers = getValidResults().map(r => r.result);
   
   const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
     const digits = num.split("").map(Number);
@@ -484,8 +478,7 @@ export const generateComplexRootsPredictions = (analysis: StatisticalAnalysis): 
 // Method 10: Exponentiation Analysis (z^n = |z|^n·e^(inθ))
 export const generateExponentiationPredictions = (analysis: StatisticalAnalysis): string[] => {
   const predictions: string[] = [];
-  const allNumbers = lotteryHistory.map(r => r.result);
-  const recentNumbers = allNumbers.slice(-10);
+  const allNumbers = getValidResults().map(r => r.result);
   
   const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
     const digits = num.split("").map(Number);
@@ -517,8 +510,7 @@ export const generateExponentiationPredictions = (analysis: StatisticalAnalysis)
 // Method 11: Real and Imaginary Decomposition (Re(z) = (z+z̄)/2, Im(z) = (z-z̄)/2i)
 export const generateRealImaginaryDecompositionPredictions = (analysis: StatisticalAnalysis): string[] => {
   const predictions: string[] = [];
-  const allNumbers = lotteryHistory.map(r => r.result);
-  const recentNumbers = allNumbers.slice(-25);
+  const allNumbers = getValidResults().map(r => r.result);
   
   const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
     const digits = num.split("").map(Number);
