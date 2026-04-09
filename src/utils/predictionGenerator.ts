@@ -322,6 +322,7 @@ const complexDivide = (z1: ComplexNumber, z2: ComplexNumber): ComplexNumber => {
 
 // Method 6: Complex Number Analysis
 export const generateComplexNumberPredictions = (analysis: StatisticalAnalysis): string[] => {
+  const predictions: string[] = [];
   const allNumbers = getValidResults().map(r => r.result);
   const recentNumbers = allNumbers.slice(-50);
   const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
