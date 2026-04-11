@@ -546,13 +546,130 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
 };
 
 // Generate all prediction sets
+// Method: Recent High-Frequency Predictions (last 90 days weighted 3x)
+export const generateRecentHighFrequencyPredictions = (analysis: StatisticalAnalysis): string[] => {
+  const recent = lotteryHistory
+    .filter(r => r.lotteryType === "regular" && r.result.length === 6)
+    .slice(0, 90);
+  
+  const posFreq: { [pos: number]: { [digit: string]: number } } = {};
+  for (let p = 0; p < 6; p++) posFreq[p] = {};
+  
+  recent.forEach(r => {
+    r.result.split("").forEach((d, i) => {
+      posFreq[i][d] = (posFreq[i][d] || 0) + 3;
+    });
+  });
+  
+  lotteryHistory
+    .filter(r => r.lotteryType === "regular" && r.result.length === 6)
+    .slice(90)
+    .forEach(r => {
+      r.result.split("").forEach((d, i) => {
+        posFreq[i][d] = (posFreq[i][d] || 0) + 1;
+      });
+    });
+  
+  const predictions: string[] = [];
+  for (let v = 0; v < 8; v++) {
+    let num = "";
+    for (let p = 0; p < 6; p++) {
+      const sorted = Object.entries(posFreq[p]).sort((a, b) => b[1] - a[1]);
+      num += sorted[v % sorted.length][0];
+    }
+    predictions.push(num);
+  }
+  return [...new Set(predictions)];
+};
+
+// Method: Consecutive Pattern Predictions
+export const generateConsecutivePatternPredictions = (analysis: StatisticalAnalysis): string[] => {
+  const recent = lotteryHistory
+    .filter(r => r.lotteryType === "regular" && r.result.length === 6)
+    .slice(0, 30);
+  
+  const predictions: string[] = [];
+  
+  for (let i = 0; i < Math.min(recent.length - 2, 8); i++) {
+    const r1 = recent[i].result.split("").map(Number);
+    const r2 = recent[i + 1].result.split("").map(Number);
+    const r3 = recent[i + 2].result.split("").map(Number);
+    
+    // Extrapolate trend
+    let pred = "";
+    for (let p = 0; p < 6; p++) {
+      const diff1 = r1[p] - r2[p];
+      const diff2 = r2[p] - r3[p];
+      const avgDiff = Math.round((diff1 + diff2) / 2);
+      const next = ((r1[p] + avgDiff) % 10 + 10) % 10;
+      pred += next.toString();
+    }
+    predictions.push(pred);
+  }
+  
+  return [...new Set(predictions)];
+};
+
+// Method: Hot Streak Detection
+export const generateHotStreakPredictions = (analysis: StatisticalAnalysis): string[] => {
+  const recent = lotteryHistory
+    .filter(r => r.lotteryType === "regular" && r.result.length === 6)
+    .slice(0, 60);
+  
+  const digitAppearance: { [digit: string]: number[] } = {};
+  for (let d = 0; d <= 9; d++) digitAppearance[d.toString()] = [];
+  
+  recent.forEach((r, idx) => {
+    const unique = new Set(r.result.split(""));
+    unique.forEach(d => digitAppearance[d].push(idx));
+  });
+  
+  // Find digits with highest streak density in last 20
+  const streakScores = Object.entries(digitAppearance).map(([digit, positions]) => ({
+    digit,
+    recentCount: positions.filter(p => p < 20).length,
+    totalCount: positions.length
+  })).sort((a, b) => b.recentCount - a.recentCount);
+  
+  const hotDigits = streakScores.slice(0, 6).map(s => s.digit);
+  const predictions: string[] = [];
+  
+  for (let v = 0; v < 6; v++) {
+    let pred = "";
+    for (let p = 0; p < 6; p++) {
+      pred += hotDigits[(p + v) % hotDigits.length];
+    }
+    predictions.push(pred);
+  }
+  
+  return [...new Set(predictions)];
+};
+
 export const generateAllPredictions = (): PredictionSet[] => {
   const analysis = analyzeHistoricalData();
   
   return [
     {
+      method: "🔥 Recent High-Frequency",
+      description: "Weighted analysis: last 90 draws count 3x more than older results (2025-2026 data prioritized)",
+      numbers: generateRecentHighFrequencyPredictions(analysis),
+      confidence: "very_high"
+    },
+    {
+      method: "📈 Hot Streak Detection",
+      description: "Identifies digits on winning streaks in the most recent 60 draws",
+      numbers: generateHotStreakPredictions(analysis),
+      confidence: "high"
+    },
+    {
+      method: "🔄 Consecutive Pattern",
+      description: "Extrapolates trends from consecutive draw results to predict next numbers",
+      numbers: generateConsecutivePatternPredictions(analysis),
+      confidence: "high"
+    },
+    {
       method: "High-Frequency Based",
-      description: "Uses most frequent digits from each position",
+      description: "Uses most frequent digits from each position across all history",
       numbers: generateFrequencyBasedPredictions(analysis),
       confidence: "high"
     },
