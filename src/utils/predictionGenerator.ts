@@ -23,7 +23,7 @@ export interface PredictionSet {
   method: string;
   description: string;
   numbers: string[];
-  confidence: "high" | "medium" | "low";
+  confidence: "very_high" | "high" | "medium" | "low";
 }
 
 export interface StatisticalAnalysis {
