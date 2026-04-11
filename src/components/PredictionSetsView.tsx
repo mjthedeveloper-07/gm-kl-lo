@@ -29,8 +29,6 @@ export const PredictionSetsView = () => {
 
   const getConfidenceBadge = (confidence: string) => {
     switch (confidence) {
-      case "very_high":
-        return <Badge variant="default" className="bg-emerald-600 animate-pulse">🔥 Very High</Badge>;
       case "high":
         return <Badge variant="default" className="bg-green-500">High Confidence</Badge>;
       case "medium":
