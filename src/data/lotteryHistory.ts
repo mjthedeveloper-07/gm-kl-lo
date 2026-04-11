@@ -633,8 +633,6 @@ export const lotteryHistory: LotteryResult[] = [
   { date: "05.04.09", day: "Sun", lottery: "Summer Bumper", draw: "BR-16", result: "926485", year: 2009, month: 4, lotteryType: "bumper" },
   { date: "22.01.09", day: "Thu", lottery: "Christmas-New Year Bumper", draw: "BR-15", result: "748563", year: 2009, month: 1, lotteryType: "bumper" },
 ];
-];
-
 // Helper functions to query data
 export const getResultsByYear = (year: number): LotteryResult[] => {
   return lotteryHistory.filter(r => r.year === year);
