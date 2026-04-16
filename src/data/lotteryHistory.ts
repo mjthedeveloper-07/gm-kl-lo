@@ -11,7 +11,23 @@ export interface LotteryResult {
 
 // Comprehensive historical lottery results from 2009-2026
 export const lotteryHistory: LotteryResult[] = [
-  // === 2026-2025 Daily Results (from uploaded data) ===
+  // === 2025-2026 Daily Results (from uploaded data) ===
+  { date: "16.04.26", day: "Thu", lottery: "Karunya Plus", draw: "001", result: "561807", year: 2026, month: 4, lotteryType: "regular" },
+  { date: "15.04.26", day: "Wed", lottery: "Dhanalekshmi", draw: "001", result: "889830", year: 2026, month: 4, lotteryType: "regular" },
+  { date: "14.04.26", day: "Tue", lottery: "Sthree Sakthi", draw: "001", result: "127849", year: 2026, month: 4, lotteryType: "regular" },
+  { date: "13.04.26", day: "Mon", lottery: "Bhagyathara", draw: "001", result: "153456", year: 2026, month: 4, lotteryType: "regular" },
+  { date: "12.04.26", day: "Sun", lottery: "Samrudhi", draw: "001", result: "357901", year: 2026, month: 4, lotteryType: "regular" },
+  { date: "11.04.26", day: "Sat", lottery: "Karunya", draw: "001", result: "665447", year: 2026, month: 4, lotteryType: "regular" },
+  { date: "10.04.26", day: "Fri", lottery: "Suvarna Keralam", draw: "001", result: "627618", year: 2026, month: 4, lotteryType: "regular" },
+  { date: "08.04.26", day: "Wed", lottery: "Dhanalekshmi", draw: "001", result: "572496", year: 2026, month: 4, lotteryType: "regular" },
+  { date: "07.04.26", day: "Tue", lottery: "Sthree Sakthi", draw: "001", result: "293778", year: 2026, month: 4, lotteryType: "regular" },
+  { date: "06.04.26", day: "Mon", lottery: "Bhagyathara", draw: "001", result: "543637", year: 2026, month: 4, lotteryType: "regular" },
+  { date: "05.04.26", day: "Sun", lottery: "Samrudhi", draw: "001", result: "757518", year: 2026, month: 4, lotteryType: "regular" },
+  { date: "04.04.26", day: "Sat", lottery: "Karunya", draw: "001", result: "265220", year: 2026, month: 4, lotteryType: "regular" },
+  { date: "03.04.26", day: "Fri", lottery: "Suvarna Keralam", draw: "001", result: "857805", year: 2026, month: 4, lotteryType: "regular" },
+  { date: "02.04.26", day: "Thu", lottery: "Karunya Plus", draw: "001", result: "382980", year: 2026, month: 4, lotteryType: "regular" },
+  { date: "01.04.26", day: "Wed", lottery: "Dhanalekshmi", draw: "001", result: "246443", year: 2026, month: 4, lotteryType: "regular" },
+  { date: "31.03.26", day: "Tue", lottery: "Sthree Sakthi", draw: "001", result: "307508", year: 2026, month: 3, lotteryType: "regular" },
   { date: "30.03.26", day: "Mon", lottery: "Bhagyathara", draw: "001", result: "574710", year: 2026, month: 3, lotteryType: "regular" },
   { date: "29.03.26", day: "Sun", lottery: "Samrudhi", draw: "001", result: "422635", year: 2026, month: 3, lotteryType: "regular" },
   { date: "28.03.26", day: "Sat", lottery: "Karunya", draw: "001", result: "517026", year: 2026, month: 3, lotteryType: "regular" },
@@ -450,7 +466,7 @@ export const lotteryHistory: LotteryResult[] = [
   { date: "02.01.25", day: "Thu", lottery: "Karunya Plus", draw: "001", result: "171048", year: 2025, month: 1, lotteryType: "regular" },
   { date: "01.01.25", day: "Wed", lottery: "Dhanalekshmi", draw: "001", result: "379675", year: 2025, month: 1, lotteryType: "regular" },
 
-  // === Bumper Lotteries (2009-2024) ===
+    // === Bumper Lotteries (2009-2024) ===
   { date: "06.11.24", day: "Wed", lottery: "Pooja Bumper", draw: "BR-105", result: "061252", year: 2024, month: 11, lotteryType: "bumper" },
   { date: "14.04.24", day: "Sun", lottery: "Vishu Bumper", draw: "BR-104", result: "667118", year: 2024, month: 4, lotteryType: "bumper" },
   { date: "25.03.24", day: "Mon", lottery: "Summer Bumper", draw: "BR-103", result: "362197", year: 2024, month: 3, lotteryType: "bumper" },
