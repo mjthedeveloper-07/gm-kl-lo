@@ -535,6 +535,11 @@ const Index = () => {
             </Card>
           </TabsContent>
 
+          {/* L4 Predictions Tab */}
+          <TabsContent value="l4">
+            <Last4DigitsPredictions />
+          </TabsContent>
+
           {/* Validation Tab */}
           <TabsContent value="validation">
             <PredictionValidator predictions={predictionResults} />
