@@ -4,8 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap, Hash } from "lucide-react";
-import { Last4DigitsPredictions } from "@/components/Last4DigitsPredictions";
+import { Sparkles, Calculator, TrendingUp, Database, BarChart3, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { HistoricalDataTable } from "@/components/HistoricalDataTable";
 import { PatternAnalysis } from "@/components/PatternAnalysis";
@@ -415,16 +414,12 @@ const Index = () => {
 
         {/* Results & Analysis Tabs */}
         <Tabs defaultValue="ai-predictions" className="mt-8">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="ai-predictions">
               <Zap className="h-4 w-4 mr-2" />
               AI Predictions
             </TabsTrigger>
             <TabsTrigger value="predictions">Formulas</TabsTrigger>
-            <TabsTrigger value="l4">
-              <Hash className="h-4 w-4 mr-2" />
-              L4
-            </TabsTrigger>
             <TabsTrigger value="validation">Validation</TabsTrigger>
             <TabsTrigger value="analysis">
               <BarChart3 className="h-4 w-4 mr-2" />
@@ -533,11 +528,6 @@ const Index = () => {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* L4 Predictions Tab */}
-          <TabsContent value="l4">
-            <Last4DigitsPredictions />
           </TabsContent>
 
           {/* Validation Tab */}
