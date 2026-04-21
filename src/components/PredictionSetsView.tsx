@@ -1,10 +1,27 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { generateAllPredictions, type PredictionSet } from "@/utils/predictionGenerator";
-import { Sparkles, RefreshCw, Copy, CheckCircle2 } from "lucide-react";
+import { lotteryHistory } from "@/data/lotteryHistory";
+import { Sparkles, RefreshCw, Copy, CheckCircle2, Target, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
+
+// Score a 6-digit prediction against the latest actual draw.
+// Returns matching-digit count (positional) for F3 and L3 separately + total.
+const scorePrediction = (predicted: string, actual: string) => {
+  const f3p = predicted.slice(0, 3);
+  const l3p = predicted.slice(3, 6);
+  const f3a = actual.slice(0, 3);
+  const l3a = actual.slice(3, 6);
+  let f3Match = 0;
+  let l3Match = 0;
+  for (let i = 0; i < 3; i++) {
+    if (f3p[i] === f3a[i]) f3Match++;
+    if (l3p[i] === l3a[i]) l3Match++;
+  }
+  return { f3Match, l3Match, total: f3Match + l3Match };
+};
 
 export const PredictionSetsView = () => {
   const [predictionSets, setPredictionSets] = useState<PredictionSet[]>([]);
