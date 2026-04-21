@@ -12,6 +12,7 @@ export interface LotteryResult {
 // Comprehensive historical lottery results from 2009-2025
 export const lotteryHistory: LotteryResult[] = [
   // 2025-2026 latest results (Jan 2025 - Apr 2026) - updated for AI predictions
+  { date: "21.04.26", day: "Tue", lottery: "Sthree Sakthi", draw: "727", result: "285845", year: 2026, month: 4, lotteryType: "regular" },
   { date: "20.04.26", day: "Mon", lottery: "Bhagyathara", draw: "726", result: "537563", year: 2026, month: 4, lotteryType: "regular" },
   { date: "19.04.26", day: "Sun", lottery: "Samrudhi", draw: "725", result: "586155", year: 2026, month: 4, lotteryType: "regular" },
   { date: "18.04.26", day: "Sat", lottery: "Karunya", draw: "724", result: "636784", year: 2026, month: 4, lotteryType: "regular" },
