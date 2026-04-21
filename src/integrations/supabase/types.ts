@@ -14,16 +14,223 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      lottery_results: {
+        Row: {
+          created_at: string | null
+          date: string
+          draw_number: string
+          id: string
+          lottery_name: string
+          lottery_type: string | null
+          month: number
+          result: string
+          year: number
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          draw_number: string
+          id?: string
+          lottery_name: string
+          lottery_type?: string | null
+          month: number
+          result: string
+          year: number
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          draw_number?: string
+          id?: string
+          lottery_name?: string
+          lottery_type?: string | null
+          month?: number
+          result?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      method_performance: {
+        Row: {
+          avg_matching_digits: number | null
+          confidence_score: number | null
+          exact_matches: number | null
+          id: string
+          last_3_matches: number | null
+          last_4_matches: number | null
+          last_updated: string
+          metadata: Json | null
+          method_name: string
+          total_predictions: number | null
+        }
+        Insert: {
+          avg_matching_digits?: number | null
+          confidence_score?: number | null
+          exact_matches?: number | null
+          id?: string
+          last_3_matches?: number | null
+          last_4_matches?: number | null
+          last_updated?: string
+          metadata?: Json | null
+          method_name: string
+          total_predictions?: number | null
+        }
+        Update: {
+          avg_matching_digits?: number | null
+          confidence_score?: number | null
+          exact_matches?: number | null
+          id?: string
+          last_3_matches?: number | null
+          last_4_matches?: number | null
+          last_updated?: string
+          metadata?: Json | null
+          method_name?: string
+          total_predictions?: number | null
+        }
+        Relationships: []
+      }
+      prediction_accuracy: {
+        Row: {
+          actual_result_id: string | null
+          created_at: string
+          exact_match: boolean | null
+          id: string
+          last_3_match: boolean | null
+          last_4_match: boolean | null
+          match_positions: number[] | null
+          matching_digits: number | null
+          prediction_id: string | null
+        }
+        Insert: {
+          actual_result_id?: string | null
+          created_at?: string
+          exact_match?: boolean | null
+          id?: string
+          last_3_match?: boolean | null
+          last_4_match?: boolean | null
+          match_positions?: number[] | null
+          matching_digits?: number | null
+          prediction_id?: string | null
+        }
+        Update: {
+          actual_result_id?: string | null
+          created_at?: string
+          exact_match?: boolean | null
+          id?: string
+          last_3_match?: boolean | null
+          last_4_match?: boolean | null
+          match_positions?: number[] | null
+          matching_digits?: number | null
+          prediction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prediction_accuracy_actual_result_id_fkey"
+            columns: ["actual_result_id"]
+            isOneToOne: false
+            referencedRelation: "lottery_results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prediction_accuracy_prediction_id_fkey"
+            columns: ["prediction_id"]
+            isOneToOne: false
+            referencedRelation: "prediction_history"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prediction_history: {
+        Row: {
+          confidence_level: Database["public"]["Enums"]["confidence_level"]
+          created_at: string
+          id: string
+          lottery_type: string | null
+          metadata: Json | null
+          method_name: string
+          predicted_numbers: string[]
+        }
+        Insert: {
+          confidence_level?: Database["public"]["Enums"]["confidence_level"]
+          created_at?: string
+          id?: string
+          lottery_type?: string | null
+          metadata?: Json | null
+          method_name: string
+          predicted_numbers: string[]
+        }
+        Update: {
+          confidence_level?: Database["public"]["Enums"]["confidence_level"]
+          created_at?: string
+          id?: string
+          lottery_type?: string | null
+          metadata?: Json | null
+          method_name?: string
+          predicted_numbers?: string[]
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
+      confidence_level: "very_low" | "low" | "medium" | "high" | "very_high"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +357,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+      confidence_level: ["very_low", "low", "medium", "high", "very_high"],
+    },
   },
 } as const
