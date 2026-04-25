@@ -208,7 +208,11 @@ export const runBacktest = (windowSize: number = Number.POSITIVE_INFINITY): Back
     if (ensembleL4.has(actualL4)) ensembleHits += 1;
 
     // Score the three L4 candidate nets (built from history *before* this draw — no leakage)
-    const tight = buildL4TightNet(predictionSets.map(s => s.numbers), history, 50);
+    const tight = buildL4TightNet(
+      predictionSets.map(s => ({ method: s.method, numbers: s.numbers })),
+      history,
+      50,
+    );
     netStats.tight.draws += 1;
     netStats.tight.sizeTotal += tight.length;
     if (tight.includes(actualL4)) netStats.tight.hits += 1;
