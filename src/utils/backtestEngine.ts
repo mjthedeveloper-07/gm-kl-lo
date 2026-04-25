@@ -73,7 +73,7 @@ const baselineHitRate = (predictionsPerDraw: number, digits: number): number => 
   return 1 - Math.pow(1 - pSingle, predictionsPerDraw);
 };
 
-export const runBacktest = (windowSize = 365): BacktestReport => {
+export const runBacktest = (windowSize: number = Number.POSITIVE_INFINITY): BacktestReport => {
   const sorted = sortChrono(lotteryHistory);
   const evalStartIdx = Math.max(50, sorted.length - windowSize); // need >=50 priors for warm-up
 
@@ -193,7 +193,7 @@ export const runBacktest = (windowSize = 365): BacktestReport => {
       liftL3: l3Baseline > 0 ? l3HitRate / l3Baseline : 0,
       recentHits: [...a.hits]
         .sort((x, y) => parseDate(y.date) - parseDate(x.date))
-        .slice(0, 10),
+        .slice(0, 25),
     };
   });
 
@@ -214,7 +214,7 @@ export const runBacktest = (windowSize = 365): BacktestReport => {
       .forEach(h => allL4Hits.push({ ...h, method: m.method })),
   );
   allL4Hits.sort((a, b) => parseDate(b.date) - parseDate(a.date));
-  const topL4Hits = allL4Hits.slice(0, 8);
+  const topL4Hits = allL4Hits.slice(0, 20);
 
   return {
     windowSize,
@@ -228,7 +228,7 @@ export const runBacktest = (windowSize = 365): BacktestReport => {
       bestMethodForL4: sortedByL4[0]?.method ?? "—",
       bestMethodForL3: sortedByL3[0]?.method ?? "—",
     },
-    timeline: timeline.slice(-60),
+    timeline: timeline.slice(-120),
     topL4Hits,
   };
 };
