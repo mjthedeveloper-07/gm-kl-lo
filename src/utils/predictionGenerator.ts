@@ -311,9 +311,9 @@ const complexDivide = (z1: ComplexNumber, z2: ComplexNumber): ComplexNumber => {
 };
 
 // Method 6: Complex Number Analysis
-export const generateComplexNumberPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generateComplexNumberPredictions = (analysis: StatisticalAnalysis, history: LotteryResult[] = lotteryHistory): string[] => {
   const predictions: string[] = [];
-  const allNumbers = lotteryHistory.map(r => r.result);
+  const allNumbers = history.map(r => r.result);
   
   // Convert recent lottery numbers to complex numbers
   const recentNumbers = allNumbers.slice(-50);
@@ -367,9 +367,9 @@ export const generateComplexNumberPredictions = (analysis: StatisticalAnalysis):
 };
 
 // Method 7: Phase and Magnitude Analysis
-export const generatePhaseBasedPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generatePhaseBasedPredictions = (analysis: StatisticalAnalysis, history: LotteryResult[] = lotteryHistory): string[] => {
   const predictions: string[] = [];
-  const allNumbers = lotteryHistory.map(r => r.result);
+  const allNumbers = history.map(r => r.result);
   const recentNumbers = allNumbers.slice(-30);
   
   // Convert to complex numbers and analyze phase patterns
@@ -406,9 +406,9 @@ export const generatePhaseBasedPredictions = (analysis: StatisticalAnalysis): st
 };
 
 // Method 8: Exponential Form Analysis (z = |z|e^(iθ))
-export const generateExponentialFormPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generateExponentialFormPredictions = (analysis: StatisticalAnalysis, history: LotteryResult[] = lotteryHistory): string[] => {
   const predictions: string[] = [];
-  const allNumbers = lotteryHistory.map(r => r.result);
+  const allNumbers = history.map(r => r.result);
   const recentNumbers = allNumbers.slice(-20);
   
   const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
@@ -439,9 +439,9 @@ export const generateExponentialFormPredictions = (analysis: StatisticalAnalysis
 };
 
 // Method 9: Complex Roots Analysis (nth roots)
-export const generateComplexRootsPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generateComplexRootsPredictions = (analysis: StatisticalAnalysis, history: LotteryResult[] = lotteryHistory): string[] => {
   const predictions: string[] = [];
-  const allNumbers = lotteryHistory.map(r => r.result);
+  const allNumbers = history.map(r => r.result);
   const recentNumbers = allNumbers.slice(-15);
   
   const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
@@ -472,9 +472,9 @@ export const generateComplexRootsPredictions = (analysis: StatisticalAnalysis): 
 };
 
 // Method 10: Exponentiation Analysis (z^n = |z|^n·e^(inθ))
-export const generateExponentiationPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generateExponentiationPredictions = (analysis: StatisticalAnalysis, history: LotteryResult[] = lotteryHistory): string[] => {
   const predictions: string[] = [];
-  const allNumbers = lotteryHistory.map(r => r.result);
+  const allNumbers = history.map(r => r.result);
   const recentNumbers = allNumbers.slice(-10);
   
   const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
@@ -505,9 +505,9 @@ export const generateExponentiationPredictions = (analysis: StatisticalAnalysis)
 };
 
 // Method 11: Real and Imaginary Decomposition (Re(z) = (z+z̄)/2, Im(z) = (z-z̄)/2i)
-export const generateRealImaginaryDecompositionPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generateRealImaginaryDecompositionPredictions = (analysis: StatisticalAnalysis, history: LotteryResult[] = lotteryHistory): string[] => {
   const predictions: string[] = [];
-  const allNumbers = lotteryHistory.map(r => r.result);
+  const allNumbers = history.map(r => r.result);
   const recentNumbers = allNumbers.slice(-25);
   
   const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
@@ -546,8 +546,11 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
 };
 
 // Generate all prediction sets
-export const generateAllPredictions = (): PredictionSet[] => {
-  const analysis = analyzeHistoricalData();
+export const generateAllPredictions = (): PredictionSet[] => generateAllPredictionsFor(lotteryHistory);
+
+// Backtest-friendly variant: generate all 11 method sets using a specific history slice
+export const generateAllPredictionsFor = (history: LotteryResult[]): PredictionSet[] => {
+  const analysis = analyzeHistoricalData(history);
   
   return [
     {
