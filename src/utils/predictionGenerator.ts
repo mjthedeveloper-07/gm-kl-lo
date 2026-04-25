@@ -1,4 +1,4 @@
-import { lotteryHistory } from "@/data/lotteryHistory";
+import { lotteryHistory, type LotteryResult } from "@/data/lotteryHistory";
 
 export interface PositionalFrequency {
   position: number;
@@ -37,8 +37,8 @@ export interface StatisticalAnalysis {
 }
 
 // Perform comprehensive statistical analysis
-export const analyzeHistoricalData = (): StatisticalAnalysis => {
-  const allNumbers = lotteryHistory.map(r => r.result);
+export const analyzeHistoricalData = (history: LotteryResult[] = lotteryHistory): StatisticalAnalysis => {
+  const allNumbers = history.map(r => r.result);
   
   // Overall digit frequency
   const digitCounts: { [key: string]: number } = {};
@@ -112,7 +112,7 @@ export const analyzeHistoricalData = (): StatisticalAnalysis => {
   
   // Temporal patterns (by month)
   const monthPatterns: { [month: number]: { [digit: string]: number } } = {};
-  lotteryHistory.forEach(result => {
+  history.forEach(result => {
     if (!monthPatterns[result.month]) {
       monthPatterns[result.month] = {};
     }
