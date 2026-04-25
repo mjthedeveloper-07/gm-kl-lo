@@ -309,6 +309,26 @@ export const runBacktest = (windowSize: number = Number.POSITIVE_INFINITY): Back
       hitRate: ensembleDraws > 0 ? ensembleHits / ensembleDraws : 0,
       avgUnionSize: ensembleDraws > 0 ? ensembleUnionTotal / ensembleDraws : 0,
     },
+    nets: {
+      tight: {
+        hits: netStats.tight.hits,
+        drawsCounted: netStats.tight.draws,
+        hitRate: netStats.tight.draws > 0 ? netStats.tight.hits / netStats.tight.draws : 0,
+        avgSize: netStats.tight.draws > 0 ? netStats.tight.sizeTotal / netStats.tight.draws : 0,
+      },
+      mid: {
+        hits: netStats.mid.hits,
+        drawsCounted: netStats.mid.draws,
+        hitRate: netStats.mid.draws > 0 ? netStats.mid.hits / netStats.mid.draws : 0,
+        avgSize: netStats.mid.draws > 0 ? netStats.mid.sizeTotal / netStats.mid.draws : 0,
+      },
+      wide: {
+        hits: netStats.wide.hits,
+        drawsCounted: netStats.wide.draws,
+        hitRate: netStats.wide.draws > 0 ? netStats.wide.hits / netStats.wide.draws : 0,
+        avgSize: netStats.wide.draws > 0 ? netStats.wide.sizeTotal / netStats.wide.draws : 0,
+      },
+    },
     timeline: timeline.slice(-120),
     topL4Hits,
   };
