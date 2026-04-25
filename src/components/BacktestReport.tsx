@@ -226,7 +226,7 @@ export const BacktestReportView = () => {
                     <span className="text-sm font-semibold">
                       {hit.date} — {hit.lottery}
                     </span>
-                    <span className="text-xs text-muted-foreground">{(hit as MethodScore["recentHits"][0] & { method: string }).method}</span>
+                    <span className="text-xs text-muted-foreground">{hit.method}</span>
                   </div>
                   <div className="flex items-center gap-3 text-sm">
                     <div className="text-right">

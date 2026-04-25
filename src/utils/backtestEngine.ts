@@ -46,7 +46,7 @@ export interface BacktestReport {
     bestMethodForL3: string;
   };
   timeline: TimelinePoint[]; // most recent ~60
-  topL4Hits: MethodHit[]; // best recent L4 wins across all methods
+  topL4Hits: Array<MethodHit & { method: string }>; // best recent L4 wins across all methods
 }
 
 // Parse "dd.mm.yy" -> sortable timestamp
