@@ -1,4 +1,4 @@
-import { lotteryHistory } from "@/data/lotteryHistory";
+import { lotteryHistory, type LotteryResult } from "@/data/lotteryHistory";
 
 export interface PositionalFrequency {
   position: number;
@@ -37,8 +37,8 @@ export interface StatisticalAnalysis {
 }
 
 // Perform comprehensive statistical analysis
-export const analyzeHistoricalData = (): StatisticalAnalysis => {
-  const allNumbers = lotteryHistory.map(r => r.result);
+export const analyzeHistoricalData = (history: LotteryResult[] = lotteryHistory): StatisticalAnalysis => {
+  const allNumbers = history.map(r => r.result);
   
   // Overall digit frequency
   const digitCounts: { [key: string]: number } = {};
@@ -112,7 +112,7 @@ export const analyzeHistoricalData = (): StatisticalAnalysis => {
   
   // Temporal patterns (by month)
   const monthPatterns: { [month: number]: { [digit: string]: number } } = {};
-  lotteryHistory.forEach(result => {
+  history.forEach(result => {
     if (!monthPatterns[result.month]) {
       monthPatterns[result.month] = {};
     }
@@ -311,9 +311,9 @@ const complexDivide = (z1: ComplexNumber, z2: ComplexNumber): ComplexNumber => {
 };
 
 // Method 6: Complex Number Analysis
-export const generateComplexNumberPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generateComplexNumberPredictions = (analysis: StatisticalAnalysis, history: LotteryResult[] = lotteryHistory): string[] => {
   const predictions: string[] = [];
-  const allNumbers = lotteryHistory.map(r => r.result);
+  const allNumbers = history.map(r => r.result);
   
   // Convert recent lottery numbers to complex numbers
   const recentNumbers = allNumbers.slice(-50);
@@ -367,9 +367,9 @@ export const generateComplexNumberPredictions = (analysis: StatisticalAnalysis):
 };
 
 // Method 7: Phase and Magnitude Analysis
-export const generatePhaseBasedPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generatePhaseBasedPredictions = (analysis: StatisticalAnalysis, history: LotteryResult[] = lotteryHistory): string[] => {
   const predictions: string[] = [];
-  const allNumbers = lotteryHistory.map(r => r.result);
+  const allNumbers = history.map(r => r.result);
   const recentNumbers = allNumbers.slice(-30);
   
   // Convert to complex numbers and analyze phase patterns
@@ -406,9 +406,9 @@ export const generatePhaseBasedPredictions = (analysis: StatisticalAnalysis): st
 };
 
 // Method 8: Exponential Form Analysis (z = |z|e^(iθ))
-export const generateExponentialFormPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generateExponentialFormPredictions = (analysis: StatisticalAnalysis, history: LotteryResult[] = lotteryHistory): string[] => {
   const predictions: string[] = [];
-  const allNumbers = lotteryHistory.map(r => r.result);
+  const allNumbers = history.map(r => r.result);
   const recentNumbers = allNumbers.slice(-20);
   
   const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
@@ -439,9 +439,9 @@ export const generateExponentialFormPredictions = (analysis: StatisticalAnalysis
 };
 
 // Method 9: Complex Roots Analysis (nth roots)
-export const generateComplexRootsPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generateComplexRootsPredictions = (analysis: StatisticalAnalysis, history: LotteryResult[] = lotteryHistory): string[] => {
   const predictions: string[] = [];
-  const allNumbers = lotteryHistory.map(r => r.result);
+  const allNumbers = history.map(r => r.result);
   const recentNumbers = allNumbers.slice(-15);
   
   const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
@@ -472,9 +472,9 @@ export const generateComplexRootsPredictions = (analysis: StatisticalAnalysis): 
 };
 
 // Method 10: Exponentiation Analysis (z^n = |z|^n·e^(inθ))
-export const generateExponentiationPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generateExponentiationPredictions = (analysis: StatisticalAnalysis, history: LotteryResult[] = lotteryHistory): string[] => {
   const predictions: string[] = [];
-  const allNumbers = lotteryHistory.map(r => r.result);
+  const allNumbers = history.map(r => r.result);
   const recentNumbers = allNumbers.slice(-10);
   
   const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
@@ -505,9 +505,9 @@ export const generateExponentiationPredictions = (analysis: StatisticalAnalysis)
 };
 
 // Method 11: Real and Imaginary Decomposition (Re(z) = (z+z̄)/2, Im(z) = (z-z̄)/2i)
-export const generateRealImaginaryDecompositionPredictions = (analysis: StatisticalAnalysis): string[] => {
+export const generateRealImaginaryDecompositionPredictions = (analysis: StatisticalAnalysis, history: LotteryResult[] = lotteryHistory): string[] => {
   const predictions: string[] = [];
-  const allNumbers = lotteryHistory.map(r => r.result);
+  const allNumbers = history.map(r => r.result);
   const recentNumbers = allNumbers.slice(-25);
   
   const complexNumbers: ComplexNumber[] = recentNumbers.map(num => {
@@ -546,8 +546,11 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
 };
 
 // Generate all prediction sets
-export const generateAllPredictions = (): PredictionSet[] => {
-  const analysis = analyzeHistoricalData();
+export const generateAllPredictions = (): PredictionSet[] => generateAllPredictionsFor(lotteryHistory);
+
+// Backtest-friendly variant: generate all 11 method sets using a specific history slice
+export const generateAllPredictionsFor = (history: LotteryResult[]): PredictionSet[] => {
+  const analysis = analyzeHistoricalData(history);
   
   return [
     {
@@ -583,37 +586,37 @@ export const generateAllPredictions = (): PredictionSet[] => {
     {
       method: "Complex Number Analysis",
       description: "Uses complex number operations (conjugate, magnitude, multiplication) on historical data",
-      numbers: generateComplexNumberPredictions(analysis),
+      numbers: generateComplexNumberPredictions(analysis, history),
       confidence: "high"
     },
     {
       method: "Phase & Magnitude Based",
       description: "Analyzes phase angles and magnitudes of complex representations",
-      numbers: generatePhaseBasedPredictions(analysis),
+      numbers: generatePhaseBasedPredictions(analysis, history),
       confidence: "medium"
     },
     {
       method: "Exponential Form (z=|z|e^iθ)",
       description: "Uses exponential form conversions with angle and magnitude transformations",
-      numbers: generateExponentialFormPredictions(analysis),
+      numbers: generateExponentialFormPredictions(analysis, history),
       confidence: "high"
     },
     {
       method: "Complex Roots (nth roots)",
       description: "Applies nth root formula: ⁿ√|z|·e^(i(θ+2kπ)/n) for pattern extraction",
-      numbers: generateComplexRootsPredictions(analysis),
+      numbers: generateComplexRootsPredictions(analysis, history),
       confidence: "medium"
     },
     {
       method: "Exponentiation (z^n)",
       description: "Uses power formula: z^n = |z|^n·e^(inθ) with fractional exponents",
-      numbers: generateExponentiationPredictions(analysis),
+      numbers: generateExponentiationPredictions(analysis, history),
       confidence: "medium"
     },
     {
       method: "Real/Imaginary Decomposition",
       description: "Applies Re(z)=(z+z̄)/2 and Im(z)=(z-z̄)/2i formulas for component analysis",
-      numbers: generateRealImaginaryDecompositionPredictions(analysis),
+      numbers: generateRealImaginaryDecompositionPredictions(analysis, history),
       confidence: "high"
     }
   ];
