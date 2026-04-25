@@ -117,6 +117,13 @@ export const runBacktest = (windowSize: number = Number.POSITIVE_INFINITY): Back
   let ensembleDraws = 0;
   let ensembleUnionTotal = 0;
 
+  // Tight / Mid / Wide L4 net tracking
+  const netStats = {
+    tight: { hits: 0, draws: 0, sizeTotal: 0 },
+    mid: { hits: 0, draws: 0, sizeTotal: 0 },
+    wide: { hits: 0, draws: 0, sizeTotal: 0 },
+  };
+
   for (let i = evalStartIdx; i < sorted.length; i++) {
     const draw = sorted[i];
     const history = sorted.slice(0, i);
