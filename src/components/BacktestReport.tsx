@@ -150,7 +150,7 @@ export const BacktestReportView = () => {
       </Card>
 
       {/* Headline scoreboard */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="border-primary/30">
           <CardContent className="pt-6">
             <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
@@ -201,6 +201,22 @@ export const BacktestReportView = () => {
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               {report.overall.anyMethodL4Hits} draws with ≥1 method nailing L4
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-2 border-yellow-500/60 bg-gradient-to-br from-yellow-500/15 to-primary/10">
+          <CardContent className="pt-6">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1">
+              <Layers className="h-3 w-3" />
+              Ensemble Top-5 L4
+            </p>
+            <p className="text-3xl font-bold mt-2 text-yellow-600 dark:text-yellow-400">
+              {fmtPct(report.combinedTopL4.hitRate)}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {report.combinedTopL4.hits} / {report.combinedTopL4.drawsCounted} · ~
+              {Math.round(report.combinedTopL4.avgUnionSize)} unique L4 candidates per draw
             </p>
           </CardContent>
         </Card>
