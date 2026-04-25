@@ -222,6 +222,64 @@ export const BacktestReportView = () => {
         </Card>
       </div>
 
+      {/* L4 Coverage Nets — tight / mid / wide */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Layers className="h-5 w-5" />
+            L4 Coverage Nets
+          </CardTitle>
+          <CardDescription>
+            <strong>100% L4 accuracy is mathematically impossible</strong> — there are 10,000 possible
+            L4 tails and Kerala draws are independently random. These three "nets" trade precision
+            for coverage: each cell shows the actual hit-rate measured across all{" "}
+            {report.evaluatedDraws} historical draws.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid sm:grid-cols-3 gap-4">
+            {[
+              { key: "tight", label: "Tight Net", desc: "Top-5 L4 votes from each method, deduped & ranked", color: "border-primary/40 bg-primary/5" },
+              { key: "mid", label: "Mid Net", desc: "Top L4 tails by recency-weighted frequency", color: "border-yellow-500/50 bg-yellow-500/10" },
+              { key: "wide", label: "Wide Net", desc: "Top L4 tails by all-time historical frequency", color: "border-accent/40 bg-accent/5" },
+            ].map(({ key, label, desc, color }) => {
+              const n = report.nets[key as "tight" | "mid" | "wide"];
+              const baseline = 1 - Math.pow(1 - 1 / 10000, n.avgSize);
+              const lift = baseline > 0 ? n.hitRate / baseline : 0;
+              return (
+                <Card key={key} className={`border-2 ${color}`}>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-bold">{label}</p>
+                      <Badge variant="outline" className="text-xs">
+                        ~{Math.round(n.avgSize)} candidates
+                      </Badge>
+                    </div>
+                    <p className="text-3xl font-bold">{fmtPct(n.hitRate)}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {n.hits} / {n.drawsCounted} draws hit
+                    </p>
+                    <div className="mt-3 pt-3 border-t flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Lift vs random</span>
+                      {liftBadge(lift)}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground mt-3 leading-relaxed">{desc}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+          <div className="mt-4 p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
+            <strong className="text-foreground">How to read this:</strong> the Mid Net is currently the
+            best precision/coverage trade-off — it predicts ~250 L4 candidates per draw and the actual
+            tail lands inside that set <strong>{fmtPct(report.nets.mid.hitRate)}</strong> of the time
+            (vs ~{fmtPct(1 - Math.pow(1 - 1 / 10000, report.nets.mid.avgSize))} expected by chance).
+            The Wide Net trades that lift for higher raw coverage. The Tight Net is for high-stakes,
+            low-volume use only.
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Recent L4 wins highlight */}
       {report.topL4Hits.length > 0 && (
         <Card className="border-2 border-yellow-500/50 bg-gradient-to-br from-yellow-500/10 via-card to-primary/5">

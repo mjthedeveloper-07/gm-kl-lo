@@ -1,5 +1,6 @@
 import { lotteryHistory, type LotteryResult } from "@/data/lotteryHistory";
 import { generateAllPredictionsFor, type PredictionSet } from "@/utils/predictionGenerator";
+import { buildL4MidNet, buildL4TightNet, buildL4WideNet } from "@/utils/l4Candidates";
 
 export interface MethodHit {
   date: string;
@@ -56,6 +57,11 @@ export interface BacktestReport {
     hitRate: number;
     avgUnionSize: number;
   };
+  nets: {
+    tight: { hits: number; drawsCounted: number; hitRate: number; avgSize: number };
+    mid: { hits: number; drawsCounted: number; hitRate: number; avgSize: number };
+    wide: { hits: number; drawsCounted: number; hitRate: number; avgSize: number };
+  };
   timeline: TimelinePoint[]; // most recent ~60
   topL4Hits: Array<MethodHit & { method: string }>; // best recent L4 wins across all methods
 }
@@ -110,6 +116,13 @@ export const runBacktest = (windowSize: number = Number.POSITIVE_INFINITY): Back
   let ensembleHits = 0;
   let ensembleDraws = 0;
   let ensembleUnionTotal = 0;
+
+  // Tight / Mid / Wide L4 net tracking
+  const netStats = {
+    tight: { hits: 0, draws: 0, sizeTotal: 0 },
+    mid: { hits: 0, draws: 0, sizeTotal: 0 },
+    wide: { hits: 0, draws: 0, sizeTotal: 0 },
+  };
 
   for (let i = evalStartIdx; i < sorted.length; i++) {
     const draw = sorted[i];
@@ -193,6 +206,22 @@ export const runBacktest = (windowSize: number = Number.POSITIVE_INFINITY): Back
     ensembleDraws += 1;
     ensembleUnionTotal += ensembleL4.size;
     if (ensembleL4.has(actualL4)) ensembleHits += 1;
+
+    // Score the three L4 candidate nets (built from history *before* this draw — no leakage)
+    const tight = buildL4TightNet(predictionSets.map(s => s.numbers), history, 50);
+    netStats.tight.draws += 1;
+    netStats.tight.sizeTotal += tight.length;
+    if (tight.includes(actualL4)) netStats.tight.hits += 1;
+
+    const mid = buildL4MidNet(history, 250);
+    netStats.mid.draws += 1;
+    netStats.mid.sizeTotal += mid.length;
+    if (mid.includes(actualL4)) netStats.mid.hits += 1;
+
+    const wide = buildL4WideNet(history, 1000);
+    netStats.wide.draws += 1;
+    netStats.wide.sizeTotal += wide.length;
+    if (wide.includes(actualL4)) netStats.wide.hits += 1;
 
     timeline.push({
       date: draw.date,
@@ -279,6 +308,26 @@ export const runBacktest = (windowSize: number = Number.POSITIVE_INFINITY): Back
       drawsCounted: ensembleDraws,
       hitRate: ensembleDraws > 0 ? ensembleHits / ensembleDraws : 0,
       avgUnionSize: ensembleDraws > 0 ? ensembleUnionTotal / ensembleDraws : 0,
+    },
+    nets: {
+      tight: {
+        hits: netStats.tight.hits,
+        drawsCounted: netStats.tight.draws,
+        hitRate: netStats.tight.draws > 0 ? netStats.tight.hits / netStats.tight.draws : 0,
+        avgSize: netStats.tight.draws > 0 ? netStats.tight.sizeTotal / netStats.tight.draws : 0,
+      },
+      mid: {
+        hits: netStats.mid.hits,
+        drawsCounted: netStats.mid.draws,
+        hitRate: netStats.mid.draws > 0 ? netStats.mid.hits / netStats.mid.draws : 0,
+        avgSize: netStats.mid.draws > 0 ? netStats.mid.sizeTotal / netStats.mid.draws : 0,
+      },
+      wide: {
+        hits: netStats.wide.hits,
+        drawsCounted: netStats.wide.draws,
+        hitRate: netStats.wide.draws > 0 ? netStats.wide.hits / netStats.wide.draws : 0,
+        avgSize: netStats.wide.draws > 0 ? netStats.wide.sizeTotal / netStats.wide.draws : 0,
+      },
     },
     timeline: timeline.slice(-120),
     topL4Hits,
