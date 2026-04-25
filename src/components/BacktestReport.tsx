@@ -285,6 +285,7 @@ export const BacktestReportView = () => {
                 <TableHead className="text-center">Confidence</TableHead>
                 <TableHead className="text-right">L4 Hits</TableHead>
                 <TableHead className="text-right">L3 Hits</TableHead>
+                <TableHead className="text-right">L4 (last 365d)</TableHead>
                 <TableHead className="text-center">Lift L4</TableHead>
                 <TableHead className="text-center">Lift L3</TableHead>
                 <TableHead className="w-12"></TableHead>
@@ -293,10 +294,27 @@ export const BacktestReportView = () => {
             <TableBody>
               {report.methodScores.map(m => {
                 const isOpen = openMethod === m.method;
+                const trend = m.l4HitRateLast365 - m.l4HitRate;
+                const TrendIcon = trend > 0.005 ? TrendingUp : trend < -0.005 ? TrendingDown : Minus;
+                const trendClass =
+                  trend > 0.005
+                    ? "text-green-600 dark:text-green-400"
+                    : trend < -0.005
+                      ? "text-red-600 dark:text-red-400"
+                      : "text-muted-foreground";
                 return (
                   <Fragment key={m.method}>
                     <TableRow>
-                      <TableCell className="font-medium">{m.method}</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <span>{m.method}</span>
+                          {NEW_METHODS.has(m.method) && (
+                            <Badge className="bg-primary/20 text-primary border-primary/40 text-[10px] px-1.5 py-0">
+                              NEW
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-center">{confBadge(m.confidence)}</TableCell>
                       <TableCell className="text-right tabular-nums">
                         <span className="font-bold">{m.l4Hits}</span>
@@ -307,6 +325,15 @@ export const BacktestReportView = () => {
                         <span className="font-bold">{m.l3Hits}</span>
                         <span className="text-muted-foreground"> / {m.totalDraws}</span>
                         <div className="text-xs text-muted-foreground">{fmtPct(m.l3HitRate)}</div>
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        <div className={`flex items-center justify-end gap-1 font-bold ${trendClass}`}>
+                          <TrendIcon className="h-3 w-3" />
+                          {fmtPct(m.l4HitRateLast365)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {m.l4HitsLast365} / {m.totalDrawsLast365}
+                        </div>
                       </TableCell>
                       <TableCell className="text-center">{liftBadge(m.liftL4)}</TableCell>
                       <TableCell className="text-center">{liftBadge(m.liftL3)}</TableCell>
