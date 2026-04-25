@@ -3,16 +3,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { generateAllPredictions, type PredictionSet } from "@/utils/predictionGenerator";
-import { Sparkles, Copy, CheckCircle2 } from "lucide-react";
+import { getNextDrawInfo, type NextDrawInfo } from "@/utils/nextDrawInfo";
+import { Sparkles, Copy, CheckCircle2, Target } from "lucide-react";
 import { toast } from "sonner";
 
 export const PredictionSetsView = () => {
   const [predictionSets, setPredictionSets] = useState<PredictionSet[]>([]);
+  const [nextDraw, setNextDraw] = useState<NextDrawInfo | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
 
   useEffect(() => {
-    const predictions = generateAllPredictions();
-    setPredictionSets(predictions);
+    setPredictionSets(generateAllPredictions());
+    setNextDraw(getNextDrawInfo());
   }, []);
 
   const copyToClipboard = (text: string, id: string) => {
@@ -46,11 +48,45 @@ export const PredictionSetsView = () => {
               AI-Generated Predictions
             </CardTitle>
             <CardDescription className="mt-2">
-              Statistical analysis-based predictions using 5 different methods
+              Predictions auto-update based on the latest result. Currently targeting the next draw.
             </CardDescription>
           </div>
         </CardHeader>
       </Card>
+
+      {/* Next Draw Target */}
+      {nextDraw && (
+        <Card className="border-2 border-primary/40 bg-gradient-to-br from-primary/10 via-card to-accent/10 shadow-lg">
+          <CardContent className="pt-6 pb-6">
+            <div className="flex items-start gap-3">
+              <Target className="h-7 w-7 text-primary flex-shrink-0 mt-1" />
+              <div className="flex-1 space-y-3">
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                    🎯 Predicting
+                  </p>
+                  <p className="text-2xl font-bold text-foreground mt-1">
+                    {nextDraw.nextDay}, {nextDraw.nextDate} — <span className="text-primary">{nextDraw.nextLottery}</span>
+                  </p>
+                </div>
+                <div className="pt-2 border-t border-border/50">
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                    Based on latest result
+                  </p>
+                  <p className="text-sm text-foreground mt-1 flex items-baseline flex-wrap gap-x-2">
+                    <span className="font-medium">{nextDraw.latestResult.day}, {nextDraw.latestResult.date}</span>
+                    <span className="text-muted-foreground">— {nextDraw.latestResult.lottery} →</span>
+                    <span className="font-mono">
+                      <span className="text-base">{nextDraw.latestResult.result.slice(0, 2)}</span>
+                      <span className="text-2xl font-bold text-accent">{nextDraw.latestResult.result.slice(2)}</span>
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Disclaimer */}
       <Card className="border-yellow-500/50 bg-yellow-500/5">
