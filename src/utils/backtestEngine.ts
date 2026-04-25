@@ -1,5 +1,6 @@
 import { lotteryHistory, type LotteryResult } from "@/data/lotteryHistory";
 import { generateAllPredictionsFor, type PredictionSet } from "@/utils/predictionGenerator";
+import { buildL4MidNet, buildL4TightNet, buildL4WideNet } from "@/utils/l4Candidates";
 
 export interface MethodHit {
   date: string;
