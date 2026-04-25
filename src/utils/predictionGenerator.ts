@@ -545,6 +545,219 @@ export const generateRealImaginaryDecompositionPredictions = (analysis: Statisti
   return predictions;
 };
 
+// ============================================================
+// L4-Focused Methods (Methods 12-15)
+// These are optimized specifically for the LAST 4 DIGITS (positions 2-5)
+// of the 6-digit draw, where the lottery prize structure pays out.
+// ============================================================
+
+// Helper: parse "dd.mm.yy" into a sortable timestamp
+const parseDateTs = (d: string): number => {
+  const [dd, mm, yy] = d.split(".").map(Number);
+  if (!dd || !mm || yy === undefined) return 0;
+  const year = yy < 50 ? 2000 + yy : 1900 + yy;
+  return new Date(year, mm - 1, dd).getTime();
+};
+
+// Helper: take the latest N draws sorted newest-first (history may already be either order)
+const latestN = (history: LotteryResult[], n: number): LotteryResult[] => {
+  const sorted = [...history].sort((a, b) => parseDateTs(b.date) - parseDateTs(a.date));
+  return sorted.slice(0, n);
+};
+
+// Method 12: L4 Positional Top-K
+// Build the L4 tail from the top-3 most frequent digits at each of positions 2-5
+// using only the last 200 draws, then prefix with the most common pos-0/pos-1 digits.
+export const generateL4PositionalTopKPredictions = (history: LotteryResult[] = lotteryHistory): string[] => {
+  const recent = latestN(history, 200);
+  if (recent.length === 0) return [];
+
+  const top: string[][] = [];
+  for (let pos = 0; pos < 6; pos++) {
+    const counts: Record<string, number> = {};
+    for (let d = 0; d <= 9; d++) counts[d.toString()] = 0;
+    recent.forEach(r => {
+      const ch = r.result[pos];
+      if (ch) counts[ch] = (counts[ch] || 0) + 1;
+    });
+    top.push(
+      Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, pos < 2 ? 1 : 3) // 1 prefix, 3 per L4 position
+        .map(([d]) => d),
+    );
+  }
+
+  const out = new Set<string>();
+  for (const p0 of top[0]) {
+    for (const p1 of top[1]) {
+      for (const p2 of top[2]) {
+        for (const p3 of top[3]) {
+          for (const p4 of top[4]) {
+            for (const p5 of top[5]) {
+              out.add(p0 + p1 + p2 + p3 + p4 + p5);
+              if (out.size >= 20) break;
+            }
+            if (out.size >= 20) break;
+          }
+          if (out.size >= 20) break;
+        }
+        if (out.size >= 20) break;
+      }
+      if (out.size >= 20) break;
+    }
+    if (out.size >= 20) break;
+  }
+  return Array.from(out);
+};
+
+// Method 13: L4 Markov Tail
+// 1st-order Markov chain over positions 2->3, 3->4, 4->5 across all history.
+// Sample 20 chains seeded from the top-5 most likely pos-2 starters.
+export const generateL4MarkovTailPredictions = (history: LotteryResult[] = lotteryHistory): string[] => {
+  if (history.length === 0) return [];
+
+  // Transition counts: trans[fromPos][fromDigit][toDigit]
+  const trans: number[][][] = [2, 3, 4].map(() =>
+    Array.from({ length: 10 }, () => new Array(10).fill(0)),
+  );
+  const startCounts = new Array(10).fill(0);
+
+  history.forEach(r => {
+    const s = r.result;
+    if (s.length < 6) return;
+    const d2 = +s[2], d3 = +s[3], d4 = +s[4], d5 = +s[5];
+    startCounts[d2]++;
+    trans[0][d2][d3]++;
+    trans[1][d3][d4]++;
+    trans[2][d4][d5]++;
+  });
+
+  // Pick most-likely transition deterministically (peak of distribution)
+  const argmaxRow = (row: number[]): number => {
+    let best = 0, bestVal = -1;
+    for (let i = 0; i < 10; i++) if (row[i] > bestVal) { bestVal = row[i]; best = i; }
+    return best;
+  };
+
+  // Top-5 starters by frequency
+  const starters = startCounts
+    .map((c, d) => ({ d, c }))
+    .sort((a, b) => b.c - a.c)
+    .slice(0, 5)
+    .map(x => x.d);
+
+  // Pick most common pos-0 and pos-1
+  const p0Counts = new Array(10).fill(0);
+  const p1Counts = new Array(10).fill(0);
+  history.forEach(r => { p0Counts[+r.result[0]]++; p1Counts[+r.result[1]]++; });
+  const p0 = argmaxRow(p0Counts);
+  const p1 = argmaxRow(p1Counts);
+
+  const out = new Set<string>();
+  // For each starter, generate 4 variants by also taking the 2nd-best transition at each step
+  for (const seed of starters) {
+    const rankRow = (row: number[]): number[] =>
+      row.map((c, i) => ({ c, i })).sort((a, b) => b.c - a.c).map(x => x.i);
+    const next3 = rankRow(trans[0][seed]);
+    for (const t3 of next3.slice(0, 2)) {
+      const next4 = rankRow(trans[1][t3]);
+      for (const t4 of next4.slice(0, 2)) {
+        const next5 = rankRow(trans[2][t4]);
+        for (const t5 of next5.slice(0, 1)) {
+          out.add(`${p0}${p1}${seed}${t3}${t4}${t5}`);
+        }
+      }
+    }
+    if (out.size >= 20) break;
+  }
+  return Array.from(out).slice(0, 20);
+};
+
+// Method 14: Recency-Weighted L4 Bigrams
+// Weight every L4 bigram (positions 2-3, 3-4, 4-5) by exp(-age_days/365),
+// then build candidates from the heaviest pos2-3 + pos4-5 bigram pairs.
+export const generateL4RecencyBigramPredictions = (history: LotteryResult[] = lotteryHistory): string[] => {
+  if (history.length === 0) return [];
+  const sorted = [...history].sort((a, b) => parseDateTs(b.date) - parseDateTs(a.date));
+  const newestTs = parseDateTs(sorted[0].date);
+
+  const bg23: Record<string, number> = {};
+  const bg45: Record<string, number> = {};
+
+  sorted.forEach(r => {
+    const ageDays = Math.max(0, (newestTs - parseDateTs(r.date)) / (1000 * 60 * 60 * 24));
+    const w = Math.exp(-ageDays / 365);
+    const t = r.result;
+    if (t.length < 6) return;
+    const a = t.slice(2, 4);
+    const b = t.slice(4, 6);
+    bg23[a] = (bg23[a] || 0) + w;
+    bg45[b] = (bg45[b] || 0) + w;
+  });
+
+  const top23 = Object.entries(bg23).sort((a, b) => b[1] - a[1]).slice(0, 5).map(x => x[0]);
+  const top45 = Object.entries(bg45).sort((a, b) => b[1] - a[1]).slice(0, 4).map(x => x[0]);
+
+  // Most common pos-0/1 from recent 200 draws as the prefix
+  const recent = sorted.slice(0, 200);
+  const p0c = new Array(10).fill(0), p1c = new Array(10).fill(0);
+  recent.forEach(r => { p0c[+r.result[0]]++; p1c[+r.result[1]]++; });
+  const p0 = p0c.indexOf(Math.max(...p0c));
+  const p1 = p1c.indexOf(Math.max(...p1c));
+
+  const out = new Set<string>();
+  for (const a of top23) {
+    for (const b of top45) {
+      out.add(`${p0}${p1}${a}${b}`);
+      if (out.size >= 20) break;
+    }
+    if (out.size >= 20) break;
+  }
+  return Array.from(out);
+};
+
+// Method 15: L3 Anchor + Frequent L4-Prefix
+// Since L3 recurs ~61% of the time, use the top-10 most frequent L3 tails from
+// the last 500 draws and prepend the top-2 most frequent pos-2 digits.
+export const generateL3AnchorPredictions = (history: LotteryResult[] = lotteryHistory): string[] => {
+  if (history.length === 0) return [];
+  const recent = latestN(history, 500);
+
+  // Top L3 tails
+  const l3Counts: Record<string, number> = {};
+  recent.forEach(r => {
+    const t = r.result.slice(-3);
+    l3Counts[t] = (l3Counts[t] || 0) + 1;
+  });
+  const topL3 = Object.entries(l3Counts).sort((a, b) => b[1] - a[1]).slice(0, 10).map(x => x[0]);
+
+  // Top-2 pos-2 digits from same window
+  const pos2 = new Array(10).fill(0);
+  recent.forEach(r => { pos2[+r.result[2]]++; });
+  const topPos2 = pos2
+    .map((c, d) => ({ c, d }))
+    .sort((a, b) => b.c - a.c)
+    .slice(0, 2)
+    .map(x => x.d.toString());
+
+  // Most common pos-0 and pos-1
+  const p0c = new Array(10).fill(0), p1c = new Array(10).fill(0);
+  recent.forEach(r => { p0c[+r.result[0]]++; p1c[+r.result[1]]++; });
+  const p0 = p0c.indexOf(Math.max(...p0c));
+  const p1 = p1c.indexOf(Math.max(...p1c));
+
+  const out = new Set<string>();
+  for (const pre of topPos2) {
+    for (const tail of topL3) {
+      out.add(`${p0}${p1}${pre}${tail}`);
+      if (out.size >= 20) break;
+    }
+    if (out.size >= 20) break;
+  }
+  return Array.from(out);
+};
+
 // Generate all prediction sets
 export const generateAllPredictions = (): PredictionSet[] => generateAllPredictionsFor(lotteryHistory);
 
@@ -617,6 +830,30 @@ export const generateAllPredictionsFor = (history: LotteryResult[]): PredictionS
       method: "Real/Imaginary Decomposition",
       description: "Applies Re(z)=(z+z̄)/2 and Im(z)=(z-z̄)/2i formulas for component analysis",
       numbers: generateRealImaginaryDecompositionPredictions(analysis, history),
+      confidence: "high"
+    },
+    {
+      method: "L4 Positional Top-K",
+      description: "L4-focused: top-3 most frequent digits per tail position from last 200 draws (Cartesian product)",
+      numbers: generateL4PositionalTopKPredictions(history),
+      confidence: "high"
+    },
+    {
+      method: "L4 Markov Tail",
+      description: "L4-focused: 1st-order Markov chain over positions 2→3→4→5 transitions",
+      numbers: generateL4MarkovTailPredictions(history),
+      confidence: "low"
+    },
+    {
+      method: "L4 Recency Bigrams",
+      description: "L4-focused: positions 2-3 + 4-5 bigrams weighted by exp(-age_days/365)",
+      numbers: generateL4RecencyBigramPredictions(history),
+      confidence: "medium"
+    },
+    {
+      method: "L3 Anchor + L4 Prefix",
+      description: "L3 recurs ~61% — top-10 L3 tails (last 500 draws) prepended with top-2 pos-2 digits",
+      numbers: generateL3AnchorPredictions(history),
       confidence: "high"
     }
   ];

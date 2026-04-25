@@ -15,7 +15,15 @@ import {
   ChevronDown,
   Sparkles,
   Calendar,
+  Layers,
 } from "lucide-react";
+
+const NEW_METHODS = new Set([
+  "L4 Positional Top-K",
+  "L4 Markov Tail",
+  "L4 Recency Bigrams",
+  "L3 Anchor + L4 Prefix",
+]);
 
 const fmtPct = (v: number) => `${(v * 100).toFixed(2)}%`;
 
@@ -142,7 +150,7 @@ export const BacktestReportView = () => {
       </Card>
 
       {/* Headline scoreboard */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="border-primary/30">
           <CardContent className="pt-6">
             <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
@@ -193,6 +201,22 @@ export const BacktestReportView = () => {
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               {report.overall.anyMethodL4Hits} draws with ≥1 method nailing L4
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-2 border-yellow-500/60 bg-gradient-to-br from-yellow-500/15 to-primary/10">
+          <CardContent className="pt-6">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1">
+              <Layers className="h-3 w-3" />
+              Ensemble Top-5 L4
+            </p>
+            <p className="text-3xl font-bold mt-2 text-yellow-600 dark:text-yellow-400">
+              {fmtPct(report.combinedTopL4.hitRate)}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {report.combinedTopL4.hits} / {report.combinedTopL4.drawsCounted} · ~
+              {Math.round(report.combinedTopL4.avgUnionSize)} unique L4 candidates per draw
             </p>
           </CardContent>
         </Card>
@@ -261,6 +285,7 @@ export const BacktestReportView = () => {
                 <TableHead className="text-center">Confidence</TableHead>
                 <TableHead className="text-right">L4 Hits</TableHead>
                 <TableHead className="text-right">L3 Hits</TableHead>
+                <TableHead className="text-right">L4 (last 365d)</TableHead>
                 <TableHead className="text-center">Lift L4</TableHead>
                 <TableHead className="text-center">Lift L3</TableHead>
                 <TableHead className="w-12"></TableHead>
@@ -269,10 +294,27 @@ export const BacktestReportView = () => {
             <TableBody>
               {report.methodScores.map(m => {
                 const isOpen = openMethod === m.method;
+                const trend = m.l4HitRateLast365 - m.l4HitRate;
+                const TrendIcon = trend > 0.005 ? TrendingUp : trend < -0.005 ? TrendingDown : Minus;
+                const trendClass =
+                  trend > 0.005
+                    ? "text-green-600 dark:text-green-400"
+                    : trend < -0.005
+                      ? "text-red-600 dark:text-red-400"
+                      : "text-muted-foreground";
                 return (
                   <Fragment key={m.method}>
                     <TableRow>
-                      <TableCell className="font-medium">{m.method}</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <span>{m.method}</span>
+                          {NEW_METHODS.has(m.method) && (
+                            <Badge className="bg-primary/20 text-primary border-primary/40 text-[10px] px-1.5 py-0">
+                              NEW
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-center">{confBadge(m.confidence)}</TableCell>
                       <TableCell className="text-right tabular-nums">
                         <span className="font-bold">{m.l4Hits}</span>
@@ -283,6 +325,15 @@ export const BacktestReportView = () => {
                         <span className="font-bold">{m.l3Hits}</span>
                         <span className="text-muted-foreground"> / {m.totalDraws}</span>
                         <div className="text-xs text-muted-foreground">{fmtPct(m.l3HitRate)}</div>
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        <div className={`flex items-center justify-end gap-1 font-bold ${trendClass}`}>
+                          <TrendIcon className="h-3 w-3" />
+                          {fmtPct(m.l4HitRateLast365)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {m.l4HitsLast365} / {m.totalDrawsLast365}
+                        </div>
                       </TableCell>
                       <TableCell className="text-center">{liftBadge(m.liftL4)}</TableCell>
                       <TableCell className="text-center">{liftBadge(m.liftL3)}</TableCell>
@@ -301,7 +352,7 @@ export const BacktestReportView = () => {
                     </TableRow>
                     {isOpen && (
                       <TableRow key={`${m.method}-detail`}>
-                        <TableCell colSpan={7} className="bg-muted/30">
+                        <TableCell colSpan={8} className="bg-muted/30">
                           <div className="py-2 space-y-3">
                             <p className="text-sm text-muted-foreground italic">{m.description}</p>
                             <div className="grid sm:grid-cols-2 gap-3 text-xs">
