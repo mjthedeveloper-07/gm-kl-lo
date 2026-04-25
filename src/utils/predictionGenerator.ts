@@ -586,37 +586,37 @@ export const generateAllPredictionsFor = (history: LotteryResult[]): PredictionS
     {
       method: "Complex Number Analysis",
       description: "Uses complex number operations (conjugate, magnitude, multiplication) on historical data",
-      numbers: generateComplexNumberPredictions(analysis),
+      numbers: generateComplexNumberPredictions(analysis, history),
       confidence: "high"
     },
     {
       method: "Phase & Magnitude Based",
       description: "Analyzes phase angles and magnitudes of complex representations",
-      numbers: generatePhaseBasedPredictions(analysis),
+      numbers: generatePhaseBasedPredictions(analysis, history),
       confidence: "medium"
     },
     {
       method: "Exponential Form (z=|z|e^iθ)",
       description: "Uses exponential form conversions with angle and magnitude transformations",
-      numbers: generateExponentialFormPredictions(analysis),
+      numbers: generateExponentialFormPredictions(analysis, history),
       confidence: "high"
     },
     {
       method: "Complex Roots (nth roots)",
       description: "Applies nth root formula: ⁿ√|z|·e^(i(θ+2kπ)/n) for pattern extraction",
-      numbers: generateComplexRootsPredictions(analysis),
+      numbers: generateComplexRootsPredictions(analysis, history),
       confidence: "medium"
     },
     {
       method: "Exponentiation (z^n)",
       description: "Uses power formula: z^n = |z|^n·e^(inθ) with fractional exponents",
-      numbers: generateExponentiationPredictions(analysis),
+      numbers: generateExponentiationPredictions(analysis, history),
       confidence: "medium"
     },
     {
       method: "Real/Imaginary Decomposition",
       description: "Applies Re(z)=(z+z̄)/2 and Im(z)=(z-z̄)/2i formulas for component analysis",
-      numbers: generateRealImaginaryDecompositionPredictions(analysis),
+      numbers: generateRealImaginaryDecompositionPredictions(analysis, history),
       confidence: "high"
     }
   ];
