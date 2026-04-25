@@ -352,7 +352,7 @@ export const BacktestReportView = () => {
                     </TableRow>
                     {isOpen && (
                       <TableRow key={`${m.method}-detail`}>
-                        <TableCell colSpan={7} className="bg-muted/30">
+                        <TableCell colSpan={8} className="bg-muted/30">
                           <div className="py-2 space-y-3">
                             <p className="text-sm text-muted-foreground italic">{m.description}</p>
                             <div className="grid sm:grid-cols-2 gap-3 text-xs">
