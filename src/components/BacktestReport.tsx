@@ -15,7 +15,15 @@ import {
   ChevronDown,
   Sparkles,
   Calendar,
+  Layers,
 } from "lucide-react";
+
+const NEW_METHODS = new Set([
+  "L4 Positional Top-K",
+  "L4 Markov Tail",
+  "L4 Recency Bigrams",
+  "L3 Anchor + L4 Prefix",
+]);
 
 const fmtPct = (v: number) => `${(v * 100).toFixed(2)}%`;
 
