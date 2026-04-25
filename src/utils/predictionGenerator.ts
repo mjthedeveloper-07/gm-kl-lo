@@ -831,6 +831,30 @@ export const generateAllPredictionsFor = (history: LotteryResult[]): PredictionS
       description: "Applies Re(z)=(z+z̄)/2 and Im(z)=(z-z̄)/2i formulas for component analysis",
       numbers: generateRealImaginaryDecompositionPredictions(analysis, history),
       confidence: "high"
+    },
+    {
+      method: "L4 Positional Top-K",
+      description: "L4-focused: top-3 most frequent digits per tail position from last 200 draws (Cartesian product)",
+      numbers: generateL4PositionalTopKPredictions(history),
+      confidence: "high"
+    },
+    {
+      method: "L4 Markov Tail",
+      description: "L4-focused: 1st-order Markov chain over positions 2→3→4→5 transitions",
+      numbers: generateL4MarkovTailPredictions(history),
+      confidence: "medium"
+    },
+    {
+      method: "L4 Recency Bigrams",
+      description: "L4-focused: positions 2-3 + 4-5 bigrams weighted by exp(-age_days/365)",
+      numbers: generateL4RecencyBigramPredictions(history),
+      confidence: "medium"
+    },
+    {
+      method: "L3 Anchor + L4 Prefix",
+      description: "L3 recurs ~61% — top-10 L3 tails (last 500 draws) prepended with top-2 pos-2 digits",
+      numbers: generateL3AnchorPredictions(history),
+      confidence: "high"
     }
   ];
 };
