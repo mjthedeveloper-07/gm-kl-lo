@@ -48,6 +48,14 @@ export interface BacktestReport {
     bestMethodForL4: string;
     bestMethodForL3: string;
   };
+  combinedTopL4: {
+    // Per-draw ensemble: union of top-5 L4 tails from each method.
+    // If the actual L4 lands in that union, it counts as an ensemble hit.
+    hits: number;
+    drawsCounted: number;
+    hitRate: number;
+    avgUnionSize: number;
+  };
   timeline: TimelinePoint[]; // most recent ~60
   topL4Hits: Array<MethodHit & { method: string }>; // best recent L4 wins across all methods
 }
