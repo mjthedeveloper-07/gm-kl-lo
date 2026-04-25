@@ -275,8 +275,8 @@ export const BacktestReportView = () => {
               {report.methodScores.map(m => {
                 const isOpen = openMethod === m.method;
                 return (
-                  <>
-                    <TableRow key={m.method}>
+                  <Fragment key={m.method}>
+                    <TableRow>
                       <TableCell className="font-medium">{m.method}</TableCell>
                       <TableCell className="text-center">{confBadge(m.confidence)}</TableCell>
                       <TableCell className="text-right tabular-nums">
