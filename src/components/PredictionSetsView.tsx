@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { generateAllPredictions, type PredictionSet } from "@/utils/predictionGenerator";
-import { Sparkles, RefreshCw, Copy, CheckCircle2 } from "lucide-react";
+import { Sparkles, Copy, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const PredictionSetsView = () => {
@@ -11,14 +11,9 @@ export const PredictionSetsView = () => {
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
 
   useEffect(() => {
-    regeneratePredictions();
-  }, []);
-
-  const regeneratePredictions = () => {
     const predictions = generateAllPredictions();
     setPredictionSets(predictions);
-    toast.success("Generated new predictions based on statistical analysis");
-  };
+  }, []);
 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -45,20 +40,14 @@ export const PredictionSetsView = () => {
       {/* Header */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-6 w-6" />
-                AI-Generated Predictions
-              </CardTitle>
-              <CardDescription className="mt-2">
-                Statistical analysis-based predictions using 5 different methods
-              </CardDescription>
-            </div>
-            <Button onClick={regeneratePredictions} variant="outline" className="gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Regenerate
-            </Button>
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-6 w-6" />
+              AI-Generated Predictions
+            </CardTitle>
+            <CardDescription className="mt-2">
+              Statistical analysis-based predictions using 5 different methods
+            </CardDescription>
           </div>
         </CardHeader>
       </Card>
