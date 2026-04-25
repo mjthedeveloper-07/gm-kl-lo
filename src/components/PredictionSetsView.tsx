@@ -3,16 +3,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { generateAllPredictions, type PredictionSet } from "@/utils/predictionGenerator";
-import { Sparkles, Copy, CheckCircle2 } from "lucide-react";
+import { getNextDrawInfo, type NextDrawInfo } from "@/utils/nextDrawInfo";
+import { Sparkles, Copy, CheckCircle2, Target } from "lucide-react";
 import { toast } from "sonner";
 
 export const PredictionSetsView = () => {
   const [predictionSets, setPredictionSets] = useState<PredictionSet[]>([]);
+  const [nextDraw, setNextDraw] = useState<NextDrawInfo | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
 
   useEffect(() => {
-    const predictions = generateAllPredictions();
-    setPredictionSets(predictions);
+    setPredictionSets(generateAllPredictions());
+    setNextDraw(getNextDrawInfo());
   }, []);
 
   const copyToClipboard = (text: string, id: string) => {
