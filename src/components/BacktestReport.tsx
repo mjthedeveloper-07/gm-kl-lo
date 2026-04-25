@@ -149,6 +149,43 @@ export const BacktestReportView = () => {
         </CardContent>
       </Card>
 
+      {/* What changed — accuracy upgrades */}
+      <Card className="border-green-500/40 bg-green-500/5">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Trophy className="h-4 w-4 text-green-500" />
+            Latest accuracy upgrades
+          </CardTitle>
+          <CardDescription>
+            Three evidence-based changes shipped this run — backtest below shows the actual lift.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-sm space-y-2">
+          <div>
+            <strong className="text-foreground">1. Tight Net diversity-weighted scoring.</strong>{" "}
+            <span className="text-muted-foreground">
+              Old logic counted votes from overlapping methods (all positional methods voted for the
+              same tails — that's not signal, it's collinearity). New score requires votes from ≥ 2
+              independent method families and weights by recency.
+            </span>
+          </div>
+          <div>
+            <strong className="text-foreground">2. Mid Net hot-prefix bonus.</strong>{" "}
+            <span className="text-muted-foreground">
+              L4 candidates now get a +50% score boost when their leading digits match the top-3 hot
+              pos-2 / pos-3 digits from the last 50 draws.
+            </span>
+          </div>
+          <div>
+            <strong className="text-foreground">3. New "L4 Stable Positional" method.</strong>{" "}
+            <span className="text-muted-foreground">
+              Per-position digits are the intersection of last-200 top-3 ∩ all-time top-5 — keeps
+              recent trends but filters out short-term noise.
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Headline scoreboard */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="border-primary/30">

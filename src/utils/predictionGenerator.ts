@@ -758,6 +758,67 @@ export const generateL3AnchorPredictions = (history: LotteryResult[] = lotteryHi
   return Array.from(out);
 };
 
+// Method 16: L4 Stable Positional
+// Blends "all-time" positional frequency with "last-200" recency.
+// For each L4 position (2-5), take the intersection of:
+//   - top-3 from last-200 draws (recency signal)
+//   - top-5 from all-time history (stability signal)
+// If the intersection is empty for a position, fall back to the last-200 top-3.
+// This filters out short-term noise without losing recent trends.
+export const generateL4StablePositionalPredictions = (history: LotteryResult[] = lotteryHistory): string[] => {
+  if (history.length === 0) return [];
+  const recent = latestN(history, 200);
+
+  const topAtPos = (records: LotteryResult[], pos: number, k: number): string[] => {
+    const counts: Record<string, number> = {};
+    for (let d = 0; d <= 9; d++) counts[d.toString()] = 0;
+    records.forEach(r => {
+      const ch = r.result[pos];
+      if (ch) counts[ch] = (counts[ch] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, k)
+      .map(([d]) => d);
+  };
+
+  // Build per-position digit sets
+  const top: string[][] = [];
+  for (let pos = 0; pos < 6; pos++) {
+    if (pos < 2) {
+      // Prefix: just take the single most-common digit (any prefix is fine for L4 scoring)
+      top.push(topAtPos(recent, pos, 1));
+    } else {
+      const recentTop = topAtPos(recent, pos, 3);
+      const allTimeTop = new Set(topAtPos(history, pos, 5));
+      const stable = recentTop.filter(d => allTimeTop.has(d));
+      top.push(stable.length > 0 ? stable : recentTop);
+    }
+  }
+
+  const out = new Set<string>();
+  for (const p0 of top[0]) {
+    for (const p1 of top[1]) {
+      for (const p2 of top[2]) {
+        for (const p3 of top[3]) {
+          for (const p4 of top[4]) {
+            for (const p5 of top[5]) {
+              out.add(p0 + p1 + p2 + p3 + p4 + p5);
+              if (out.size >= 20) break;
+            }
+            if (out.size >= 20) break;
+          }
+          if (out.size >= 20) break;
+        }
+        if (out.size >= 20) break;
+      }
+      if (out.size >= 20) break;
+    }
+    if (out.size >= 20) break;
+  }
+  return Array.from(out);
+};
+
 // Generate all prediction sets
 export const generateAllPredictions = (): PredictionSet[] => generateAllPredictionsFor(lotteryHistory);
 
@@ -854,6 +915,12 @@ export const generateAllPredictionsFor = (history: LotteryResult[]): PredictionS
       method: "L3 Anchor + L4 Prefix",
       description: "L3 recurs ~61% — top-10 L3 tails (last 500 draws) prepended with top-2 pos-2 digits",
       numbers: generateL3AnchorPredictions(history),
+      confidence: "high"
+    },
+    {
+      method: "L4 Stable Positional",
+      description: "L4-focused: intersection of last-200 top-3 and all-time top-5 per position (filters short-term noise)",
+      numbers: generateL4StablePositionalPredictions(history),
       confidence: "high"
     }
   ];

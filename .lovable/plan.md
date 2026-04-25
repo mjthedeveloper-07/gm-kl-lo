@@ -1,52 +1,72 @@
-## Why current methods underperform on L4
 
-I parsed all **2,275 historical draws** and found three things that explain why L4 lift is weak today:
+## Honest assessment of the uploaded image
 
-1. **Every existing method generates a full 6-digit number, then we score the L4 tail as a byproduct.** None of the 11 methods are optimized for the *last 4 positions* specifically. Positions 0–1 noise is dragging the L4 prediction off-target.
-2. **Positional bias is concentrated in pos 2 & 3** (the *start* of the L4 tail):
-   - Pos 2: digits **5, 7, 8, 9, 0** dominate (top 5 = 57% of all draws)
-   - Pos 3: digits **7, 0, 2, 9, 4** dominate (top 5 = 57%)
-   - Pos 4 & 5 are nearly uniform (random-looking)
-   This is real, exploitable signal that no current method targets directly.
-3. **Exact-L4 recurrence is extremely rare** (only 8 out of 2,245 within a 30-draw window), so any "repeat recent winners" instinct is wrong. But **L3 recurs ~61% of the time** — a strong L3 base lifts L4 prediction quality too.
+The image shows **Top-2-per-position Cartesian** = 64 candidates over the full 6-digit space (1,000,000 outcomes). Even the image's own author admits *"only one win — not significant"*.
 
-## Plan: 4 new L4-focused methods + scoring upgrades
+**Why it underperforms our existing engine**:
+- 64 candidates / 1,000,000 outcomes = ~0.0064% expected hit-rate (random baseline).
+- Our current `L4 Positional Top-K` gets **1.80× lift on the L4 tail** — already strictly better than the image's approach.
+- Anything that targets all 6 digits dilutes effort across the F2 (which is dominated by the draw-number prefix and barely random).
 
-### 1. Refactor `src/utils/predictionGenerator.ts` — add 4 new methods
+**The one nugget worth borrowing**: the image uses **all-time** positional frequency. We currently use **last-200-draws**. Different time windows have different signal — worth blending.
 
-All four methods generate **20 candidates per draw** (vs. current 5–10). More predictions per draw raises baseline, but the engine already accounts for that via the `lift` metric, so we still see real signal.
+---
 
-- **Method 12 — L4 Positional-Top-K**: For each of the 4 tail positions, take the top-3 most frequent digits from the **last 200 draws** (recency-weighted). Cartesian product → up to 81 candidates, deduped & capped at 20. Prefix is fixed to the most-common-pos-0/pos-1 digits (any prefix works for L4 scoring).
-- **Method 13 — L4 Markov Tail**: Build a 1st-order Markov chain on the L4 tail across all history (pos 2→3→4→5 transition probabilities). Sample 20 chains seeded from the top-5 most likely pos-2 starters.
-- **Method 14 — Recency-Weighted L4 Bigrams**: Weight every L4 bigram in history by `exp(-age/365)` (exponential decay favoring the last year). Generate 20 candidates from the highest-weight bigram pairs.
-- **Method 15 — L3 Anchor + Frequent L4-prefix**: Since L3 recurs ~61% of the time, sample the top-10 most frequent L3 tails from the last 500 draws and prepend the top-2 most frequent pos-2 digits → 20 candidates. This is a hybrid that should hit L3 very hard, with a meaningful L4 boost.
+## What backtests have already proven (from your data)
 
-All methods accept the optional `history: LotteryResult[]` parameter (already the convention) so they plug straight into the backtest engine without look-ahead bias.
+| Approach | L4 Hit Rate | Lift | Verdict |
+|---|---|---|---|
+| Random (20 candidates) | 0.20% | 1.0× | baseline |
+| **L4 Positional Top-K** | 0.36% | **1.80×** | ✅ keep |
+| **L4 Recency Bigrams** | 0.36% | **1.80×** | ✅ keep |
+| L3 Anchor | 0.27% | 1.35× | ✅ keep |
+| L4 Markov | low | <1× | ⚠️ weak |
+| Mid Net (250) | 3.19% | 1.34× | ✅ best precision/coverage |
+| Wide Net (1000) | 9.93% | 1.05× | ⚠️ barely above random |
+| Tight Net (50) | 0.45% | 0.90× | ❌ underperforms — fix it |
 
-### 2. Wire methods into `generateAllPredictionsFor()` and the live AI Predictions tab
+**Real ceiling**: With 20 candidates, ~2% hit rate is roughly the realistic maximum (10× random). Above that you need wider nets and accept lower precision.
 
-Add the 4 new entries to the `PredictionSet[]` array returned by `generateAllPredictionsFor()`. Mark Method 15 as `confidence: "high"`, the others as `medium`. They show up automatically in:
-- The "AI Predictions" tab (live predictions)
-- The Backtest leaderboard
-- Recent L4 Wins card (if any of the new methods score)
+---
 
-### 3. Backtest engine tweaks (`src/utils/backtestEngine.ts`)
+## Proposed plan (3 evidence-based upgrades — NO new noise methods)
 
-- Add a per-method **`l4HitRateLast365`** field (recent-window hit rate) so we can see *which methods are improving over time*, not just the long-run average. Surface it in the leaderboard as a secondary stat.
-- Add a **`combinedTopL4`** derived metric: union of the top-5 L4 predictions from each method per draw. This shows whether an *ensemble* of new + old methods beats any single one.
+### Upgrade 1 — Fix the broken Tight Net (highest ROI)
+The Tight Net currently underperforms random because it counts **votes from overlapping methods** (methods 12-15 all use similar positional logic, so they vote for the same tails — which wastes the diversity signal).
 
-### 4. UI surface in `src/components/BacktestReport.tsx`
+**Fix**: Re-rank Tight Net candidates using a **diversity-weighted score**: `votes × log(method_diversity) × recency_weight`. Cap at 50, but only include tails that appear in ≥2 *independent* method families (positional, Markov, bigram, L3-anchor counted as separate families).
 
-- New **"Method evolution"** mini-column in the leaderboard: shows last-365-draw L4 hit-rate next to all-time, with an arrow ↑/↓ indicator.
-- New **headline stat card**: "Combined top-5 ensemble L4 rate" — the most actionable number for users.
-- Tag the 4 new methods with a small **`NEW`** badge in the leaderboard.
+**Expected lift**: 0.45% → ~1.5-2.0% (3-4× current).
 
-## Expected outcome
+### Upgrade 2 — Add an "All-Time vs Recent" blended Positional method (Method 16)
+This is the *useful* part of the uploaded image. Position 2 (pos-2 in our 0-indexed system) has different top digits all-time vs. recent-200, and **the intersection is signal**.
 
-Based on the positional bias I measured, the L4-Positional-Top-K and L3-Anchor methods should land in the top 3 of the leaderboard with **lift ≥ 1.5×**, and the ensemble L4 rate should noticeably exceed any single existing method.
+**Logic**: For each L4 position, take top-3 from last-200 ∩ top-5 from all-time. If intersection is empty, fall back to top-3 from last-200 (current behavior). Tag as "L4 Stable Positional" — should slightly outperform pure recency because it filters out short-term noise.
 
-## Files changed
+**Expected lift**: similar to current Top-K (1.80×) but with **lower variance** across draws — better worst-case behavior.
 
-- `src/utils/predictionGenerator.ts` — 4 new method functions + register in `generateAllPredictionsFor`
-- `src/utils/backtestEngine.ts` — add `l4HitRateLast365` + `combinedTopL4` to `MethodScore` / `BacktestReport`
-- `src/components/BacktestReport.tsx` — render the new column, headline card, and NEW badge
+### Upgrade 3 — Add a "Hot-L2 Prefix" pre-filter to Mid Net
+Currently Mid Net ranks the top 250 L4s by recency-weighted frequency *without considering* what L2 is currently hot. We can boost L4 candidates whose **first two digits (positions 2-3 of the 6-digit number)** match the top-3 hot pos-2/pos-3 digits from the last 50 draws.
+
+**Logic**: Mid Net score becomes `recency_weight × (1 + 0.5 × prefix_match_bonus)`. Same 250-candidate size, just smarter ranking.
+
+**Expected lift**: 3.19% → ~4.0-4.5% (1.4-1.5× current Mid Net).
+
+---
+
+## What I will NOT do (and why)
+
+- ❌ **Add a 64-combination "Top-2-per-position" card** — this is strictly worse than what we already have. Adding it would mislead users into thinking it's a viable method.
+- ❌ **Claim 100% accuracy is reachable** — already established: mathematically impossible without enumerating all 10,000 L4s.
+- ❌ **Add 10 more "ensemble" methods** — diminishing returns; backtests show our 11 methods already overlap heavily.
+
+---
+
+## Files to modify
+
+1. **`src/utils/l4Candidates.ts`** — rewrite `buildL4TightNet` with diversity-weighted scoring; add prefix-bonus to `buildL4MidNet`.
+2. **`src/utils/predictionGenerator.ts`** — add `generateL4StablePositionalPredictions` (Method 16).
+3. **`src/utils/backtestEngine.ts`** — wire Method 16 into the leaderboard and ensemble.
+4. **`src/components/BacktestReport.tsx`** — add a small "What changed" callout explaining the upgrades and show before/after lift in the Tight Net card.
+
+After implementation I will **run a full backtest** and report the actual numbers, including any methods that *didn't* improve as predicted (full transparency).
