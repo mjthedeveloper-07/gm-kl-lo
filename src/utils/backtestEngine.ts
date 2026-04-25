@@ -145,21 +145,19 @@ export const runBacktest = (windowSize = 365): BacktestReport => {
           matched: l4Match,
           matchType: "L4",
         });
-      } else if (l3Match) {
-        // Track L3-only hits separately (don't double-count if also L4)
-        a.l3Hits += 1;
-        methodsWithL3.push(set.method);
-        a.hits.push({
-          date: draw.date,
-          lottery: draw.lottery,
-          actual: draw.result,
-          matched: l3Match,
-          matchType: "L3",
-        });
       }
-      // Note: L4 match implies L3 match too — count it
-      if (l4Match && !l3Match) {
+      if (l3Match) {
         a.l3Hits += 1;
+        if (!l4Match) {
+          methodsWithL3.push(set.method);
+          a.hits.push({
+            date: draw.date,
+            lottery: draw.lottery,
+            actual: draw.result,
+            matched: l3Match,
+            matchType: "L3",
+          });
+        }
       }
     }
 
