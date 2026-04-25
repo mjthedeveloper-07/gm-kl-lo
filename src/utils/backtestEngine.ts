@@ -207,6 +207,22 @@ export const runBacktest = (windowSize: number = Number.POSITIVE_INFINITY): Back
     ensembleUnionTotal += ensembleL4.size;
     if (ensembleL4.has(actualL4)) ensembleHits += 1;
 
+    // Score the three L4 candidate nets (built from history *before* this draw — no leakage)
+    const tight = buildL4TightNet(predictionSets.map(s => s.numbers), history, 50);
+    netStats.tight.draws += 1;
+    netStats.tight.sizeTotal += tight.length;
+    if (tight.includes(actualL4)) netStats.tight.hits += 1;
+
+    const mid = buildL4MidNet(history, 250);
+    netStats.mid.draws += 1;
+    netStats.mid.sizeTotal += mid.length;
+    if (mid.includes(actualL4)) netStats.mid.hits += 1;
+
+    const wide = buildL4WideNet(history, 1000);
+    netStats.wide.draws += 1;
+    netStats.wide.sizeTotal += wide.length;
+    if (wide.includes(actualL4)) netStats.wide.hits += 1;
+
     timeline.push({
       date: draw.date,
       lottery: draw.lottery,
