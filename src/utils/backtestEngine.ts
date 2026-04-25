@@ -19,6 +19,9 @@ export interface MethodScore {
   l3Hits: number;
   l4HitRate: number; // 0..1
   l3HitRate: number;
+  l4HitRateLast365: number; // hit rate over the last 365 evaluated draws (recent form)
+  l4HitsLast365: number;
+  totalDrawsLast365: number;
   l4Baseline: number; // expected hit-rate by chance
   l3Baseline: number;
   liftL4: number; // actual / baseline
