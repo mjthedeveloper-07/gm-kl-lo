@@ -916,6 +916,12 @@ export const generateAllPredictionsFor = (history: LotteryResult[]): PredictionS
       description: "L3 recurs ~61% — top-10 L3 tails (last 500 draws) prepended with top-2 pos-2 digits",
       numbers: generateL3AnchorPredictions(history),
       confidence: "high"
+    },
+    {
+      method: "L4 Stable Positional",
+      description: "L4-focused: intersection of last-200 top-3 and all-time top-5 per position (filters short-term noise)",
+      numbers: generateL4StablePositionalPredictions(history),
+      confidence: "high"
     }
   ];
 };
