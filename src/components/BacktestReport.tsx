@@ -374,7 +374,7 @@ export const BacktestReportView = () => {
                         </TableCell>
                       </TableRow>
                     )}
-                  </>
+                  </Fragment>
                 );
               })}
             </TableBody>
