@@ -842,7 +842,7 @@ export const generateAllPredictionsFor = (history: LotteryResult[]): PredictionS
       method: "L4 Markov Tail",
       description: "L4-focused: 1st-order Markov chain over positions 2→3→4→5 transitions",
       numbers: generateL4MarkovTailPredictions(history),
-      confidence: "medium"
+      confidence: "low"
     },
     {
       method: "L4 Recency Bigrams",
