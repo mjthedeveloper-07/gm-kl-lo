@@ -540,6 +540,11 @@ const Index = () => {
             <PredictionValidator predictions={predictionResults} />
           </TabsContent>
 
+          {/* Backtest Tab */}
+          <TabsContent value="backtest">
+            <BacktestReportView />
+          </TabsContent>
+
           {/* Statistical Analysis Tab */}
           <TabsContent value="analysis">
             <StatisticalAnalysisView />
