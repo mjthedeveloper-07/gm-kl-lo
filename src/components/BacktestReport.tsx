@@ -76,7 +76,7 @@ export const BacktestReportView = () => {
     // Defer so the loading skeleton paints first
     const id = setTimeout(() => {
       try {
-        const r = runBacktest(365);
+        const r = runBacktest(); // full history
         setReport(r);
       } finally {
         setLoading(false);
@@ -100,7 +100,7 @@ export const BacktestReportView = () => {
               Backtest Report
             </CardTitle>
             <CardDescription>
-              Replaying the last 365 draws across all 11 AI prediction methods…
+              Replaying the full Kerala Lottery archive (2019 → today) across all 11 AI prediction methods…
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -123,10 +123,10 @@ export const BacktestReportView = () => {
             Backtest Report
           </CardTitle>
           <CardDescription>
-            Each method is re-run against every draw in the last 365 results using only the data
-            available <em>before</em> that draw — no look-ahead bias. We then score how often each
-            method's predictions matched the actual winning number on the last 4 (L4) and last 3
-            (L3) digits.
+            Each method is re-run against every draw in the <strong>full historical archive</strong>{" "}
+            using only the data available <em>before</em> that draw — no look-ahead bias. We score
+            how often each method's predictions matched the actual winning number on the last 4 (L4)
+            and last 3 (L3) digits.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -149,7 +149,7 @@ export const BacktestReportView = () => {
               Draws evaluated
             </p>
             <p className="text-3xl font-bold mt-2">{report.evaluatedDraws}</p>
-            <p className="text-xs text-muted-foreground mt-1">over the past year</p>
+            <p className="text-xs text-muted-foreground mt-1">2019 → today</p>
           </CardContent>
         </Card>
 
@@ -380,7 +380,7 @@ export const BacktestReportView = () => {
       {/* Hit timeline */}
       <Card>
         <CardHeader>
-          <CardTitle>L4 Hit Timeline (last 60 draws)</CardTitle>
+          <CardTitle>L4 Hit Timeline (last 120 draws)</CardTitle>
           <CardDescription>
             Bar height = number of methods that scored an L4 hit on that draw.
           </CardDescription>
