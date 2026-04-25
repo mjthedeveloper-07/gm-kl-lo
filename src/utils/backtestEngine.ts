@@ -99,10 +99,17 @@ export const runBacktest = (windowSize: number = Number.POSITIVE_INFINITY): Back
       predTotal: number;
       drawsCounted: number;
       hits: MethodHit[]; // every L4 + L3 hit (we'll trim later)
+      // Per-draw L4-hit log for "recent form" computation:
+      drawLog: Array<{ ts: number; l4Hit: boolean }>;
     }
   > = {};
 
   const timeline: TimelinePoint[] = [];
+
+  // Ensemble (combined top-5 L4) tracking
+  let ensembleHits = 0;
+  let ensembleDraws = 0;
+  let ensembleUnionTotal = 0;
 
   for (let i = evalStartIdx; i < sorted.length; i++) {
     const draw = sorted[i];
@@ -118,9 +125,13 @@ export const runBacktest = (windowSize: number = Number.POSITIVE_INFINITY): Back
 
     const actualL4 = last(draw.result, 4);
     const actualL3 = last(draw.result, 3);
+    const drawTs = parseDate(draw.date);
 
     const methodsWithL4: string[] = [];
     const methodsWithL3: string[] = [];
+
+    // Build the per-draw ensemble L4 union (top-5 L4 tails per method)
+    const ensembleL4: Set<string> = new Set();
 
     for (const set of predictionSets) {
       if (!accum[set.method]) {
@@ -132,6 +143,7 @@ export const runBacktest = (windowSize: number = Number.POSITIVE_INFINITY): Back
           predTotal: 0,
           drawsCounted: 0,
           hits: [],
+          drawLog: [],
         };
       }
       const a = accum[set.method];
@@ -145,6 +157,11 @@ export const runBacktest = (windowSize: number = Number.POSITIVE_INFINITY): Back
         if (!l3Match && last(num, 3) === actualL3) l3Match = num;
         if (l4Match && l3Match) break;
       }
+
+      // Contribute first 5 L4 tails to the ensemble union
+      set.numbers.slice(0, 5).forEach(n => ensembleL4.add(last(n, 4)));
+
+      a.drawLog.push({ ts: drawTs, l4Hit: !!l4Match });
 
       if (l4Match) {
         a.l4Hits += 1;
@@ -172,6 +189,11 @@ export const runBacktest = (windowSize: number = Number.POSITIVE_INFINITY): Back
       }
     }
 
+    // Score the ensemble for this draw
+    ensembleDraws += 1;
+    ensembleUnionTotal += ensembleL4.size;
+    if (ensembleL4.has(actualL4)) ensembleHits += 1;
+
     timeline.push({
       date: draw.date,
       lottery: draw.lottery,
@@ -182,12 +204,22 @@ export const runBacktest = (windowSize: number = Number.POSITIVE_INFINITY): Back
 
   const evaluatedDraws = timeline.length;
 
+  // Cutoff for "recent form": last 365 days from the most-recent evaluated draw
+  const newestDrawTs = timeline.length > 0 ? parseDate(timeline[timeline.length - 1].date) : 0;
+  const cutoffTs = newestDrawTs - 365 * 24 * 60 * 60 * 1000;
+
   const methodScores: MethodScore[] = Object.entries(accum).map(([method, a]) => {
     const predictionsPerDraw = a.drawsCounted > 0 ? a.predTotal / a.drawsCounted : 0;
     const l4Baseline = baselineHitRate(predictionsPerDraw, 4);
     const l3Baseline = baselineHitRate(predictionsPerDraw, 3);
     const l4HitRate = a.drawsCounted > 0 ? a.l4Hits / a.drawsCounted : 0;
     const l3HitRate = a.drawsCounted > 0 ? a.l3Hits / a.drawsCounted : 0;
+
+    const recentLog = a.drawLog.filter(d => d.ts >= cutoffTs);
+    const l4HitsLast365 = recentLog.reduce((s, d) => s + (d.l4Hit ? 1 : 0), 0);
+    const totalDrawsLast365 = recentLog.length;
+    const l4HitRateLast365 = totalDrawsLast365 > 0 ? l4HitsLast365 / totalDrawsLast365 : 0;
+
     return {
       method,
       description: a.description,
@@ -198,6 +230,9 @@ export const runBacktest = (windowSize: number = Number.POSITIVE_INFINITY): Back
       l3Hits: a.l3Hits,
       l4HitRate,
       l3HitRate,
+      l4HitRateLast365,
+      l4HitsLast365,
+      totalDrawsLast365,
       l4Baseline,
       l3Baseline,
       liftL4: l4Baseline > 0 ? l4HitRate / l4Baseline : 0,
@@ -238,6 +273,12 @@ export const runBacktest = (windowSize: number = Number.POSITIVE_INFINITY): Back
       anyMethodL3Hits,
       bestMethodForL4: sortedByL4[0]?.method ?? "—",
       bestMethodForL3: sortedByL3[0]?.method ?? "—",
+    },
+    combinedTopL4: {
+      hits: ensembleHits,
+      drawsCounted: ensembleDraws,
+      hitRate: ensembleDraws > 0 ? ensembleHits / ensembleDraws : 0,
+      avgUnionSize: ensembleDraws > 0 ? ensembleUnionTotal / ensembleDraws : 0,
     },
     timeline: timeline.slice(-120),
     topL4Hits,
