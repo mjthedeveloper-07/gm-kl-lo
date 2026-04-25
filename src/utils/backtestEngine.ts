@@ -56,6 +56,11 @@ export interface BacktestReport {
     hitRate: number;
     avgUnionSize: number;
   };
+  nets: {
+    tight: { hits: number; drawsCounted: number; hitRate: number; avgSize: number };
+    mid: { hits: number; drawsCounted: number; hitRate: number; avgSize: number };
+    wide: { hits: number; drawsCounted: number; hitRate: number; avgSize: number };
+  };
   timeline: TimelinePoint[]; // most recent ~60
   topL4Hits: Array<MethodHit & { method: string }>; // best recent L4 wins across all methods
 }
