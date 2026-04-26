@@ -1,54 +1,62 @@
-# Plan — L4 Hit Report by Prediction Method
+# Plan — Full L4 / L3 / L2 Hit Analysis Report by Method
 
 ## Goal
-Produce a single downloadable text/CSV report showing **which of the 16 prediction methods scored L4 hits** during the backtest, ranked by performance.
+Produce a comprehensive downloadable report showing, for each of the **16 prediction methods** in the backtest engine, how many times each method hit the actual draw on **L4 (last 4)**, **L3 (last 3)**, and **L2 (last 2)** digits across all 2,226 historical draws.
 
-## Scope (L4 only — no L3, no nets)
-Only the 16 methods from `predictionGenerator.ts` evaluated against the **last 4 digits** of each historical draw. The Tight/Mid/Wide nets are excluded per request.
+## Current state
+- The backtest engine (`src/utils/backtestEngine.ts`) already tracks **L4** and **L3** hits per method.
+- It does **NOT** currently track **L2** — I'll compute L2 in a standalone script using the same prediction outputs (no engine modification needed).
 
-## What I will do (default mode)
+## What I will deliver
 
-1. **Run the existing backtest** (`runBacktest()` from `src/utils/backtestEngine.ts`) via a one-off Node script in `/tmp`. No code changes to the engine — I'll consume `methodScores` and `timeline` directly from the report it already returns.
+Three artifacts in `/mnt/documents/`:
 
-2. **Generate two artifacts in `/mnt/documents/`:**
+### 1. `method-full-hits-summary.txt` — human-readable ranked report
+For each of the 16 methods:
+```
+#1  L4 Positional Top-K
+    Predictions per draw: 5
+    ────────────────────────────────────
+    L4 hits:  8  / 2,226 draws  (0.36%)   lift 1.80×
+    L3 hits: 31  / 2,226 draws  (1.39%)   lift 1.39×
+    L2 hits: 198 / 2,226 draws  (8.89%)   lift 1.78×
+    ────────────────────────────────────
+    Recent form (last 365 draws):
+      L4: 2 hits | L3: 7 hits | L2: 38 hits
+    Last 5 winning draws (any tier):
+      - 12.04.26  Lottery 7  actual 234567 → predicted 891234 [L4]
+      - ...
+```
+Sorted by a weighted combined score (L4 × 100 + L3 × 10 + L2 × 1) so the strongest all-around method ranks first.
 
-   **a. `l4-hits-by-method.csv`** — one row per (method × draw it hit), sortable in Excel:
-   ```
-   method, l4_hit_rate, lift_vs_random, total_l4_hits, hit_date, lottery, actual_result, actual_l4, predicted_number
-   ```
+### 2. `method-full-hits-matrix.csv` — Excel-ready overview
+One row per method, easy to sort/filter:
+```
+method, predictions_per_draw,
+  l4_hits, l4_rate_pct, l4_lift,
+  l3_hits, l3_rate_pct, l3_lift,
+  l2_hits, l2_rate_pct, l2_lift,
+  recent_l4, recent_l3, recent_l2
+```
 
-   **b. `l4-hits-by-method-summary.txt`** — human-readable ranked summary:
-   ```
-   ===========================================
-   L4 HIT REPORT — 16 PREDICTION METHODS
-   Backtest window: <first date> → <last date>
-   Draws evaluated: N
-   Random baseline: 0.20%
-   ===========================================
+### 3. `method-full-hits-detail.csv` — full audit trail
+One row per (method × draw it hit at any tier):
+```
+method, hit_date, lottery, actual_result, actual_l4, actual_l3, actual_l2,
+predicted_number, match_tier (L4/L3/L2)
+```
 
-   #1  L4 Positional Top-K
-       L4 Hits: 42 / 2,226 draws (1.89%)
-       Lift vs random: 1.80×
-       Recent form (last 365 draws): 8 hits (2.19%)
-       Confidence: high
-       Sample winning draws:
-         - 12.04.26  Lottery 7  actual 234567 → predicted 891234 (L4 match: 4567)
-         - ...
-
-   #2  L4 Recency Bigrams
-       ...
-   ```
-
-3. **Surface both files** as `<lov-artifact>` tags so you can download them directly.
-
-## Why this approach
-- **No engine modification needed** — the backtest already tracks every L4 hit per method in `methodScores[].hits` (filtered to `matchType === "L4"`).
-- **Full audit trail** comes from the existing `hits` array; the engine currently caps it for UI display, so the script will run with the cap removed for the export only.
-- **Single source of truth** — same numbers you see in the Backtest tab, just exported per-method.
+## How I'll compute L2
+For each draw and each method:
+- Take all predictions the method generated.
+- Check if **any** of them ends with the actual draw's last 2 digits.
+- Baseline for L2 with `k` predictions: `1 − (1 − 1/100)^k` → used for the lift calculation.
 
 ## Files touched
-- **None permanently.** One throwaway script in `/tmp/generate-l4-report.ts` that imports the existing engine. The engine's display cap on `hits` will be temporarily lifted only for this export run (no committed code change).
+- **None permanently.** One throwaway script in `/tmp/run-full-analysis.ts` that imports `lotteryHistory` and `generateAllPredictionsFor` directly.
+- No changes to `backtestEngine.ts`, no UI changes.
 
 ## Out of scope
-- L3 hits, ensemble hits, net hits — request was L4-only.
-- Adding a UI panel — file-only delivery.
+- The L4 Coverage Nets (Tight / Mid / Wide) — report covers only the 16 methods, matching the previous L4-only report.
+- The per-draw ensemble (`combinedTopL4`).
+- Any UI panel — file-only delivery, like last time.
