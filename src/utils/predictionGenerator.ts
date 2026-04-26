@@ -1099,6 +1099,30 @@ export const generateAllPredictionsFor = (history: LotteryResult[]): PredictionS
       description: "L4-focused: intersection of last-200 top-3 and all-time top-5 per position (filters short-term noise)",
       numbers: generateL4StablePositionalPredictions(history),
       confidence: "high"
+    },
+    {
+      method: "L4 Complex Polar Drift",
+      description: "L4-focused: tracks (|z|, θ) drift of last 50 L4 tails and projects forward in polar coordinates",
+      numbers: generateL4ComplexPolarDriftPredictions(history),
+      confidence: "medium"
+    },
+    {
+      method: "L4 Conjugate Mirror",
+      description: "L4-focused: applies z̄ = a − bi and −z reflections to the hottest recent L4 tails",
+      numbers: generateL4ConjugateMirrorPredictions(history),
+      confidence: "medium"
+    },
+    {
+      method: "L4 nth-Roots Generator",
+      description: "L4-focused: generates the 5 fifth-roots of the most recent L4 tail using ⁿ√z = ⁿ√|z|·e^(i(θ+2kπ)/n)",
+      numbers: generateL4NthRootsPredictions(history),
+      confidence: "medium"
+    },
+    {
+      method: "L4 z₁·z₂ Angular Drift",
+      description: "L4-focused: multiplies the last two L4 tails (z₁·z₂ = |z₁||z₂|·e^i(θ₁+θ₂)) and rotates around the product",
+      numbers: generateL4ProductDriftPredictions(history),
+      confidence: "medium"
     }
   ];
 };
