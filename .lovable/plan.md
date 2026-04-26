@@ -1,62 +1,82 @@
-# Plan — Full L4 / L3 / L2 Hit Analysis Report by Method
+# Plan — L4 Daily Hit Playbook (20-Method Backtest)
 
-## Goal
-Produce a comprehensive downloadable report showing, for each of the **16 prediction methods** in the backtest engine, how many times each method hit the actual draw on **L4 (last 4)**, **L3 (last 3)**, and **L2 (last 2)** digits across all 2,226 historical draws.
+## Objective
+Find the strongest L4 (last 4 digits) prediction system for **daily play with exactly 5 numbers per draw**. Keep all 16 currently-deployed methods as the baseline, add 4 new L4-optimized complex-number variants derived from the formula sheet, and rank everything in one unified backtest.
 
-## Current state
-- The backtest engine (`src/utils/backtestEngine.ts`) already tracks **L4** and **L3** hits per method.
-- It does **NOT** currently track **L2** — I'll compute L2 in a standalone script using the same prediction outputs (no engine modification needed).
+---
 
-## What I will deliver
+## The 16 existing methods (kept as-is, no changes)
 
-Three artifacts in `/mnt/documents/`:
+These remain the production prediction systems. They will be re-evaluated under the new L4 / 5-picks scoring rules so we can compare apples to apples with the new methods.
 
-### 1. `method-full-hits-summary.txt` — human-readable ranked report
-For each of the 16 methods:
-```
-#1  L4 Positional Top-K
-    Predictions per draw: 5
-    ────────────────────────────────────
-    L4 hits:  8  / 2,226 draws  (0.36%)   lift 1.80×
-    L3 hits: 31  / 2,226 draws  (1.39%)   lift 1.39×
-    L2 hits: 198 / 2,226 draws  (8.89%)   lift 1.78×
-    ────────────────────────────────────
-    Recent form (last 365 draws):
-      L4: 2 hits | L3: 7 hits | L2: 38 hits
-    Last 5 winning draws (any tier):
-      - 12.04.26  Lottery 7  actual 234567 → predicted 891234 [L4]
-      - ...
-```
-Sorted by a weighted combined score (L4 × 100 + L3 × 10 + L2 × 1) so the strongest all-around method ranks first.
+1. Frequency-Based
+2. Probability-Weighted
+3. Trend-Based
+4. Hot-Cold Balanced
+5. Pattern Matching
+6. Complex Number Analysis
+7. Phase & Magnitude Based
+8. Exponential Form
+9. Complex Roots
+10. Exponentiation
+11. Real/Imaginary Decomposition
+12. L4 Positional Top-K
+13. L4 Markov Tail
+14. L4 Recency Bigrams
+15. L3 Anchor + L4 Prefix
+16. L4 Stable Positional
 
-### 2. `method-full-hits-matrix.csv` — Excel-ready overview
-One row per method, easy to sort/filter:
-```
-method, predictions_per_draw,
-  l4_hits, l4_rate_pct, l4_lift,
-  l3_hits, l3_rate_pct, l3_lift,
-  l2_hits, l2_rate_pct, l2_lift,
-  recent_l4, recent_l3, recent_l2
-```
+## 4 new L4-optimized methods (derived from the uploaded formula sheet)
 
-### 3. `method-full-hits-detail.csv` — full audit trail
-One row per (method × draw it hit at any tier):
-```
-method, hit_date, lottery, actual_result, actual_l4, actual_l3, actual_l2,
-predicted_number, match_tier (L4/L3/L2)
-```
+Each one targets the L4 tail directly instead of splitting F3/L3. They reuse the existing complex-number utilities in `predictionGenerator.ts`.
 
-## How I'll compute L2
-For each draw and each method:
-- Take all predictions the method generated.
-- Check if **any** of them ends with the actual draw's last 2 digits.
-- Baseline for L2 with `k` predictions: `1 − (1 − 1/100)^k` → used for the lift calculation.
+| # | New Method | Source identity from sheet | What it does for L4 |
+|---|---|---|---|
+| 17 | **L4 Complex Polar Drift** | `z = r·(cosθ + i·sinθ)` | Tracks `(r, θ)` of the last 50 L4 tails, projects the next `(r', θ')` from drift, converts back to a 4-digit tail |
+| 18 | **L4 Conjugate Mirror** | `z̄ = a − bi`, `−z` | Mirrors the hottest recent L4 tails across real/imag axes to surface symmetric candidates |
+| 19 | **L4 nth-Roots Generator** | `ⁿ√z = r^(1/n)·e^(i(θ+2πk)/n)` | Takes the last winning L4 as `z`, generates its 4 fourth-roots, maps each root back to a 4-digit tail |
+| 20 | **L4 z₁·z₂ Angular Drift** | `z₁·z₂ = r₁r₂·e^i(θ₁+θ₂)` | Multiplies the last two L4 tails as complex numbers, uses the resulting angle to predict the next tail family |
+
+---
+
+## Backtest protocol
+
+- **Window**: full history (2,227 draws after the April 26 update)
+- **Picks per draw**: exactly **5** (top-5 from each method's ranked output)
+- **Tier scored**: L4 only (this run is L4-focused)
+- **Baseline**: `1 − (1 − 1/10000)^5 ≈ 0.0500%` random hit rate
+- **Metrics per method**:
+  - Total L4 hits / draws
+  - Hit rate %
+  - Lift vs random
+  - Recent form (last 365 draws)
+  - Streak data (longest hit gap, hottest 90-day window)
+  - Sample of last 5 L4 wins with predicted vs actual
+
+## Ranking & playbook construction
+
+1. Rank all 20 methods by **(L4 lift × 0.6) + (recent-365 lift × 0.4)** so recent form weighs in.
+2. Take the **top 3 methods** and build the daily 5-ticket ensemble:
+   - 2 picks from rank-1 method
+   - 2 picks from rank-2 method
+   - 1 pick from rank-3 method
+3. De-duplicate across the 5 tickets so the user always plays 5 distinct L4 tails.
+
+## Deliverables (in `/mnt/documents/`)
+
+1. **`l4-method-leaderboard.csv`** — all 20 methods ranked, with hits, rate, lift, recent form
+2. **`l4-daily-playbook.txt`** — the 5-ticket daily system, including:
+   - Which method generates which ticket
+   - Today's 5 L4 tails for the next draw (using current history through April 26)
+   - Rolling refresh rule (regenerated each day from latest result)
+3. **`l4-formula-mapping.txt`** — short technical note mapping each of the 4 new methods back to the exact identity from the uploaded screenshot
 
 ## Files touched
-- **None permanently.** One throwaway script in `/tmp/run-full-analysis.ts` that imports `lotteryHistory` and `generateAllPredictionsFor` directly.
-- No changes to `backtestEngine.ts`, no UI changes.
 
-## Out of scope
-- The L4 Coverage Nets (Tight / Mid / Wide) — report covers only the 16 methods, matching the previous L4-only report.
-- The per-draw ensemble (`combinedTopL4`).
-- Any UI panel — file-only delivery, like last time.
+- `src/utils/predictionGenerator.ts` — add 4 new exported generator functions (methods 17–20). No edits to existing 16 methods.
+- `src/utils/backtestEngine.ts` — register the 4 new methods in the methods registry so they appear in the backtest tab too.
+- One throwaway script in `/tmp/` to produce the CSV/TXT artifacts. No UI changes in this pass.
+
+## Out of scope for this run
+- L2 and L3 scoring (already covered in prior reports)
+- UI surfacing of the new playbook (can be added in a follow-up once the leaderboard confirms the winners)
