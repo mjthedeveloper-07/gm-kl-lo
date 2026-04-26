@@ -1190,6 +1190,18 @@ export const generateAllPredictionsFor = (history: LotteryResult[]): PredictionS
       description: "L4-focused: multiplies the last two L4 tails (z₁·z₂ = |z₁||z₂|·e^i(θ₁+θ₂)) and rotates around the product",
       numbers: generateL4ProductDriftPredictions(history),
       confidence: "medium"
+    },
+    {
+      method: "L4 Inverse Reflection",
+      description: "L4-focused: applies z⁻¹ = z̄/|z|² to the hottest recent L4 tails to surface inverse-direction candidates",
+      numbers: generateL4InversePredictions(history),
+      confidence: "medium"
+    },
+    {
+      method: "L4 Quotient Drift",
+      description: "L4-focused: divides the last two L4 tails (z₁/z₂ = (|z₁|/|z₂|)·e^i(θ₁-θ₂)) and projects the polar drift forward",
+      numbers: generateL4QuotientDriftPredictions(history),
+      confidence: "medium"
     }
   ];
 };
