@@ -819,6 +819,183 @@ export const generateL4StablePositionalPredictions = (history: LotteryResult[] =
   return Array.from(out);
 };
 
+// ============================================================
+// L4-Optimized Complex-Number Methods (Methods 17-20)
+// Derived from the standard complex-number identity sheet.
+// Unlike Methods 6-11 (which split into F3 real / L3 imaginary and
+// predict the full 6-digit number), these target the L4 tail directly:
+// L4 "abcd" → real = ab, imaginary = cd. Output = 4-digit tail
+// prefixed with the most-common pos-0/pos-1 from the last 200 draws.
+// ============================================================
+
+// Helper: get most-common pos-0 / pos-1 prefix from recent history
+const recentPrefix = (history: LotteryResult[]): string => {
+  const recent = latestN(history, 200);
+  if (recent.length === 0) return "00";
+  const p0c = new Array(10).fill(0);
+  const p1c = new Array(10).fill(0);
+  recent.forEach(r => { p0c[+r.result[0]]++; p1c[+r.result[1]]++; });
+  return `${p0c.indexOf(Math.max(...p0c))}${p1c.indexOf(Math.max(...p1c))}`;
+};
+
+// Helper: convert L4 tail "abcd" -> complex (ab + cd·i)
+const l4ToComplex = (tail: string): { r: number; i: number } => ({
+  r: parseInt(tail.slice(0, 2), 10) || 0,
+  i: parseInt(tail.slice(2, 4), 10) || 0,
+});
+
+// Helper: convert (r, i) back to a 4-digit tail (each clamped 0-99)
+const complexToL4 = (r: number, i: number): string => {
+  const ri = ((Math.abs(Math.round(r)) % 100) + 100) % 100;
+  const ii = ((Math.abs(Math.round(i)) % 100) + 100) % 100;
+  return ri.toString().padStart(2, "0") + ii.toString().padStart(2, "0");
+};
+
+// Method 17: L4 Complex Polar Drift
+// Track polar (|z|, θ) of the last 50 L4 tails. Compute mean drift
+// per step, project the next 5 tails by stepping forward in (r, θ).
+export const generateL4ComplexPolarDriftPredictions = (history: LotteryResult[] = lotteryHistory): string[] => {
+  const recent = latestN(history, 50).filter(r => r.result.length === 6);
+  if (recent.length < 5) return [];
+  const prefix = recentPrefix(history);
+
+  // Newest -> oldest. Reverse to chronological for drift.
+  const chrono = recent.slice().reverse();
+  const polars = chrono.map(r => {
+    const z = l4ToComplex(r.result.slice(-4));
+    return { r: Math.sqrt(z.r * z.r + z.i * z.i), th: Math.atan2(z.i, z.r) };
+  });
+
+  // Mean step in (r, θ)
+  let dr = 0, dth = 0;
+  for (let k = 1; k < polars.length; k++) {
+    dr += polars[k].r - polars[k - 1].r;
+    let d = polars[k].th - polars[k - 1].th;
+    // unwrap
+    while (d > Math.PI) d -= 2 * Math.PI;
+    while (d < -Math.PI) d += 2 * Math.PI;
+    dth += d;
+  }
+  dr /= (polars.length - 1);
+  dth /= (polars.length - 1);
+
+  const last = polars[polars.length - 1];
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (let step = 1; step <= 8 && out.length < 5; step++) {
+    const r = Math.max(0, last.r + dr * step);
+    const th = last.th + dth * step;
+    const tail = complexToL4(r * Math.cos(th), r * Math.sin(th));
+    if (!seen.has(tail)) {
+      seen.add(tail);
+      out.push(prefix + tail);
+    }
+  }
+  return out;
+};
+
+// Method 18: L4 Conjugate Mirror
+// Identity: z̄ = a − bi, −z = (−a) + (−b)i.
+// For each of the top-5 hottest recent L4 tails, emit its conjugate
+// (top-2-digit / bottom-2-digit swap of sign via mod-100 mirror).
+export const generateL4ConjugateMirrorPredictions = (history: LotteryResult[] = lotteryHistory): string[] => {
+  const recent = latestN(history, 200).filter(r => r.result.length === 6);
+  if (recent.length === 0) return [];
+  const prefix = recentPrefix(history);
+
+  // Recency-weighted top L4 tails
+  const newest = parseDateTs(recent[0].date);
+  const w: Record<string, number> = {};
+  recent.forEach(r => {
+    const tail = r.result.slice(-4);
+    const ageDays = Math.max(0, (newest - parseDateTs(r.date)) / (1000 * 60 * 60 * 24));
+    w[tail] = (w[tail] || 0) + Math.exp(-ageDays / 180);
+  });
+  const hot = Object.entries(w).sort((a, b) => b[1] - a[1]).slice(0, 5).map(x => x[0]);
+
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const tail of hot) {
+    const z = l4ToComplex(tail);
+    // z̄: negate imag → mod-100 mirror = (100 - i) % 100
+    const conj = complexToL4(z.r, (100 - z.i) % 100);
+    // −z: negate real and imag
+    const neg = complexToL4((100 - z.r) % 100, (100 - z.i) % 100);
+    for (const t of [conj, neg]) {
+      if (!seen.has(t) && out.length < 5) {
+        seen.add(t);
+        out.push(prefix + t);
+      }
+    }
+    if (out.length >= 5) break;
+  }
+  return out;
+};
+
+// Method 19: L4 nth-Roots Generator
+// Identity: ⁿ√z = ⁿ√|z|·e^(i(θ+2kπ)/n), k ∈ {0…n−1}.
+// Take the most-recent L4 tail as z, generate its 5 fifth-roots.
+export const generateL4NthRootsPredictions = (history: LotteryResult[] = lotteryHistory): string[] => {
+  const recent = latestN(history, 1).filter(r => r.result.length === 6);
+  if (recent.length === 0) return [];
+  const prefix = recentPrefix(history);
+
+  const tail = recent[0].result.slice(-4);
+  const z = l4ToComplex(tail);
+  const r = Math.sqrt(z.r * z.r + z.i * z.i);
+  const th = Math.atan2(z.i, z.r);
+  const n = 5;
+
+  // Scale roots so the resulting (real, imag) span the 0-99 grid usefully.
+  // r^(1/n) is small for r<100, so multiply by sqrt(r) to map back into range.
+  const rRoot = Math.pow(r, 1 / n) * Math.sqrt(r);
+
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (let k = 0; k < n; k++) {
+    const angle = (th + 2 * k * Math.PI) / n;
+    const cand = complexToL4(rRoot * Math.cos(angle), rRoot * Math.sin(angle));
+    if (!seen.has(cand)) {
+      seen.add(cand);
+      out.push(prefix + cand);
+    }
+  }
+  return out;
+};
+
+// Method 20: L4 z₁·z₂ Angular Drift
+// Identity: z₁·z₂ = |z₁||z₂|·e^i(θ₁+θ₂).
+// Multiply the last 2 L4 tails as complex numbers, then rotate by
+// k·30° (k=0..4) around that result to fan out 5 candidates.
+export const generateL4ProductDriftPredictions = (history: LotteryResult[] = lotteryHistory): string[] => {
+  const recent = latestN(history, 2).filter(r => r.result.length === 6);
+  if (recent.length < 2) return [];
+  const prefix = recentPrefix(history);
+
+  const z1 = l4ToComplex(recent[0].result.slice(-4));
+  const z2 = l4ToComplex(recent[1].result.slice(-4));
+  const r1 = Math.sqrt(z1.r * z1.r + z1.i * z1.i);
+  const r2 = Math.sqrt(z2.r * z2.r + z2.i * z2.i);
+  const th1 = Math.atan2(z1.i, z1.r);
+  const th2 = Math.atan2(z2.i, z2.r);
+
+  // Product magnitude scaled back into range so |z₁|·|z₂| doesn't blow up.
+  const rProd = Math.sqrt(r1 * r2);
+  const thProd = th1 + th2;
+
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (let k = 0; k < 5; k++) {
+    const ang = thProd + (k * Math.PI) / 6;
+    const cand = complexToL4(rProd * Math.cos(ang), rProd * Math.sin(ang));
+    if (!seen.has(cand)) {
+      seen.add(cand);
+      out.push(prefix + cand);
+    }
+  }
+  return out;
+};
+
 // Generate all prediction sets
 export const generateAllPredictions = (): PredictionSet[] => generateAllPredictionsFor(lotteryHistory);
 
