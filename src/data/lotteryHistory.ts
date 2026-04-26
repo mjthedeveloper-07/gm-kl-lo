@@ -12,6 +12,7 @@ export interface LotteryResult {
 // Comprehensive Kerala Lottery daily results 2019-2026
 // Auto-generated from uploaded CSVs (kl_2019..kl_2026). Sorted newest-first.
 export const lotteryHistory: LotteryResult[] = [
+  { date: "26.04.26", day: "Sun", lottery: "Samrudhi", draw: "550", result: "550672", year: 2026, month: 4, lotteryType: "regular" },
   { date: "25.04.26", day: "Sat", lottery: "Karunya", draw: "794", result: "794625", year: 2026, month: 4, lotteryType: "regular" },
   { date: "24.04.26", day: "Fri", lottery: "Suvarna Keralam", draw: "211", result: "211038", year: 2026, month: 4, lotteryType: "regular" },
   { date: "23.04.26", day: "Thu", lottery: "Karunya Plus", draw: "384", result: "384654", year: 2026, month: 4, lotteryType: "regular" },
