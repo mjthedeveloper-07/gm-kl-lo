@@ -996,6 +996,73 @@ export const generateL4ProductDriftPredictions = (history: LotteryResult[] = lot
   return out;
 };
 
+// Method 21: L4 Inverse Reflection
+// Identity: z⁻¹ = z̄ / |z|²
+// For each of the top-5 hottest recent L4 tails, compute the
+// inverse direction and emit as a candidate.
+export const generateL4InversePredictions = (history: LotteryResult[] = lotteryHistory): string[] => {
+  const recent = latestN(history, 200).filter(r => r.result.length === 6);
+  if (recent.length === 0) return [];
+  const prefix = recentPrefix(history);
+
+  const newest = parseDateTs(recent[0].date);
+  const w: Record<string, number> = {};
+  recent.forEach(r => {
+    const tail = r.result.slice(-4);
+    const ageDays = Math.max(0, (newest - parseDateTs(r.date)) / (1000 * 60 * 60 * 24));
+    w[tail] = (w[tail] || 0) + Math.exp(-ageDays / 180);
+  });
+  const hot = Object.entries(w).sort((a, b) => b[1] - a[1]).slice(0, 5).map(x => x[0]);
+
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const tail of hot) {
+    const z = l4ToComplex(tail);
+    const magSq = z.r * z.r + z.i * z.i;
+    if (magSq === 0) continue;
+    const scaler = Math.sqrt(magSq);
+    const cand = complexToL4(z.r + scaler, -z.i + scaler);
+    if (!seen.has(cand)) {
+      seen.add(cand);
+      out.push(prefix + cand);
+      if (out.length >= 5) break;
+    }
+  }
+  return out;
+};
+
+// Method 22: L4 Quotient Drift
+// Identity: z₁ / z₂ = (|z₁|/|z₂|) · e^i(θ₁ − θ₂)
+// Divides the most-recent L4 tail by the previous one to extract
+// the polar drift, then projects 5 candidates forward.
+export const generateL4QuotientDriftPredictions = (history: LotteryResult[] = lotteryHistory): string[] => {
+  const recent = latestN(history, 6).filter(r => r.result.length === 6);
+  if (recent.length < 2) return [];
+  const prefix = recentPrefix(history);
+
+  const z1 = l4ToComplex(recent[0].result.slice(-4));
+  const z2 = l4ToComplex(recent[1].result.slice(-4));
+  const r1 = Math.sqrt(z1.r * z1.r + z1.i * z1.i);
+  const r2 = Math.sqrt(z2.r * z2.r + z2.i * z2.i) || 1;
+  const th1 = Math.atan2(z1.i, z1.r);
+  const th2 = Math.atan2(z2.i, z2.r);
+  const ratio = r1 / r2;
+  const dth = th1 - th2;
+
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (let k = 1; k <= 8 && out.length < 5; k++) {
+    const r = r1 * Math.pow(ratio, k * 0.5);
+    const th = th1 + dth * k * 0.5;
+    const cand = complexToL4(r * Math.cos(th), r * Math.sin(th));
+    if (!seen.has(cand)) {
+      seen.add(cand);
+      out.push(prefix + cand);
+    }
+  }
+  return out;
+};
+
 // Generate all prediction sets
 export const generateAllPredictions = (): PredictionSet[] => generateAllPredictionsFor(lotteryHistory);
 
@@ -1122,6 +1189,18 @@ export const generateAllPredictionsFor = (history: LotteryResult[]): PredictionS
       method: "L4 z₁·z₂ Angular Drift",
       description: "L4-focused: multiplies the last two L4 tails (z₁·z₂ = |z₁||z₂|·e^i(θ₁+θ₂)) and rotates around the product",
       numbers: generateL4ProductDriftPredictions(history),
+      confidence: "medium"
+    },
+    {
+      method: "L4 Inverse Reflection",
+      description: "L4-focused: applies z⁻¹ = z̄/|z|² to the hottest recent L4 tails to surface inverse-direction candidates",
+      numbers: generateL4InversePredictions(history),
+      confidence: "medium"
+    },
+    {
+      method: "L4 Quotient Drift",
+      description: "L4-focused: divides the last two L4 tails (z₁/z₂ = (|z₁|/|z₂|)·e^i(θ₁-θ₂)) and projects the polar drift forward",
+      numbers: generateL4QuotientDriftPredictions(history),
       confidence: "medium"
     }
   ];
